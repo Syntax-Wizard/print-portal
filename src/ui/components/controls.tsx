@@ -80,7 +80,7 @@ export function Segmented<T extends string>(props: {
           aria-hidden="true"
           class={cx(
             "pointer-events-none absolute top-0 left-0 rounded-lg bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10",
-            thumb.ready && "transition-[transform,width,height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            thumb.ready && "transition-[transform,width,height] duration-(--pp-dur-control) ease-(--pp-ease-move)",
           )}
           style={{
             width: `${thumb.width}px`,

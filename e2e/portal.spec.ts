@@ -614,8 +614,12 @@ test("settings survive a visit to another tab, and advanced settings stay open",
   const details = page.locator("details").first();
   await details.locator("summary").click();
   const delivery = details.locator('input[name="delivery"]');
-  await delivery.nth(1).check({ force: true });
-  await delivery.nth(0).check({ force: true });
+  // Click the visible labels, as a person would (this also waits for the section to finish opening).
+  const deliveryLabels = details.locator("label").filter({ has: page.locator('input[name="delivery"]') });
+  await deliveryLabels.nth(1).click();
+  await expect(delivery.nth(1)).toBeChecked();
+  await deliveryLabels.nth(0).click();
+  await expect(delivery.nth(0)).toBeChecked();
   expect(await details.evaluate((d) => (d as HTMLDetailsElement).open)).toBe(true);
 });
 

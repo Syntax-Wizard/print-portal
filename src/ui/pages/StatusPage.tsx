@@ -17,7 +17,7 @@ function HistorySection(props: { initiallyOpen: boolean }) {
   const { t } = useT();
   const [open, setOpen] = useState(props.initiallyOpen);
   return (
-    <details class="card group p-5 sm:p-6 md:col-span-2" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
+    <details class="pp-expand card group p-5 sm:p-6 md:col-span-2" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
       <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-bold tracking-tight text-ink [&::-webkit-details-marker]:hidden">
         <span class="inline-block text-ink-faint transition-transform group-open:rotate-90" aria-hidden="true">
           ▸

@@ -216,7 +216,7 @@ export function OptionsForm(props: {
 
       {/* Advanced settings */}
       <details
-        class="group border-t border-rule/80 pt-4"
+        class="pp-expand group border-t border-rule/80 pt-4"
         open={advancedOpen}
         onToggle={(e) => setAdvancedOpen((e.currentTarget as HTMLDetailsElement).open)}
       >

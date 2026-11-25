@@ -32,7 +32,7 @@ export function PdfDialog(props: {
   return (
     <dialog
       ref={dialog}
-      class="m-auto h-[min(90vh,60rem)] w-[min(94vw,56rem)] overflow-hidden rounded-2xl border border-rule bg-sheet p-0 text-ink shadow-2xl backdrop:bg-black/40"
+      class="pp-dialog m-auto h-[min(90vh,60rem)] w-[min(94vw,56rem)] overflow-hidden rounded-2xl border border-rule bg-sheet p-0 text-ink shadow-2xl backdrop:bg-black/40"
       aria-labelledby="pdf-dialog-title"
       onClose={props.onClose}
     >

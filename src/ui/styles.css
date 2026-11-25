@@ -85,6 +85,22 @@
     line-height: 1.6;
   }
 
+  /*
+   * Motion tokens: change a value here to retune every animation of that kind.
+   * Movement uses an even ease-out (visible for the whole duration); the steeper
+   * "pop" curve front-loads the motion, which suits small things appearing.
+   */
+  :root {
+    --pp-ease-move: cubic-bezier(0.2, 0, 0, 1);
+    --pp-ease-pop: cubic-bezier(0.22, 1, 0.36, 1);
+    --pp-dur-control: 350ms; /* sliding pills: tabs, segmented controls, theme switch */
+    --pp-dur-page: 300ms; /* page change slide */
+    --pp-dur-theme: 450ms; /* light/dark colour crossfade (App.tsx THEME_FADE_MS matches) */
+    --pp-dur-expand: 250ms; /* sections opening, dialogs */
+    --pp-dur-enter: 220ms; /* new list rows */
+    --pp-dur-pop: 160ms; /* menus, small confirmations */
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
@@ -99,7 +115,7 @@
   html.pp-theme-fading *:not([data-theme-thumb]),
   html.pp-theme-fading *::before,
   html.pp-theme-fading *::after {
-    transition: background-color 800ms ease, border-color 800ms ease, color 800ms ease, fill 800ms ease, stroke 800ms ease, box-shadow 800ms ease !important;
+    transition: background-color var(--pp-dur-theme) ease, border-color var(--pp-dur-theme) ease, color var(--pp-dur-theme) ease, fill var(--pp-dur-theme) ease, stroke var(--pp-dur-theme) ease, box-shadow var(--pp-dur-theme) ease !important;
   }
 
   @keyframes pp-slide-from-right {
@@ -121,6 +137,26 @@
     to {
       opacity: 1;
       transform: translateX(0);
+    }
+  }
+
+  @keyframes pp-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  @keyframes pp-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  @keyframes pp-fade-in {
+    from {
+      opacity: 0;
     }
   }
 
@@ -162,15 +198,48 @@
   }
 
   .pp-slide-right {
-    animation: pp-slide-from-right 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: pp-slide-from-right var(--pp-dur-page) var(--pp-ease-move) both;
   }
 
   .pp-slide-left {
-    animation: pp-slide-from-left 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: pp-slide-from-left var(--pp-dur-page) var(--pp-ease-move) both;
   }
 
   .pp-pop {
-    animation: pp-pop 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: pp-pop var(--pp-dur-pop) var(--pp-ease-pop) both;
+  }
+
+  /* A row just added to a list: confirms the drop or paste worked. */
+  .pp-enter {
+    animation: pp-enter var(--pp-dur-enter) var(--pp-ease-pop) both;
+  }
+
+  /* Modal dialogs (previews): fade and settle in; the backdrop fades. */
+  dialog.pp-dialog[open] {
+    animation: pp-dialog-in var(--pp-dur-expand) var(--pp-ease-pop) both;
+  }
+  /* Pseudo-elements below escape the global reduced-motion rule (it only covers ::before and
+     ::after), so they animate only when motion is welcome. */
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.pp-dialog[open]::backdrop {
+      animation: pp-fade-in var(--pp-dur-expand) ease both;
+    }
+  }
+
+  /* Expanding <details> (advanced settings, etc.) animate their height where supported
+     (Chrome/Edge 131+); elsewhere they open instantly as before. */
+  details.pp-expand {
+    interpolate-size: allow-keywords;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    details.pp-expand::details-content {
+      height: 0;
+      overflow: clip;
+      transition: height var(--pp-dur-expand) var(--pp-ease-move), content-visibility var(--pp-dur-expand) allow-discrete;
+    }
+    details.pp-expand[open]::details-content {
+      height: auto;
+    }
   }
 
   .pp-sheet-rect {

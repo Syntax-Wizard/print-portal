@@ -105,6 +105,17 @@ function ItemStatusLine({ item }: { item: PrintItem }) {
     const e = item.error;
     return <span class="font-medium text-error">{t(`errors.${e.code}`, { fields: e.fields?.join(", ") ?? "", status: e.httpStatus ?? "" })}</span>;
   }
+  if (item.status === "done") {
+    // A small check that pops in when the printer finishes: the moment worth noticing.
+    return (
+      <span class="inline-flex items-center gap-1 font-medium text-ok">
+        <svg class="pp-pop h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
+        </svg>
+        {t("item.done")}
+      </span>
+    );
+  }
   const tone: Record<string, string> = {
     done: "font-medium text-ok",
     held: "font-medium text-warn",
@@ -217,7 +228,7 @@ export function FileList(props: {
           const cancellable =
             ["queued", "preparing", "uploading"].includes(item.status) || (Boolean(item.jobId) && ["sent", "waiting", "printing"].includes(item.status));
           return (
-            <li key={item.key} class="relative flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-well/40">
+            <li key={item.key} class="pp-enter relative flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-well/40">
               {item.status === "uploading" && (
                 <span class="absolute inset-x-0 bottom-0 h-0.5 bg-accent transition-[width] duration-150" style={{ width: `${item.progress * 100}%` }} aria-hidden="true" />
               )}

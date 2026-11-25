@@ -36,6 +36,9 @@ function useView(): [View, (v: View) => void] {
   return [view, (v) => (location.hash = `/${v}`)];
 }
 
+/** Light/dark crossfade length; matches --pp-dur-theme in styles.css (plus a little slack). */
+const THEME_FADE_MS = 500;
+
 function useTheme(): [Theme, (t: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(loadTheme);
   const fadeTimer = useRef<number | null>(null);
@@ -59,7 +62,7 @@ function useTheme(): [Theme, (t: Theme) => void] {
       }
       root.classList.add("pp-theme-fading");
       if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
-      fadeTimer.current = window.setTimeout(() => root.classList.remove("pp-theme-fading"), 850);
+      fadeTimer.current = window.setTimeout(() => root.classList.remove("pp-theme-fading"), THEME_FADE_MS);
       saveTheme(t);
       setTheme(t);
     },
@@ -278,7 +281,7 @@ function PrimaryNav({ view, onView, dotClass }: { view: View; onView: (v: View) 
           aria-hidden="true"
           class={cx(
             "pointer-events-none absolute top-1 bottom-1 left-0 rounded-lg bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10",
-            pill.ready && "transition-[transform,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            pill.ready && "transition-[transform,width] duration-(--pp-dur-control) ease-(--pp-ease-move)",
           )}
           style={{ width: `${pill.width}px`, transform: `translateX(${pill.left}px)` }}
         />
@@ -357,7 +360,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
             <span
               aria-hidden="true"
               data-theme-thumb
-              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-[transform,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
+              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-[transform,background-color] duration-(--pp-dur-control) ease-(--pp-ease-move) dark:ring-white/10"
               style={{ transform: `translateX(${themeIndex * 100}%)` }}
             />
             {THEMES.map((mode) => {
