@@ -99,7 +99,7 @@
   html.pp-theme-fading *:not([data-theme-thumb]),
   html.pp-theme-fading *::before,
   html.pp-theme-fading *::after {
-    transition: background-color 320ms ease, border-color 320ms ease, color 320ms ease, fill 320ms ease, stroke 320ms ease, box-shadow 320ms ease !important;
+    transition: background-color 800ms ease, border-color 800ms ease, color 800ms ease, fill 800ms ease, stroke 800ms ease, box-shadow 800ms ease !important;
   }
 
   @keyframes pp-slide-from-right {

@@ -54,7 +54,7 @@ function useTheme(): [Theme, (t: Theme) => void] {
       const root = document.documentElement;
       root.classList.add("pp-theme-fading");
       if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
-      fadeTimer.current = window.setTimeout(() => root.classList.remove("pp-theme-fading"), 360);
+      fadeTimer.current = window.setTimeout(() => root.classList.remove("pp-theme-fading"), 850);
       saveTheme(t);
       setTheme(t);
     },
@@ -260,7 +260,7 @@ function PrimaryNav({ view, onView, dotClass }: { view: View; onView: (v: View) 
           aria-hidden="true"
           class={cx(
             "pointer-events-none absolute top-1 bottom-1 left-0 rounded-lg bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10",
-            pill.ready && "transition-[transform,width] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            pill.ready && "transition-[transform,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
           )}
           style={{ width: `${pill.width}px`, transform: `translateX(${pill.left}px)` }}
         />
@@ -339,7 +339,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
             <span
               aria-hidden="true"
               data-theme-thumb
-              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
+              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-[transform,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
               style={{ transform: `translateX(${themeIndex * 100}%)` }}
             />
             {THEMES.map((mode) => {
