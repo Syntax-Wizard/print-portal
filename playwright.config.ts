@@ -7,6 +7,9 @@ export default defineConfig({
   timeout: 60_000,
   // On CI, failures also become annotations on the commit, readable without the (login-only) logs.
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
+  // One retry on CI so a timing flake on the slower runner does not block deploying; the
+  // github reporter still marks such tests as flaky.
+  retries: process.env.CI ? 1 : 0,
   use: {
     baseURL: "http://localhost:8631",
     // Use the locally installed Chrome; set PW_CHANNEL="" to use Playwright's bundled Chromium (e.g. in CI).
