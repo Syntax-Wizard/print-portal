@@ -3,12 +3,13 @@
  * ready -> queued -> uploading -> sent -> waiting/printing -> done (or failed).
  */
 
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { createContext, type ComponentChildren } from "preact";
+import { useCallback, useContext, useEffect, useRef, useState } from "preact/hooks";
 import { findFinishedJob, findNewJob } from "../printer/client";
 import type { PrintOptions, QueuedJob, SubmitResult } from "../printer/types";
 import { isUnmapped } from "../printer/types";
 import { type FileProblem, MAX_FILES, checkFile } from "./files";
-import { type PdfIssue, buildPrintFile, countPdfPages, isImageItem, isPdf, issueFromError, needsProcessing } from "./pdfJobs";
+import { type PdfIssue, buildMergedFile, buildPrintFile, countPdfPages, isImageItem, isPdf, issueFromError, needsProcessing } from "./pdfJobs";
 import { canReadImage } from "../images/convert";
 import { usePrinter } from "./PrinterContext";
 
@@ -61,8 +62,9 @@ export function useSubmissions() {
   const ownerRef = useRef(owner);
   ownerRef.current = owner;
 
-  const update = useCallback((key: string, patch: Partial<PrintItem>) => {
-    setItems((list) => list.map((it) => (it.key === key ? { ...it, ...patch } : it)));
+  const update = useCallback((key: string | readonly string[], patch: Partial<PrintItem>) => {
+    const keys = typeof key === "string" ? [key] : key;
+    setItems((list) => list.map((it) => (keys.includes(it.key) ? { ...it, ...patch } : it)));
   }, []);
 
   const addFiles = useCallback((files: Iterable<File>) => {
@@ -102,6 +104,18 @@ export function useSubmissions() {
   const setPageRange = useCallback((key: string, pageRange: string) => update(key, { pageRange }), [update]);
 
   const remove = useCallback((key: string) => setItems((list) => list.filter((i) => i.key !== key)), []);
+
+  /** Move a file up (-1) or down (+1): the order of a merged print. */
+  const move = useCallback((key: string, delta: -1 | 1) => {
+    setItems((list) => {
+      const i = list.findIndex((it) => it.key === key);
+      const j = i + delta;
+      if (i < 0 || j < 0 || j >= list.length) return list;
+      const next = [...list];
+      [next[i], next[j]] = [next[j]!, next[i]!];
+      return next;
+    });
+  }, []);
   const clearDone = useCallback(() => setItems((list) => list.filter((i) => i.status !== "done")), []);
 
   /** History entries already matched to an upload from this tab (see findFinishedJob). */
@@ -109,7 +123,7 @@ export function useSubmissions() {
 
   /** Follow one job in the printer queue until it finishes. Runs in the background. */
   const track = useCallback(
-    async (key: string, before: Set<string>, since: Date) => {
+    async (key: string | readonly string[], before: Set<string>, since: Date) => {
       const started = Date.now();
       let jobId: string | undefined;
       for (let attempt = 0; ; attempt++) {
@@ -158,50 +172,91 @@ export function useSubmissions() {
     [client, rememberOwner, update, queue],
   );
 
+  /** Upload one file (or merged file) for `keys` and follow the job. */
+  const sendOne = useCallback(
+    async (keys: readonly string[], build: () => Promise<{ file: File; options: PrintOptions }>, needsBuild: boolean) => {
+      update(keys, { status: "uploading" });
+      const since = new Date();
+      let before = new Set<string>();
+      try {
+        const current = await client.getQueue();
+        queue.push(current);
+        before = new Set(current.map((j) => j.id));
+      } catch {
+        // Without a snapshot we can still upload; tracking just becomes less precise.
+      }
+      let prepared: { file: File; options: PrintOptions };
+      if (needsBuild) update(keys, { status: "preparing" });
+      try {
+        prepared = await build();
+      } catch (err) {
+        update(keys, { status: "failed", pdfIssue: issueFromError(err) });
+        return;
+      }
+      update(keys, { status: "uploading" });
+      const result = await client.submit(prepared.file, prepared.options, { onProgress: (p) => update(keys, { progress: p }) });
+      if (result.ok) {
+        update(keys, { status: "sent", progress: 1 });
+        void track(keys, before, since);
+      } else {
+        update(keys, { status: "failed", error: result });
+      }
+    },
+    [client, queue, update, track],
+  );
+
   const print = useCallback(
-    async (options: PrintOptions, onlyKey?: string) => {
-      const targets = items.filter((i) => !i.problem && (onlyKey ? i.key === onlyKey : i.status === "ready"));
+    async (options: PrintOptions, opts: { onlyKey?: string; merge?: boolean } = {}) => {
+      const targets = items.filter((i) => !i.problem && (opts.onlyKey ? i.key === opts.onlyKey : i.status === "ready"));
       if (targets.length === 0) return;
       setBusy(true);
       for (const t of targets) update(t.key, { status: "queued", progress: 0, error: undefined });
       try {
+        if (opts.merge && targets.length > 1) {
+          // One job, in the order shown: pages per sheet and 2-sided run across the files.
+          const keys = targets.map((t) => t.key);
+          await sendOne(keys, () => buildMergedFile(targets, options), true);
+          return;
+        }
         for (const t of targets) {
-          update(t.key, { status: "uploading" });
-          const since = new Date();
-          let before = new Set<string>();
-          try {
-            const current = await client.getQueue();
-            queue.push(current);
-            before = new Set(current.map((j) => j.id));
-          } catch {
-            // Without a snapshot we can still upload; tracking just becomes less precise.
-          }
-          let upload = t.file;
-          let sendOptions = options;
-          if (needsProcessing(t, options)) {
-            update(t.key, { status: "preparing" });
-            try {
-              ({ file: upload, options: sendOptions } = await buildPrintFile(t, options));
-            } catch (err) {
-              update(t.key, { status: "failed", pdfIssue: issueFromError(err) });
-              continue;
-            }
-            update(t.key, { status: "uploading" });
-          }
-          const result = await client.submit(upload, sendOptions, { onProgress: (p) => update(t.key, { progress: p }) });
-          if (result.ok) {
-            update(t.key, { status: "sent", progress: 1 });
-            void track(t.key, before, since);
-          } else {
-            update(t.key, { status: "failed", error: result });
-          }
+          await sendOne([t.key], () => buildPrintFile(t, options), needsProcessing(t, options));
         }
       } finally {
         setBusy(false);
       }
     },
-    [items, client, update, track],
+    [items, update, sendOne],
   );
 
-  return { items, busy, tooMany, addFiles, remove, clearDone, print, setPageRange };
+  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange };
+}
+
+export type Submissions = ReturnType<typeof useSubmissions>;
+
+const SubmissionsContext = createContext<Submissions | null>(null);
+
+/**
+ * The print list lives above the pages, so switching to the mailbox and back keeps it, and the
+ * mailbox can add documents to it.
+ */
+export function SubmissionsProvider(props: { children: ComponentChildren }) {
+  const submissions = useSubmissions();
+  // Reloading shows the printer's original screen and loses the list, so ask first.
+  const pending = submissions.items.some((i) => ["ready", "queued", "preparing", "uploading"].includes(i.status));
+  useEffect(() => {
+    if (!pending) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ""; // Older browsers need this to show the prompt.
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [pending]);
+  return <SubmissionsContext.Provider value={submissions}>{props.children}</SubmissionsContext.Provider>;
+}
+
+export function usePrintList(): Submissions {
+  const value = useContext(SubmissionsContext);
+  if (!value) throw new Error("usePrintList must be used inside <SubmissionsProvider>");
+  return value;
 }

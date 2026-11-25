@@ -44,6 +44,18 @@ export async function imageToPdf(image: { bytes: Uint8Array; format: "jpeg" | "p
   return doc.save();
 }
 
+/** Concatenate PDFs in order (each part keeps only the resources its pages use). */
+export async function mergePdfs(parts: readonly Uint8Array[]): Promise<Uint8Array> {
+  const out = await PDFDocument.create();
+  for (const part of parts) {
+    const src = await load(part, true);
+    const indices = src.getPageIndices();
+    for (const i of indices) prunePageResources(src.getPage(i));
+    for (const page of await out.copyPages(src, indices)) out.addPage(page);
+  }
+  return out.save();
+}
+
 export async function countPages(data: ArrayBuffer | Uint8Array): Promise<number> {
   return (await load(data, false)).getPageCount();
 }

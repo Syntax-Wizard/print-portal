@@ -3,7 +3,8 @@ import { formatDateTime, formatTime, useT } from "../../i18n";
 import { type MailboxDocument, type MailboxSummary, type RetrieveFormat, isRetrievable } from "../../printer/mailbox";
 import { cx } from "../components/controls";
 import { usePrinter } from "../PrinterContext";
-import { type MailboxNotice, type Thumbnail, useMailbox } from "../useMailbox";
+import { type Mailbox, type MailboxNotice, type Thumbnail, useMailboxContext } from "../useMailbox";
+import { usePrintList } from "../useSubmissions";
 import { PdfDialog } from "../components/PdfDialog";
 
 /** The printer shows box numbers with three digits (027). */
@@ -19,13 +20,25 @@ const dangerButton =
 function Notice({ notice }: { notice: MailboxNotice | null }) {
   const { t } = useT();
   if (!notice) return null;
-  const text =
-    notice.kind === "error"
-      ? t(`mailbox.errors.${notice.code}`)
-      : notice.kind === "autoClosed"
-        ? t("mailbox.autoClosed")
-        : t(`mailbox.${notice.kind}`, { count: notice.count });
-  const tone = notice.kind === "error" ? "border-error/30 bg-error-wash/60 text-error" : notice.kind === "autoClosed" ? "border-rule bg-well/60 text-ink-soft" : "border-ok/30 bg-ok-wash/60 text-ok";
+  let text: string;
+  switch (notice.kind) {
+    case "error":
+      text = t(`mailbox.errors.${notice.code}`);
+      break;
+    case "autoClosed":
+      text = t("mailbox.autoClosed");
+      break;
+    case "receiveEnded":
+      text = t("mailbox.receive.ended");
+      break;
+    case "archived":
+      text = t(notice.deleted ? "mailbox.archivedDeleted" : "mailbox.archived", { count: notice.count });
+      break;
+    default:
+      text = t(`mailbox.${notice.kind}`, { count: notice.count });
+  }
+  const quiet = notice.kind === "autoClosed" || notice.kind === "receiveEnded";
+  const tone = notice.kind === "error" ? "border-error/30 bg-error-wash/60 text-error" : quiet ? "border-rule bg-well/60 text-ink-soft" : "border-ok/30 bg-ok-wash/60 text-ok";
   return (
     <p class={cx("m-0 rounded-xl border px-4 py-3 text-sm font-medium", tone)} role={notice.kind === "error" ? "alert" : "status"}>
       {text}
@@ -233,13 +246,66 @@ function DocumentRow(props: {
   );
 }
 
-function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
+function ReceivePanel(props: { mb: Mailbox }) {
+  const { t, lang } = useT();
+  const { mb } = props;
+  const r = mb.receiving;
+  if (!r) {
+    return (
+      <div class="flex flex-wrap items-center gap-3 rounded-xl border border-rule bg-well/40 px-4 py-3">
+        <div class="min-w-0 flex-1">
+          <p class="m-0 text-sm font-semibold">{t("mailbox.receive.title")}</p>
+          <p class="m-0 text-xs text-ink-soft">{t("mailbox.receive.description")}</p>
+        </div>
+        <button type="button" class={primaryButton} onClick={() => mb.startReceiving(false)}>
+          {t("mailbox.receive.start")}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <section class="flex flex-col gap-2 rounded-xl border border-accent/40 bg-accent-wash/40 px-4 py-3" aria-live="polite">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
+        <p class="m-0 flex-1 text-sm font-semibold">{t("mailbox.receive.waiting", { time: formatTime(new Date(r.until), lang) })}</p>
+        <button type="button" class={secondaryButton} onClick={mb.stopReceiving}>
+          {t("mailbox.receive.stop")}
+        </button>
+      </div>
+      <label class="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" class="h-4 w-4 accent-[var(--color-accent)]" checked={r.deleteAfter} onChange={(e) => mb.setReceiveDelete((e.currentTarget as HTMLInputElement).checked)} />
+        {t("mailbox.receive.deleteAfter")}
+      </label>
+      <p class="m-0 text-xs text-ink-faint">{t("mailbox.receive.downloadHint")}</p>
+      <div>
+        <p class="m-0 text-xs font-semibold text-ink-soft">{t("mailbox.receive.received")}</p>
+        {r.received.length === 0 ? (
+          <p class="m-0 text-xs text-ink-soft">{t("mailbox.receive.none")}</p>
+        ) : (
+          <ul class="m-0 list-none p-0 text-sm">
+            {r.received.map((name, i) => (
+              <li key={`${name}-${i}`} class="tabular">
+                ✓ {name}
+              </li>
+            ))}
+          </ul>
+        )}
+        {r.pendingDeletes > 0 && <p class="m-0 mt-1 text-xs text-warn">{t("mailbox.receive.pendingDeletes", { count: r.pendingDeletes })}</p>}
+      </div>
+    </section>
+  );
+}
+
+function OpenBox(props: { mb: Mailbox }) {
   const { t, lang } = useT();
   const { status } = usePrinter();
   const { mb } = props;
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [format, setFormat] = useState<RetrieveFormat>("pdf");
   const [confirming, setConfirming] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [deleteAfterArchive, setDeleteAfterArchive] = useState(false);
+  const { addFiles } = usePrintList();
 
   // Drop selections for documents that disappeared.
   useEffect(() => {
@@ -252,6 +318,7 @@ function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
 
   return (
     <div class="flex flex-col gap-4">
+      <ReceivePanel mb={mb} />
       <div class="flex flex-wrap items-center gap-3">
         <label class="flex items-center gap-2 text-sm">
           <input
@@ -274,11 +341,50 @@ function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
           <button type="button" class={secondaryButton} disabled={ids.length === 0 || mb.busy !== null} onClick={() => void mb.save(ids, format)}>
             {mb.busy === "saving" ? t("mailbox.saving") : t("mailbox.saveSelected", { count: ids.length })}
           </button>
+          <button type="button" class={secondaryButton} disabled={ids.length === 0 || mb.busy !== null} onClick={() => setArchiving(true)}>
+            {t("mailbox.archiveSelected", { count: ids.length })}
+          </button>
+          <button
+            type="button"
+            class={secondaryButton}
+            disabled={ids.length === 0 || mb.busy !== null}
+            onClick={async () => {
+              // Documents join the print list, where every print option is available.
+              if (await mb.sendToPrint(ids, addFiles)) location.hash = "/print";
+            }}
+          >
+            {t("mailbox.sendToPrint", { count: ids.length })}
+          </button>
           <button type="button" class={dangerButton} disabled={ids.length === 0 || mb.busy !== null} onClick={() => setConfirming(true)}>
             {t("mailbox.deleteSelected", { count: ids.length })}
           </button>
         </div>
       </div>
+
+      {archiving && ids.length > 0 && (
+        <div class="flex flex-wrap items-center gap-3 rounded-xl border border-rule bg-well/50 px-4 py-3">
+          <p class="m-0 text-sm font-semibold">{t("mailbox.archiveSelected", { count: ids.length })}</p>
+          <label class="inline-flex flex-1 items-center gap-2 text-sm">
+            <input type="checkbox" class="h-4 w-4 accent-[var(--color-accent)]" checked={deleteAfterArchive} onChange={(e) => setDeleteAfterArchive((e.currentTarget as HTMLInputElement).checked)} />
+            {t("mailbox.archiveDeleteAfter")}
+          </label>
+          <button
+            type="button"
+            class={deleteAfterArchive ? dangerButton : secondaryButton}
+            disabled={mb.busy !== null}
+            onClick={async () => {
+              await mb.archive(ids, deleteAfterArchive);
+              setArchiving(false);
+              if (deleteAfterArchive) setChecked(new Set());
+            }}
+          >
+            {mb.busy === "saving" ? t("mailbox.saving") : t("mailbox.archiveRun")}
+          </button>
+          <button type="button" class={secondaryButton} onClick={() => setArchiving(false)}>
+            {t("mailbox.cancel")}
+          </button>
+        </div>
+      )}
 
       {confirming && ids.length > 0 && (
         <div class="flex flex-wrap items-center gap-3 rounded-xl border border-error/30 bg-error-wash/50 px-4 py-3" role="alertdialog" aria-labelledby="mb-confirm">
@@ -332,7 +438,11 @@ function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
         </ul>
       )}
 
-      {mb.updatedAt && <p class="m-0 text-xs text-ink-faint">{t("device.updatedAt", { time: formatTime(mb.updatedAt, lang) })}</p>}
+      {mb.updatedAt && (
+        <p class="m-0 text-xs text-ink-faint">
+          {t("device.updatedAt", { time: formatTime(mb.updatedAt, lang) })}　{mb.receiving ? null : t("mailbox.idleNote")}
+        </p>
+      )}
 
       {mb.preview && (
         <PdfDialog
@@ -354,7 +464,9 @@ function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
 
 export function MailboxPage() {
   const { t } = useT();
-  const mb = useMailbox();
+  const mb = useMailboxContext();
+  // The first visit loads the list of boxes (and opens "my" box).
+  useEffect(() => mb.activate(), [mb.activate]);
   const box = mb.selected;
 
   return (

@@ -151,7 +151,7 @@ export class PrinterClient {
  * unambiguous for jobs submitted from this tab.
  */
 export function findNewJob(before: ReadonlySet<string>, queue: readonly QueuedJob[], owner?: string | null): QueuedJob | undefined {
-  return queue.find((job) => !before.has(job.id) && (!owner || job.owner === owner));
+  return queue.find((job) => !before.has(job.id) && job.type === "print" && (!owner || job.owner === owner));
 }
 
 /** History timestamps only have minute precision, so allow some slack before the upload time. */
@@ -170,7 +170,7 @@ export function findFinishedJob(history: readonly HistoryJob[], since: Date, own
   const seen = new Map<string, number>();
   // History is newest first; walk oldest first so earlier uploads match earlier entries.
   for (const h of [...history].reverse()) {
-    if (h.hostInterface !== "HTTP" || !h.completedAt) continue;
+    if (h.hostInterface !== "HTTP" || h.type !== "print" || !h.completedAt) continue;
     if (h.completedAt.getTime() < since.getTime() - HISTORY_SLACK_MS) continue;
     if (owner && h.owner !== owner) continue;
     const sig = historySignature(h);

@@ -24,7 +24,8 @@ function Owner({ owner, mine }: { owner: string; mine: boolean }) {
 export function QueuePanel() {
   const { t } = useT();
   const { queue, owner } = usePrinter();
-  const jobs = queue.data ?? [];
+  // The printer logs every mailbox retrieval (thumbnails, downloads) as a job: not of interest here.
+  const jobs = (queue.data ?? []).filter((j) => j.type !== "mailboxRetrieval");
   if (jobs.length === 0) return null;
   return (
     <section class="card flex flex-col gap-3 p-5" aria-labelledby="queue-heading">
@@ -61,7 +62,8 @@ export function JobHistory() {
   const [limit, setLimit] = useState(PAGE_SIZE);
 
   const rows = useMemo(() => {
-    const all = history.data ?? [];
+    // Mailbox retrievals ("ボックス取出") cannot be avoided on the printer, so they are hidden here.
+    const all = (history.data ?? []).filter((h) => h.type !== "mailboxRetrieval");
     return onlyMine && owner ? all.filter((h) => h.owner === owner) : all;
   }, [history.data, onlyMine, owner]);
 
@@ -86,6 +88,7 @@ export function JobHistory() {
           </label>
         </div>
         {!owner && <p class="m-0 mb-4 rounded-xl bg-well/50 px-3.5 py-2.5 text-xs text-ink-soft">{t("jobs.mineUnknown")}</p>}
+        <p class="m-0 mb-4 text-xs text-ink-faint">{t("jobs.retrievalsHidden")}</p>
         {history.error !== undefined && !history.data && <p class="text-sm font-medium text-error">{t("errors.PRINTER_UNREACHABLE")}</p>}
         {history.data && rows.length === 0 && <p class="m-0 rounded-xl bg-well/50 px-3.5 py-2.5 text-sm text-ink-soft">{t("jobs.historyEmpty")}</p>}
         {rows.length > 0 && (

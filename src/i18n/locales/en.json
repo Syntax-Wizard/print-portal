@@ -57,7 +57,14 @@
       "toolsUnavailable": "Couldn't load the PDF tools. Check your internet connection.",
       "toolsOutdated": "Print Portal was just updated. Reload the page, then click the bookmark again."
     },
-    "imageUnreadable": "This browser can't read this image (e.g. HEIC outside Safari). Convert it to JPEG or PNG and add it again."
+    "imageUnreadable": "This browser can't read this image (e.g. HEIC outside Safari). Convert it to JPEG or PNG and add it again.",
+    "merge": "Print as one job",
+    "mergeHint": "Combine the files into one job so 2-sided printing and pages per sheet run across them.",
+    "mergeOrderHint": "Printed in this order. Use ↑↓ to reorder.",
+    "mergedPreview": "Preview combined",
+    "mergedPreviewTitle": "Combined ({{count}} files)",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down"
   },
   "item": {
     "ready": "Ready",
@@ -206,7 +213,9 @@
     "noFiles": "Add a file to print.",
     "busy": "Sending…",
     "fixErrors": "Check the settings above.",
-    "fixRanges": "Check the page selections."
+    "fixRanges": "Check the page selections.",
+    "mergedButton_one": "Print {{count}} file as one job",
+    "mergedButton_other": "Print {{count}} files as one job"
   },
   "errors": {
     "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",
@@ -305,7 +314,8 @@
       "HTTP": "Browser",
       "LPD": "Driver"
     },
-    "showMore": "Show more"
+    "showMore": "Show more",
+    "retrievalsHidden": "Mailbox retrievals (the printer logs one for every thumbnail and download) are not shown."
   },
   "mailbox": {
     "intro": "Documents you scan to a mailbox on the printer can be saved here as PDF.",
@@ -322,7 +332,7 @@
     "opening": "Opening…",
     "passwordNote": "The password is never saved. It is forgotten when you close this page or after 10 minutes without activity.",
     "close": "Close mailbox",
-    "autoClosed": "The mailbox was closed after 10 minutes without activity.",
+    "autoClosed": "The mailbox was closed after 30 minutes without activity.",
     "documents_one": "{{count}} document",
     "documents_other": "{{count}} documents",
     "empty": "This mailbox is empty. Scan on the printer and save to this mailbox, and the documents appear here.",
@@ -374,7 +384,34 @@
     "renamePlaceholder": "e.g. Lab meeting handout",
     "renameNote": "Names are kept in this browser only. The document on the printer keeps its own name.",
     "scannedAt": "Scanned {{time}}",
-    "cannotView": "This kind of document can't be viewed."
+    "cannotView": "This kind of document can't be viewed.",
+    "idleNote": "The mailbox closes automatically after 30 minutes without activity.",
+    "archiveSelected_one": "Save {{count}} selected as ZIP",
+    "archiveSelected_other": "Save {{count}} selected as ZIP",
+    "archiveDeleteAfter": "Delete them from the mailbox after saving",
+    "archiveRun": "Save",
+    "archived_one": "Saved {{count}} document in a ZIP file.",
+    "archived_other": "Saved {{count}} documents in a ZIP file.",
+    "archivedDeleted_one": "Saved {{count}} document in a ZIP file and deleted it from the mailbox.",
+    "archivedDeleted_other": "Saved {{count}} documents in a ZIP file and deleted them from the mailbox.",
+    "sendToPrint_one": "Print {{count}} selected",
+    "sendToPrint_other": "Print {{count}} selected",
+    "sentToPrint_one": "Added {{count}} document to the print list.",
+    "sentToPrint_other": "Added {{count}} documents to the print list.",
+    "receive": {
+      "title": "Receive scans automatically",
+      "description": "Scans saved to this mailbox from now on are downloaded to this computer automatically. Runs for up to 2 hours and keeps going when you switch tabs.",
+      "start": "Start receiving",
+      "waiting": "Waiting for scans (until {{time}})",
+      "stop": "Stop receiving",
+      "deleteAfter": "Delete from the mailbox once received",
+      "received": "Received",
+      "none": "Nothing yet. Scan on the printer and save to this mailbox.",
+      "pendingDeletes_one": "{{count}} document will be deleted once the printer is free.",
+      "pendingDeletes_other": "{{count}} documents will be deleted once the printer is free.",
+      "ended": "Receiving ended after 2 hours, so the mailbox was closed.",
+      "downloadHint": "If the browser asks whether to allow downloading multiple files, allow it."
+    }
   },
   "errorLog": {
     "title": "Error history",

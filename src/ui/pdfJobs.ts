@@ -118,3 +118,34 @@ async function buildImageFile(file: File, options: PrintOptions): Promise<PrintF
   // A .pdf name: the printer may decide the format from the extension.
   return { file: new File([bytes as BlobPart], pdfName(file.name), { type: "application/pdf" }), options: sendOptions };
 }
+
+/** One file's pages as PDF bytes (page selection applied, images converted), before layout. */
+async function partBytes(info: PdfInfo, options: PrintOptions): Promise<Uint8Array> {
+  const tools = await loadPdfTools();
+  const paper = paperFor(options);
+  if (isImageItem(info)) return tools.imageToPdf(await prepareImage(info.file, Math.max(paper.width, paper.height)), paper);
+  const original = new Uint8Array(await info.file.arrayBuffer());
+  const range = checkRange(info);
+  if (range && !range.ok) throw new Error(`Invalid page range: ${range.error}`);
+  if (!range?.ok || range.pages === null) return original;
+  return (await tools.preparePdf(original, { pages: range.pages, pagesPerSheet: 1, paper })).bytes;
+}
+
+/**
+ * Several files as one print job, in the given order. Pages per sheet and 2-sided printing then
+ * run across the files (e.g. four photos on one sheet).
+ */
+export async function buildMergedFile(infos: readonly PdfInfo[], options: PrintOptions): Promise<PrintFile> {
+  const tools = await loadPdfTools();
+  const parts: Uint8Array[] = [];
+  for (const info of infos) parts.push(await partBytes(info, options));
+  let bytes = await tools.mergePdfs(parts);
+  let sendOptions = options;
+  if (options.pagesPerSheet > 1) {
+    const prepared = await tools.preparePdf(bytes, { pages: null, pagesPerSheet: options.pagesPerSheet, paper: paperFor(options) });
+    bytes = prepared.bytes;
+    sendOptions = { ...options, duplex: duplexForPrinter(options.duplex, prepared.landscape) };
+  }
+  if (!isPdfBytes(bytes)) throw new Error("PDF tools returned something that is not a PDF");
+  return { file: new File([bytes as BlobPart], "merged.pdf", { type: "application/pdf" }), options: sendOptions };
+}

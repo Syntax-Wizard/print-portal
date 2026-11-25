@@ -6,7 +6,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useT } from "../../i18n";
 import type { PrintOptions } from "../../printer/types";
-import { buildPrintFile } from "../pdfJobs";
+import { buildMergedFile, buildPrintFile } from "../pdfJobs";
 import type { PrintItem } from "../useSubmissions";
 import { PdfDialog } from "./PdfDialog";
 
@@ -39,4 +39,28 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
 export function PreviewDialog(props: { item: PrintItem | null; options: PrintOptions; onClose: () => void }) {
   // Keyed by file so reopening for another file starts fresh.
   return props.item ? <PreviewContent key={props.item.key} item={props.item} options={props.options} onClose={props.onClose} /> : null;
+}
+
+/** Preview of several files merged into one job, in the order shown. */
+export function MergedPreview(props: { items: PrintItem[]; options: PrintOptions; onClose: () => void }) {
+  const { t } = useT();
+  const [url, setUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+    buildMergedFile(props.items, props.options)
+      .then(({ file }) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(file);
+        setUrl(objectUrl);
+      })
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} />;
 }

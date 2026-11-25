@@ -55,7 +55,14 @@
       "toolsUnavailable": "PDF の処理機能を読み込めませんでした。インターネット接続を確認してください。",
       "toolsOutdated": "新しいバージョンに更新されました。ページを再読み込みしてから、もう一度ブックマークをクリックしてください。"
     },
-    "imageUnreadable": "このブラウザーではこの画像を読み込めません（例: Safari 以外での HEIC）。JPEG か PNG に変換してから追加してください。"
+    "imageUnreadable": "このブラウザーではこの画像を読み込めません（例: Safari 以外での HEIC）。JPEG か PNG に変換してから追加してください。",
+    "merge": "1 つにまとめて印刷する",
+    "mergeHint": "複数のファイルを 1 つのジョブにして、両面や「1 枚に 2/4 ページ」をファイルをまたいで使えます。",
+    "mergeOrderHint": "この順番で印刷します。↑↓ で並べ替えられます。",
+    "mergedPreview": "まとめた仕上がりを確認",
+    "mergedPreviewTitle": "まとめた仕上がり（{{count}} ファイル）",
+    "moveUp": "{{name}} を上へ",
+    "moveDown": "{{name}} を下へ"
   },
   "item": {
     "ready": "印刷待ち",
@@ -201,7 +208,8 @@
     "noFiles": "ファイルを追加すると印刷できます。",
     "busy": "送信中…",
     "fixErrors": "設定を確認してください。",
-    "fixRanges": "ページ指定を確認してください。"
+    "fixRanges": "ページ指定を確認してください。",
+    "mergedButton_other": "{{count}} ファイルをまとめて印刷"
   },
   "errors": {
     "PRINTER_UNREACHABLE": "プリンターに接続できません。同じネットワークにいるか確認してください。",
@@ -300,7 +308,8 @@
       "HTTP": "ブラウザー",
       "LPD": "ドライバー"
     },
-    "showMore": "さらに表示"
+    "showMore": "さらに表示",
+    "retrievalsHidden": "ボックスからの取り出し（サムネイルや保存のたびにプリンターが記録します）は表示していません。"
   },
   "mailbox": {
     "intro": "プリンターでスキャンしてボックスに保存した文書を、ここから PDF で保存できます。",
@@ -317,7 +326,7 @@
     "opening": "開いています…",
     "passwordNote": "パスワードは保存されません。このページを閉じるか、10 分間操作がないと消去されます。",
     "close": "ボックスを閉じる",
-    "autoClosed": "10 分間操作がなかったため、ボックスを閉じました。",
+    "autoClosed": "30 分間操作がなかったため、ボックスを閉じました。",
     "documents_other": "{{count}} 件の文書",
     "empty": "このボックスに文書はありません。プリンターでスキャンしてこのボックスに保存すると、ここに表示されます。",
     "pages_other": "{{count}} ページ",
@@ -362,7 +371,28 @@
     "renamePlaceholder": "例: 研究室ミーティング資料",
     "renameNote": "名前はこのブラウザーにだけ保存されます。プリンター上の文書名は変わりません。",
     "scannedAt": "{{time}} にスキャン",
-    "cannotView": "この種類の文書は表示できません。"
+    "cannotView": "この種類の文書は表示できません。",
+    "idleNote": "30 分間操作がないと、ボックスは自動で閉じます。",
+    "archiveSelected_other": "選択した {{count}} 件を ZIP で保存",
+    "archiveDeleteAfter": "保存したらボックスから削除する",
+    "archiveRun": "保存する",
+    "archived_other": "{{count}} 件を ZIP にまとめて保存しました。",
+    "archivedDeleted_other": "{{count}} 件を ZIP にまとめて保存し、ボックスから削除しました。",
+    "sendToPrint_other": "選択した {{count}} 件を印刷へ",
+    "sentToPrint_other": "{{count}} 件を印刷の一覧に追加しました。",
+    "receive": {
+      "title": "スキャンを自動で受け取る",
+      "description": "これからこのボックスに保存されるスキャンを、自動でこのパソコンにダウンロードします。最長 2 時間続き、ほかのタブに切り替えても動きます。",
+      "start": "受け取りを開始",
+      "waiting": "受け取り待ち（{{time}} まで）",
+      "stop": "受け取りを終了",
+      "deleteAfter": "受け取ったらボックスから削除する",
+      "received": "受け取ったファイル",
+      "none": "まだありません。プリンターでスキャンして、このボックスに保存してください。",
+      "pendingDeletes_other": "{{count}} 件はプリンターが使用中のため、あとで削除します。",
+      "ended": "受け取りの時間（2 時間）が終わったため、ボックスを閉じました。",
+      "downloadHint": "ブラウザーが「複数のファイルのダウンロード」を許可するか尋ねたら、許可してください。"
+    }
   },
   "errorLog": {
     "title": "エラー履歴",

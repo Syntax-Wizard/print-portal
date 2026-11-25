@@ -10,21 +10,32 @@ import { PanelHeading, SupplyList, TrayList } from "../components/status";
 import { cx } from "../components/controls";
 import { usePrinter } from "../PrinterContext";
 import { loadOptions, saveOptions } from "../settings";
-import { type PrintItem, useSubmissions } from "../useSubmissions";
+import { type PrintItem, usePrintList } from "../useSubmissions";
+import { MergedPreview } from "../components/PreviewDialog";
 import { PreviewDialog } from "../components/PreviewDialog";
 import { checkRange, isPdf, selectedPageCount } from "../pdfJobs";
 import { sheetsNeeded } from "../../pdf/layout";
 
 /** Sheets of paper for the files waiting to print, or null while page counts are unknown. */
-function estimateSheets(items: PrintItem[], o: PrintOptions): number | null {
+function estimateSheets(items: PrintItem[], o: PrintOptions, merge: boolean): number | null {
   const ready = items.filter((i) => i.status === "ready");
   if (ready.length === 0) return null;
   const copies = o.delivery.type === "sample" ? 1 : o.copies;
+  if (merge && ready.length > 1) {
+    // One job: pages run on across the files.
+    let pages = 0;
+    for (const item of ready) {
+      const n = selectedPageCount(item);
+      if (n === null) return null;
+      pages += n;
+    }
+    return sheetsNeeded(pages, o.pagesPerSheet, o.duplex !== "none", copies);
+  }
   let total = 0;
   for (const item of ready) {
     const pages = selectedPageCount(item);
     if (pages === null) return null;
-    // Several pages per sheet only applies to PDFs that can be processed.
+    // Several pages per sheet applies to processed PDFs; a lone image is a single page anyway.
     const perSheet = isPdf(item.file) && !item.pdfIssue ? o.pagesPerSheet : 1;
     total += sheetsNeeded(pages, perSheet, o.duplex !== "none", copies);
   }
@@ -63,8 +74,10 @@ export function PrintPage() {
   const { status } = usePrinter();
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
   const [showErrors, setShowErrors] = useState(false);
-  const { items, busy, tooMany, addFiles, remove, clearDone, print, setPageRange } = useSubmissions();
+  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange } = usePrintList();
   const [previewKey, setPreviewKey] = useState<string | null>(null);
+  const [merge, setMerge] = useState(false);
+  const [mergedPreview, setMergedPreview] = useState(false);
 
   useEffect(() => saveOptions(options), [options]);
 
@@ -87,23 +100,14 @@ export function PrintPage() {
     return () => window.removeEventListener("paste", onPaste);
   }, [addFiles]);
 
-  // Reloading shows the printer's original screen and loses the file list, so ask first.
-  const pending = items.some((i) => ["ready", "queued", "preparing", "uploading"].includes(i.status));
-  useEffect(() => {
-    if (!pending) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = ""; // Older browsers need this to show the prompt.
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [pending]);
-
   const errors = useMemo(() => validateOptions(options), [options]);
   const readyCount = items.filter((i) => i.status === "ready").length;
   // A page selection that doesn't parse would otherwise be silently ignored.
   const rangeBlocked = items.some((i) => i.status === "ready" && checkRange(i)?.ok === false);
-  const sheets = useMemo(() => estimateSheets(items, options), [items, options]);
+  const readyItems = items.filter((i) => i.status === "ready" && !i.problem);
+  // Merging only makes sense with two or more files ready to print.
+  const merging = merge && readyItems.length > 1;
+  const sheets = useMemo(() => estimateSheets(items, options, merging), [items, options, merging]);
   const trays = status.data?.trays ?? [];
 
   const onPrint = () => {
@@ -112,7 +116,7 @@ export function PrintPage() {
       return;
     }
     setShowErrors(false);
-    void print(options);
+    void print(options, { merge: merging });
   };
 
   const onRetry = (key: string) => {
@@ -120,10 +124,10 @@ export function PrintPage() {
       setShowErrors(true);
       return;
     }
-    void print(options, key);
+    void print(options, { onlyKey: key });
   };
 
-  const buttonLabel = busy ? t("submit.busy") : readyCount > 0 ? t("submit.button", { count: readyCount }) : t("submit.buttonEmpty");
+  const buttonLabel = busy ? t("submit.busy") : merging ? t("submit.mergedButton", { count: readyCount }) : readyCount > 0 ? t("submit.button", { count: readyCount }) : t("submit.buttonEmpty");
   const buttonClass = (enabled: boolean) =>
     cx(
       "inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold tracking-tight transition-all sm:text-[15px]",
@@ -152,8 +156,24 @@ export function PrintPage() {
           onClearDone={clearDone}
           onRangeChange={setPageRange}
           onPreview={setPreviewKey}
+          onMove={merging ? move : undefined}
           tooMany={tooMany}
         />
+        {readyItems.length > 1 && (
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+            <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold">
+              <input type="checkbox" class="h-4 w-4 accent-[var(--color-accent)]" checked={merge} onChange={(e) => setMerge((e.currentTarget as HTMLInputElement).checked)} />
+              {t("files.merge")}
+            </label>
+            {merging && (
+              <button type="button" class="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold text-accent-ink hover:bg-accent-wash" onClick={() => setMergedPreview(true)}>
+                {t("files.mergedPreview")}
+              </button>
+            )}
+            <p class="m-0 w-full text-xs text-ink-faint">{merging ? t("files.mergeOrderHint") : t("files.mergeHint")}</p>
+          </div>
+        )}
+        {mergedPreview && <MergedPreview items={readyItems} options={options} onClose={() => setMergedPreview(false)} />}
         <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} />
         <section aria-labelledby="settings-heading" class="card p-5 sm:p-6">
           <h2 id="settings-heading" class="m-0 mb-4 text-base font-bold tracking-tight text-ink">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { LANGUAGES, setLanguage, useT } from "../i18n";
 import type { PrinterClient } from "../printer/client";
 import { PrinterUnreachableError } from "../printer/client";
@@ -8,6 +8,8 @@ import { MailboxPage } from "./pages/MailboxPage";
 import { PrintPage } from "./pages/PrintPage";
 import { StatusPage } from "./pages/StatusPage";
 import { PrinterProvider, usePrinter } from "./PrinterContext";
+import { SubmissionsProvider } from "./useSubmissions";
+import { MailboxProvider } from "./useMailbox";
 import { type Theme, applyTheme, loadTheme, saveTheme } from "./settings";
 
 type View = "print" | "mailbox" | "status";
@@ -112,11 +114,125 @@ function ThemeIcon({ mode }: { mode: Theme }) {
   );
 }
 
+function LanguageMenu() {
+  const { t, lang } = useT();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (root.current && !root.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={root} class="relative">
+      {/* Native <select> kept visually hidden for screen-reader/automated selectOption compatibility */}
+      <label class="sr-only" for="pp-lang">
+        {t("app.language")}
+      </label>
+      <select
+        id="pp-lang"
+        tabIndex={-1}
+        class="sr-only"
+        value={lang}
+        onChange={(e) => setLanguage((e.currentTarget as HTMLSelectElement).value as (typeof LANGUAGES)[number]["code"])}
+      >
+        {LANGUAGES.map((l) => (
+          <option key={l.code} value={l.code} lang={l.code}>
+            {l.label}
+          </option>
+        ))}
+      </select>
+
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={t("app.language")}
+        class={cx(
+          "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors",
+          open
+            ? "border-accent/60 bg-well/70 text-ink"
+            : "border-rule bg-sheet text-ink-soft hover:border-rule-strong hover:bg-well/50 hover:text-ink",
+        )}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <svg class="h-3.5 w-3.5 shrink-0 text-ink-faint" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8" cy="8" r="6" />
+          <path d="M2.2 8h11.6M8 2a9.2 9.2 0 0 1 2.4 6A9.2 9.2 0 0 1 8 14a9.2 9.2 0 0 1-2.4-6A9.2 9.2 0 0 1 8 2Z" />
+        </svg>
+        <span class="uppercase tracking-wide">{lang}</span>
+        <svg
+          class={cx("h-3 w-3 shrink-0 text-ink-faint transition-transform duration-150", open && "rotate-180")}
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4.5 6.5 8 10l3.5-3.5" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          class="absolute top-full right-0 z-30 mt-1.5 min-w-36 origin-top-right rounded-xl border border-rule bg-sheet p-1 shadow-[0_10px_28px_-6px_rgb(15_23_42/0.16),0_2px_6px_-2px_rgb(15_23_42/0.06)] dark:shadow-[0_12px_32px_-6px_rgb(0_0_0/0.55)]"
+        >
+          {LANGUAGES.map((l) => {
+            const active = l.code === lang;
+            return (
+              <button
+                key={l.code}
+                type="button"
+                role="menuitemradio"
+                aria-checked={active}
+                lang={l.code}
+                class={cx(
+                  "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-xs transition-colors",
+                  active ? "bg-accent-wash/75 font-semibold text-accent-ink" : "font-medium text-ink hover:bg-well",
+                )}
+                onClick={() => {
+                  setLanguage(l.code);
+                  setOpen(false);
+                }}
+              >
+                <span>{l.label}</span>
+                {active ? (
+                  <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
+                  </svg>
+                ) : (
+                  <span class="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">{l.code}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const { t, lang } = useT();
   const { status, queue } = usePrinter();
   const [theme, setTheme] = useTheme();
-  const printing = Boolean(queue.data?.some((j) => j.state === "printing"));
+  // Mailbox retrievals also show up as running jobs; only real printing counts here.
+  const printing = Boolean(queue.data?.some((j) => j.state === "printing" && j.type !== "mailboxRetrieval"));
   const offline = status.error instanceof PrinterUnreachableError && !status.data;
   const { state, severity } = effectiveState(status.data, printing, offline);
   const low = status.data ? lowToners(status.data.supplies) : [];
@@ -169,34 +285,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
 
         {/* Right: Compact Icon Controls (Language + Theme) */}
         <div class="flex items-center gap-2">
-          {/* Icon-first Language Picker backed by native <select> */}
-          <div
-            class="relative inline-flex h-8 items-center gap-1.5 rounded-lg border border-rule bg-sheet px-2.5 text-xs font-semibold text-ink-soft transition-colors focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25 hover:border-rule-strong hover:text-ink"
-            title={t("app.language")}
-          >
-            <svg class="h-3.5 w-3.5 shrink-0 text-ink-faint" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="8" cy="8" r="6" />
-              <path d="M2.2 8h11.6M8 2a9.2 9.2 0 0 1 2.4 6A9.2 9.2 0 0 1 8 14a9.2 9.2 0 0 1-2.4-6A9.2 9.2 0 0 1 8 2Z" />
-            </svg>
-            <span class="uppercase tracking-wide" aria-hidden="true">
-              {lang}
-            </span>
-            <label class="sr-only" for="pp-lang">
-              {t("app.language")}
-            </label>
-            <select
-              id="pp-lang"
-              class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              value={lang}
-              onChange={(e) => setLanguage((e.currentTarget as HTMLSelectElement).value as (typeof LANGUAGES)[number]["code"])}
-            >
-              {LANGUAGES.map((l) => (
-                <option key={l.code} value={l.code} lang={l.code}>
-                  {l.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <LanguageMenu />
 
           {/* 3-way Icon Theme Switcher */}
           <div class="inline-flex items-center rounded-lg border border-rule/80 bg-well/80 p-0.5" role="group" aria-label={t("app.theme.label")}>
@@ -277,7 +366,11 @@ function Shell() {
 export function App(props: { client?: PrinterClient }) {
   return (
     <PrinterProvider client={props.client}>
-      <Shell />
+      <SubmissionsProvider>
+        <MailboxProvider>
+          <Shell />
+        </MailboxProvider>
+      </SubmissionsProvider>
     </PrinterProvider>
   );
 }

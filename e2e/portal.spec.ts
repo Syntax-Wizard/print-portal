@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
@@ -427,4 +428,100 @@ test("images: one the browser cannot decode is flagged right away", async ({ pag
   await openPortal(page);
   await page.locator('input[type="file"]').setInputFiles({ name: "IMG_0002.HEIC", mimeType: "image/heic", buffer: Buffer.from("not really heic") });
   await expect(page.getByText(/このブラウザーではこの画像を読み込めません/)).toBeVisible();
+});
+
+async function openMailbox27(page: Page) {
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await page.getByRole("button", { name: /^027\s*test$/ }).click();
+  await page.getByLabel("パスワード").fill("1234");
+  await page.getByRole("button", { name: "開く", exact: true }).click();
+  await expect(page.getByText(/件の文書/)).toBeVisible();
+}
+
+test("the print list survives switching tabs", async ({ page }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "keep-me.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) });
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await page.getByRole("link", { name: "印刷" }).click();
+  await expect(page.getByText("keep-me.pdf")).toBeVisible();
+});
+
+test("merged print: two PDFs as one job, reordered, two pages per sheet", async ({ page, request }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles([
+    { name: "part-a.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(3) },
+    { name: "part-b.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(2) },
+  ]);
+  await expect(page.getByText("全 3 ページ")).toBeVisible();
+  await expect(page.getByText("全 2 ページ")).toBeVisible();
+  await page.getByLabel("1 つにまとめて印刷する").check();
+  await page.getByRole("button", { name: "part-b.pdf を上へ" }).click();
+  await expect(page.locator("li", { hasText: ".pdf" }).first()).toContainText("part-b.pdf");
+  await page.getByText("2 ページ", { exact: true }).click();
+  // 5 pages, 2 per sheet, 2-sided: 3 sides on 2 sheets.
+  await expect(page.getByText("用紙は約 2 枚です。")).toBeVisible();
+  await page.getByRole("button", { name: "2 ファイルをまとめて印刷" }).first().click();
+  await expect(page.locator("li", { hasText: "part-a.pdf" }).getByText(/プリンターに送信しました|プリンターで待機中|印刷中|印刷しました/)).toBeVisible({ timeout: 15_000 });
+  const upload = await (await request.get("/__mock/last-upload")).json();
+  expect(upload.name).toBe("merged.pdf");
+  expect(upload.pages).toBe(3);
+});
+
+test("mailbox: send documents to the print list", async ({ page }) => {
+  await openPortal(page);
+  await openMailbox27(page);
+  await page.getByRole("checkbox").nth(1).check();
+  await page.getByRole("button", { name: "選択した 1 件を印刷へ" }).click();
+  await expect(page.getByRole("link", { name: "印刷" })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("li", { hasText: ".pdf" }).first()).toBeVisible();
+  await expect(page.getByText("全 1 ページ")).toBeVisible();
+});
+
+test("mailbox: archive selected documents as a ZIP", async ({ page }) => {
+  await openPortal(page);
+  await openMailbox27(page);
+  await page.getByLabel("すべて選択").check();
+  const count = await page.getByRole("checkbox", { checked: true }).count();
+  await page.getByRole("button", { name: /件を ZIP で保存$/ }).click();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "保存する" }).click();
+  const zip = await download;
+  expect(zip.suggestedFilename()).toMatch(/^box027-test-\d{8}\.zip$/);
+  const path = await zip.path();
+  const names = JSON.parse(
+    execFileSync("python3", ["-I", "-c", "import zipfile,sys,json;z=zipfile.ZipFile(sys.argv[1]);assert z.testzip() is None;print(json.dumps(z.namelist()))", path!], { encoding: "utf-8" }),
+  ) as string[];
+  expect(names).toHaveLength(count - 1); // minus the "select all" box
+  expect(names.every((n) => n.endsWith(".pdf"))).toBe(true);
+});
+
+test("mailbox: auto-receive downloads new scans and can delete them", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  await openPortal(page);
+  await openMailbox27(page);
+  await page.getByRole("button", { name: "受け取りを開始" }).click();
+  await expect(page.getByText(/受け取り待ち（.+ まで）/)).toBeVisible();
+  await page.getByLabel("受け取ったらボックスから削除する").check();
+  const before = await page.locator("li").filter({ has: page.getByRole("button", { name: "表示" }) }).count();
+
+  // Someone scans into the box at the printer; the user switches to the print tab meanwhile.
+  await page.getByRole("link", { name: "印刷" }).click();
+  const download = page.waitForEvent("download", { timeout: 60_000 });
+  await request.post("/__mock/scan?box=27");
+  expect((await download).suggestedFilename()).toMatch(/^\d{14}\.pdf$/);
+
+  // Back on the mailbox: it is listed as received and was deleted from the box.
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await expect(page.getByText(/^✓ \d{14}$/)).toBeVisible();
+  await expect(page.locator("li").filter({ has: page.getByRole("button", { name: "表示" }) })).toHaveCount(before, { timeout: 30_000 });
+});
+
+test("job history hides the printer's mailbox retrievals", async ({ page }) => {
+  await openPortal(page);
+  await page.getByRole("link", { name: "プリンター状態" }).click();
+  await page.getByText("最近のジョブ").click();
+  await expect(page.getByRole("columnheader", { name: "完了時刻" })).toBeVisible();
+  // The captured history contains dozens of "box retrieval" rows; none are shown.
+  await expect(page.getByRole("cell", { name: "ボックス取り出し" })).toHaveCount(0);
+  await expect(page.getByText(/ボックスからの取り出し.*表示していません/)).toBeVisible();
 });

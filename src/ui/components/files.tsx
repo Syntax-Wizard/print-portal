@@ -174,6 +174,8 @@ export function FileList(props: {
   onClearDone: () => void;
   onRangeChange: (key: string, text: string) => void;
   onPreview: (key: string) => void;
+  /** When set (merged printing), files can be reordered. */
+  onMove?: (key: string, delta: -1 | 1) => void;
   tooMany: boolean;
 }) {
   const { t, lang } = useT();
@@ -182,7 +184,7 @@ export function FileList(props: {
   return (
     <div class="flex flex-col gap-2">
       <ul class="card m-0 flex list-none flex-col divide-y divide-rule overflow-hidden p-0" aria-live="polite">
-        {props.items.map((item) => {
+        {props.items.map((item, index) => {
           const removable = ["ready", "failed", "done"].includes(item.status);
           return (
             <li key={item.key} class="relative flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-well/40">
@@ -216,6 +218,22 @@ export function FileList(props: {
                 >
                   {t("item.retry")}
                 </button>
+              )}
+              {props.onMove && item.status === "ready" && !item.problem && (
+                <span class="flex shrink-0 flex-col">
+                  {([-1, 1] as const).map((delta) => (
+                    <button
+                      key={delta}
+                      type="button"
+                      class="grid h-5 w-7 cursor-pointer place-items-center rounded text-xs text-ink-soft hover:bg-well hover:text-ink disabled:cursor-default disabled:text-rule"
+                      aria-label={t(delta < 0 ? "files.moveUp" : "files.moveDown", { name: item.file.name })}
+                      disabled={delta < 0 ? index === 0 : index === props.items.length - 1}
+                      onClick={() => props.onMove!(item.key, delta)}
+                    >
+                      {delta < 0 ? "↑" : "↓"}
+                    </button>
+                  ))}
+                </span>
               )}
               {removable && (
                 <button
