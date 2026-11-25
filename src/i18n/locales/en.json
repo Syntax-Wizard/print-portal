@@ -221,6 +221,7 @@
     "level": "About {{percent}}% left",
     "range": "{{min}}–{{max}}%",
     "rangeNote": "The printer only reports toner in 25% steps, so levels are shown as ranges.",
+    "measuredNote": "Exact values were measured {{time}}.",
     "lowSummary": "{{colors}} toner running low"
   },
   "trays": {

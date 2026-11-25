@@ -2,7 +2,7 @@
  * Printer status building blocks: device state badge, toner/drum meters and tray list.
  */
 
-import { useT } from "../../i18n";
+import { useT, formatRelative } from "../../i18n";
 import type { DeviceState, PrinterStatus, Severity, Supply, SupplyColor, Tray } from "../../printer/types";
 import { isUnmapped } from "../../printer/types";
 import { Meter, cx } from "./controls";
@@ -88,14 +88,17 @@ export function lowToners(supplies: Supply[]): Supply[] {
 }
 
 function levelText(t: ReturnType<typeof useT>["t"], s: Supply): string {
+  if (s.measured) return `${s.measured.percent}%`;
   if (!s.level) return "—";
   return s.level.min === s.level.max ? `${s.level.max}%` : t("supplies.range", { min: s.level.min, max: s.level.max });
 }
 
 export function SupplyList(props: { supplies: Supply[]; kind: "toner" | "drum"; showState?: boolean; compact?: boolean }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const list = sortByColor(props.supplies.filter((s) => s.kind === props.kind));
-  const approximate = list.some((s) => s.level && s.level.min !== s.level.max);
+  const approximate = list.some((s) => !s.measured && s.level && s.level.min !== s.level.max);
+  // The oldest measurement is the one worth mentioning.
+  const measuredAt = list.reduce<Date | null>((oldest, s) => (s.measured && (!oldest || s.measured.at < oldest) ? s.measured.at : oldest), null);
   return (
     <>
       <ul class={cx("m-0 list-none p-0", props.compact ? "grid grid-cols-2 gap-3" : "flex flex-col gap-3.5")}>
@@ -116,8 +119,8 @@ export function SupplyList(props: { supplies: Supply[]; kind: "toner" | "drum"; 
                 <span class={cx("tabular shrink-0 text-xs font-semibold", flagged ? SEVERITY_TEXT[s.severity] : "text-ink-soft")}>{levelText(t, s)}</span>
               </div>
               <Meter
-                percent={s.level?.max ?? null}
-                min={s.level?.min ?? null}
+                percent={s.measured?.percent ?? s.level?.max ?? null}
+                min={s.measured?.percent ?? s.level?.min ?? null}
                 color={s.color ? PROCESS_COLOR[s.color] : "var(--color-ink-faint)"}
                 label={`${colorName} ${levelText(t, s)}`}
               />
@@ -126,6 +129,7 @@ export function SupplyList(props: { supplies: Supply[]; kind: "toner" | "drum"; 
           );
         })}
       </ul>
+      {measuredAt && <p class="m-0 mt-3 text-[11px] leading-relaxed text-ink-faint">{t("supplies.measuredNote", { time: formatRelative(measuredAt, lang) })}</p>}
       {approximate && <p class="m-0 mt-3 text-[11px] leading-relaxed text-ink-faint">{t("supplies.rangeNote")}</p>}
     </>
   );

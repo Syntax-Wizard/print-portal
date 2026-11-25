@@ -30,7 +30,9 @@ jobs:
         run: |
           owner="${GITHUB_REPOSITORY_OWNER,,}"
           repo="${GITHUB_REPOSITORY#*/}"
-          PORTAL_BASE_URL="https://${owner}.github.io/${repo}/" npm run build
+          PORTAL_BASE_URL="https://${owner}.github.io/${repo}/" \
+          TONER_DATA_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/refs/heads/toner-data/toner.json" \
+          npm run build
       - name: End-to-end tests against the mock printer
         run: |
           npx playwright install --with-deps chromium

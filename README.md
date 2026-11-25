@@ -42,6 +42,24 @@ repository settings once.
 Never put the printer's address in this repository: the code uses `location.origin`, and
 test fixtures under `mock-printer/fixtures/` are sanitized (no real user names or IPs).
 
+## Exact toner levels
+
+The printer's web pages only report toner in 25% steps; exact levels need SNMP, which a
+browser cannot use. A lab member's Mac therefore measures them over SNMP and publishes a
+small JSON file to the `toner-data` branch (single force-pushed commit). The UI reads it from
+`raw.githubusercontent.com` and shows a measured value only when it agrees with the live
+25% range; otherwise it falls back to the range.
+
+```sh
+npm run toner:publish -- --printer <host> --dry-run   # measure and print, publish nothing
+npm run toner:install -- <host>                       # hourly LaunchAgent on macOS
+scripts/toner/install-agent.sh --uninstall            # remove it
+```
+
+The agent does nothing when the printer is unreachable (e.g. away from the lab) and only
+pushes when a value changed or the last publish is over 12 hours old.
+Log: `~/Library/Logs/print-portal-toner.log`.
+
 ## Layout
 
 | Path | Purpose |
@@ -53,3 +71,4 @@ test fixtures under `mock-printer/fixtures/` are sanitized (no real user names o
 | `src/bootstrap.tsx` | Takes over the printer page and mounts the app. |
 | `site/` | Install page template. |
 | `mock-printer/` | Fake printer for development and tests. |
+| `scripts/toner/` | SNMP snapshot, publisher and LaunchAgent installer for exact toner levels. |

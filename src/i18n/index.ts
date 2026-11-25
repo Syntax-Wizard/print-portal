@@ -93,6 +93,21 @@ export function formatDateTime(date: Date, lang: string, withDate = true): strin
   }).format(date);
 }
 
+/** "3 hours ago" / "3 時間前", picking a sensible unit. */
+export function formatRelative(date: Date, lang: string, now: Date = new Date()): string {
+  const seconds = Math.round((date.getTime() - now.getTime()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
+  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+  ];
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) return rtf.format(Math.round(seconds / size), unit);
+  }
+  return rtf.format(0, "minute");
+}
+
 export function formatTime(date: Date, lang: string): string {
   return formatDateTime(date, lang, false);
 }

@@ -29,6 +29,8 @@ export default defineConfig({
   },
   define: {
     __PORTAL_VERSION__: JSON.stringify(process.env.npm_package_version ?? "dev"),
+    // Exact toner levels (scripts/toner/). Defaults to the mock printer's sample for local work.
+    __TONER_DATA_URL__: JSON.stringify(process.env.TONER_DATA_URL ?? "http://localhost:8631/__portal/toner.json"),
   },
   test: {
     include: ["tests/**/*.test.ts"],

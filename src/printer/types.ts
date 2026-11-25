@@ -75,6 +75,8 @@ export interface Supply {
   level: SupplyLevel | null;
   /** Name exactly as the printer reports it. */
   name: string;
+  /** Exact level from a published SNMP snapshot, when it agrees with the live range. */
+  measured?: { percent: number; at: Date };
 }
 
 export interface SupplyLevel {

@@ -219,6 +219,7 @@
     "level": "残り約 {{percent}}%",
     "range": "{{min}}〜{{max}}%",
     "rangeNote": "トナー残量はプリンターから 25% 刻みでしか取得できないため、範囲で表示しています。",
+    "measuredNote": "正確な値は{{time}}に測定したものです。",
     "lowSummary": "{{colors}}のトナーが残りわずかです"
   },
   "trays": {

@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "npm run build && playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "toner:publish": "tsx scripts/toner/publish.ts",
+    "toner:install": "scripts/toner/install-agent.sh"
   },
   "engines": {
     "node": ">=20"
@@ -24,9 +26,11 @@
     "@playwright/test": "^1.65.1",
     "@preact/preset-vite": "^2.10.6",
     "@tailwindcss/vite": "^4.3.5",
+    "@types/net-snmp": "^3.23.0",
     "@types/node": "^26.6.7",
     "concurrently": "^10.0.7",
     "esbuild": "^0.28.2",
+    "net-snmp": "^3.29.3",
     "tailwindcss": "^4.3.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

@@ -173,6 +173,14 @@ const server = createServer((req, res) => {
     });
     return;
   }
+  if (path === "/__portal/toner.json") {
+    // Same CORS behaviour as raw.githubusercontent.com, which serves the real snapshot.
+    const snapshot = JSON.parse(fixture("toner.json"));
+    snapshot.measuredAt = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+    res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+    res.end(JSON.stringify(snapshot));
+    return;
+  }
   if (path.startsWith("/__portal/")) return serveDist(path, res);
   const page = path === "/" ? "print.htm" : path.slice(1);
   const html = /^[A-Za-z0-9_]+\.htm$/.test(page) ? renderPage(page) : undefined;

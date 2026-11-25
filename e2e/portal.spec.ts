@@ -14,8 +14,17 @@ const samplePdf = Buffer.from(
   "%PDF-1.4\n1 0 obj<</Type /Catalog /Pages 2 0 R>>endobj\n2 0 obj<</Type /Pages /Kids [3 0 R] /Count 1>>endobj\n3 0 obj<</Type /Page /Parent 2 0 R /MediaBox [0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n",
 );
 
+const tonerSnapshot = JSON.parse(readFileSync(fileURLToPath(new URL("../mock-printer/fixtures/toner.json", import.meta.url)), "utf-8"));
+
 /** Open the (mock) printer and "click" the bookmarklet, exactly as a user would. */
 async function openPortal(page: Page) {
+  // Serve the exact-toner snapshot locally, whatever URL this build points at.
+  await page.route("**/toner.json", (route) =>
+    route.fulfill({
+      json: { ...tonerSnapshot, measuredAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() },
+      headers: { "Access-Control-Allow-Origin": "*" },
+    }),
+  );
   await page.goto("/print.htm");
   await page.evaluate(bookmarkletCode);
   await expect(page.getByRole("heading", { name: "Print Portal" })).toBeVisible();
@@ -98,4 +107,13 @@ test("status and jobs pages render printer data", async ({ page }) => {
   await expect(page.getByText("ドラムカートリッジ")).toBeVisible();
   await page.getByRole("link", { name: "ジョブ" }).click();
   await expect(page.getByRole("heading", { name: "最近のジョブ" })).toBeVisible();
+});
+
+test("shows exact toner levels from the published snapshot", async ({ page }) => {
+  await openPortal(page);
+  await page.getByRole("link", { name: "プリンター状態" }).click();
+  await expect(page.getByText("正確な値は3 時間前に測定したものです。")).toBeVisible();
+  // Yellow and magenta: 1% measured, inside the live 1–25% range.
+  await expect(page.getByRole("meter", { name: "イエロー 1%" })).toBeVisible();
+  await expect(page.getByRole("meter", { name: "マゼンタ 1%" })).toBeVisible();
 });
