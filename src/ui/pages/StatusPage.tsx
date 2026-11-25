@@ -9,7 +9,8 @@ import { usePolling } from "../usePolling";
 import { UpdatedAt } from "./PrintPage";
 
 const ERROR_LOG_INTERVAL_MS = 5 * 60_000;
-const ERROR_LOG_PAGE = 15;
+const ERROR_LOG_INITIAL = 5;
+const ERROR_LOG_STEP = 10;
 
 /** Job history, collapsed by default; it is only loaded (and polled) while expanded. */
 function HistorySection(props: { initiallyOpen: boolean }) {
@@ -68,7 +69,7 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
   const { t, lang } = useT();
   const { client, status } = usePrinter();
   const errorLog = usePolling(useCallback(() => client.getErrorLog(), [client]), ERROR_LOG_INTERVAL_MS);
-  const [limit, setLimit] = useState(ERROR_LOG_PAGE);
+  const [limit, setLimit] = useState(ERROR_LOG_INITIAL);
   const s = status.data;
   const snmpTime = s?.device.alerts.find((a) => a.measuredAt)?.measuredAt ?? null;
 
@@ -118,41 +119,43 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
         <SupplyList supplies={s.supplies} kind="drum" showState />
       </section>
 
-      <section class="card p-5 sm:p-6">
+      <section class="card flex flex-col p-5 sm:p-6">
         <PanelHeading>{t("trays.title")}</PanelHeading>
         <TrayList trays={s.trays} />
       </section>
 
-      <section class="card p-5 sm:p-6">
+      <section class="card flex flex-col p-5 sm:p-6">
         <PanelHeading>{t("errorLog.title")}</PanelHeading>
         {errorLog.data && errorLog.data.length === 0 && <p class="m-0 rounded-xl bg-well/50 px-3.5 py-2.5 text-sm text-ink-soft">{t("errorLog.empty")}</p>}
         {errorLog.data && errorLog.data.length > 0 && (
-          <>
+          <div class="flex flex-1 flex-col justify-between gap-3">
             <div class="overflow-x-auto">
               <table class="w-full border-collapse text-sm">
                 <tbody>
                   {errorLog.data.slice(0, limit).map((e, i) => (
                     <tr key={i} class="border-b border-rule/70 transition-colors last:border-0 hover:bg-well/40">
-                      <td class="tabular whitespace-nowrap py-2.5 pr-3 text-xs text-ink-soft">{e.at ? formatDateTime(e.at, lang) : "—"}</td>
-                      <td class="tabular whitespace-nowrap py-2.5 pr-3">
+                      <td class="tabular whitespace-nowrap py-2 pr-3 text-xs text-ink-soft">{e.at ? formatDateTime(e.at, lang) : "—"}</td>
+                      <td class="tabular whitespace-nowrap py-2 pr-3">
                         <span class="rounded-md bg-well px-2 py-0.5 text-xs font-semibold text-ink">{e.code}</span>
                       </td>
-                      <td class="py-2.5 text-ink">{t(`errorLog.category.${errorCategory(e.code)}`)}</td>
+                      <td class="py-2 text-ink">{t(`errorLog.category.${errorCategory(e.code)}`)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             {errorLog.data.length > limit && (
-              <button
-                type="button"
-                class="mt-4 cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-2 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
-                onClick={() => setLimit((l) => l + ERROR_LOG_PAGE)}
-              >
-                {t("jobs.showMore")}
-              </button>
+              <div>
+                <button
+                  type="button"
+                  class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-1.5 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
+                  onClick={() => setLimit((l) => l + ERROR_LOG_STEP)}
+                >
+                  {t("jobs.showMore")}
+                </button>
+              </div>
             )}
-          </>
+          </div>
         )}
       </section>
 
