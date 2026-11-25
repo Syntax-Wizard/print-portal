@@ -5,8 +5,10 @@
  *
  * Usage: npx tsx scripts/toner/publish.ts --printer <host> [--force] [--dry-run]
  *
- * Publishes only when a value changed or the last publish is older than 12 hours, and always
- * force-pushes a single commit so the branch never grows.
+ * Publishes on every hourly run, so the page's "measured N minutes ago" reflects the latest
+ * measurement (it used to skip unchanged values, which made the time look hours old). Runs less
+ * than 50 minutes after the last publish (e.g. manual runs) are skipped when nothing changed.
+ * Always force-pushes a single commit, so the branch never grows and no deploy is triggered.
  */
 
 import { execFileSync } from "node:child_process";
@@ -19,7 +21,7 @@ import { takeSnapshot } from "./snapshot";
 
 const BRANCH = "toner-data";
 const FILE = "toner.json";
-const REFRESH_MS = 12 * 60 * 60 * 1000;
+const REFRESH_MS = 50 * 60 * 1000;
 const repoDir = fileURLToPath(new URL("../..", import.meta.url));
 const stateFile = join(homedir(), "Library", "Application Support", "print-portal", "last-toner.json");
 

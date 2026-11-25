@@ -127,9 +127,12 @@ test("shows exact toner levels from the published snapshot", async ({ page }) =>
   // Yellow and magenta: 1% measured, inside the live 1–25% range.
   await expect(page.getByRole("meter", { name: "イエロー 1%" })).toBeVisible();
   await expect(page.getByRole("meter", { name: "マゼンタ 1%" })).toBeVisible();
-  // An alert only SNMP reports (the web page shows none), with a translated category.
+  // Alerts only SNMP reports (the web page shows none): known English wordings are translated,
+  // and the time they were read is stated once for the section.
   await expect(page.getByText("094-421")).toBeVisible();
-  await expect(page.getByText("3 時間前に SNMP で取得した情報です。").first()).toBeVisible();
+  await expect(page.getByText(/転写ベルトクリーナーが寿命に達しました/)).toBeVisible();
+  await expect(page.getByText(/イエロートナーカートリッジの交換時期が近づいています/)).toBeVisible();
+  await expect(page.getByText("「SNMP」の付いたお知らせは、3 時間前にプリンターから取得した情報です。")).toHaveCount(1);
 });
 
 test("mailbox: unlock, save, see new scans, delete, remember my box", async ({ page, request }) => {

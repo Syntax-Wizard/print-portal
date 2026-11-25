@@ -63,8 +63,8 @@ npm run toner:install -- <host>                       # hourly LaunchAgent on ma
 scripts/toner/install-agent.sh --uninstall            # remove it
 ```
 
-The agent does nothing when the printer is unreachable (e.g. away from the lab) and only
-pushes when a value changed or the last publish is over 12 hours old.
+The agent does nothing when the printer is unreachable (e.g. away from the lab). Otherwise
+it publishes every hour, so the "measured … ago" shown on the page is the latest measurement.
 Log: `~/Library/Logs/print-portal-toner.log`.
 
 ## Layout

@@ -260,7 +260,17 @@
   "alerts": {
     "title": "プリンターからのお知らせ",
     "none": "お知らせはありません",
-    "fromSnapshot": "{{time}}に SNMP で取得した情報です。"
+    "known": {
+      "tonerReplaceSoon": "{{color}}トナーカートリッジの交換時期が近づいています。新しいカートリッジを用意してください（印刷は続けられます）。",
+      "waitForInstruction": "プリンターから指示が出るまでは交換しないでください。",
+      "partEndOfLife": "{{part}}が寿命に達しました。管理者に交換を依頼してください（印刷は続けられます）。"
+    },
+    "parts": {
+      "transferBeltCleaner": "転写ベルトクリーナー"
+    },
+    "snmpTag": "SNMP",
+    "snmpNote": "「SNMP」の付いたお知らせは、{{time}}にプリンターから取得した情報です。",
+    "original": "プリンターの原文"
   },
   "jobs": {
     "queueTitle": "印刷中・待機中のジョブ",

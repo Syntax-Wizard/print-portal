@@ -266,7 +266,17 @@
   "alerts": {
     "title": "Messages from the printer",
     "none": "No messages",
-    "fromSnapshot": "Reported over SNMP {{time}}."
+    "known": {
+      "tonerReplaceSoon": "The {{color}} toner cartridge needs replacing soon. Get a new one ready (printing can continue).",
+      "waitForInstruction": "Don't replace it until the printer asks you to.",
+      "partEndOfLife": "The {{part}} has reached the end of its life. Ask the administrator to replace it (printing can continue)."
+    },
+    "parts": {
+      "transferBeltCleaner": "transfer belt cleaner"
+    },
+    "snmpTag": "SNMP",
+    "snmpNote": "Messages marked SNMP were read from the printer {{time}}.",
+    "original": "Printer's original text"
   },
   "jobs": {
     "queueTitle": "Printing and waiting",
