@@ -6,7 +6,7 @@
  * It defaults to the mock printer's /__portal/ path for local testing.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { transformSync } from "esbuild";
 
@@ -39,4 +39,6 @@ const html = readFileSync(root("site/index.html"), "utf-8")
 mkdirSync(root("dist"), { recursive: true });
 writeFileSync(root("dist/index.html"), html);
 writeFileSync(root("dist/bookmarklet.txt"), bookmarklet + "\n");
+// pdf.js worker for the mailbox thumbnails (started from a blob: URL by src/pdfview/loader.ts).
+copyFileSync(root("node_modules/pdfjs-dist/build/pdf.worker.min.mjs"), root("dist/pdf.worker.js"));
 console.log(`Install page and bookmarklet built for ${baseUrl} (${bookmarklet.length} chars)`);

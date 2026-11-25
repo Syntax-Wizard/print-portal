@@ -18,6 +18,23 @@ import {
   type RetrieveFormat,
 } from "../printer/mailbox";
 import { loadMyMailbox, saveMyMailbox } from "./settings";
+import { downloadName, loadLabels, pruneLabels, saveLabel } from "./mailboxLabels";
+import { isRetrievable } from "../printer/mailbox";
+import { loadPdfView } from "../pdfview/loader";
+
+/** Thumbnail state per document: a data URL once rendered. */
+export type Thumbnail = { kind: "loading" } | { kind: "ready"; url: string } | { kind: "failed" };
+
+export interface MailboxPreview {
+  doc: MailboxDocument;
+  /** blob: URL of the whole document, or null while it is being retrieved. */
+  url: string | null;
+  failed: boolean;
+}
+
+const THUMBNAIL_WIDTH = 72;
+/** Most mailboxes hold a handful of scans; cap the work in case one holds many. */
+const MAX_THUMBNAILS = 40;
 
 export const IDLE_TIMEOUT_MS = 10 * 60_000;
 const REFRESH_INTERVAL_MS = 10_000;
@@ -57,14 +74,26 @@ export function useMailbox(client?: MailboxClient) {
   const [busy, setBusy] = useState<null | "opening" | "saving" | "deleting">(null);
   const password = useRef<string | null>(null);
   const lastActivity = useRef(Date.now());
+  const [labels, setLabels] = useState<Record<string, string>>({});
+  const [thumbnails, setThumbnails] = useState<Record<string, Thumbnail>>({});
+  const [preview, setPreview] = useState<MailboxPreview | null>(null);
+  /** Bumped on close so background thumbnail work for the old session stops. */
+  const generation = useRef(0);
 
   const close = useCallback((why?: "autoClosed") => {
     // Boxes without a password go back to the list; others ask for the password again.
     const hadPassword = password.current !== null;
     password.current = null;
+    generation.current++;
     setSession(null);
     setDocuments([]);
     setUpdatedAt(null);
+    // Thumbnails and previews show private documents: drop them with the session.
+    setThumbnails({});
+    setPreview((p) => {
+      if (p?.url) URL.revokeObjectURL(p.url);
+      return null;
+    });
     setPhase((p) => (p === "open" ? (hadPassword ? "password" : "choose") : p));
     setNotice(why ? { kind: why } : null);
   }, []);
@@ -142,7 +171,8 @@ export function useMailbox(client?: MailboxClient) {
         for (const link of links.value) {
           const file = await api.download(link);
           if (!file.ok) return setNotice({ kind: "error", code: file.code });
-          saveBlob(file.value, link.fileName);
+          const doc = documents.find((d) => d.id === link.documentId);
+          saveBlob(file.value, downloadName(doc ? labels[doc.name] : undefined, link.fileName));
         }
         setNotice({ kind: "saved", count: links.value.length });
         // Some boxes delete documents once retrieved; show the printer's current state.
@@ -151,8 +181,40 @@ export function useMailbox(client?: MailboxClient) {
         setBusy(null);
       }
     },
-    [api, session, refresh],
+    [api, session, refresh, documents, labels],
   );
+
+  const rename = useCallback(
+    (doc: MailboxDocument, label: string) => {
+      if (!selected) return;
+      setLabels(saveLabel(selected.number, doc.name, label));
+    },
+    [selected],
+  );
+
+  /** Open a document in the preview dialog (retrieves the whole document). */
+  const openPreview = useCallback(
+    async (doc: MailboxDocument) => {
+      if (!session) return;
+      lastActivity.current = Date.now();
+      const gen = generation.current;
+      setPreview({ doc, url: null, failed: false });
+      const result = await api.fetchDocument(session, doc.id);
+      if (gen !== generation.current) return;
+      setPreview((p) => {
+        if (!p || p.doc.id !== doc.id) return p;
+        return result.ok ? { doc, url: URL.createObjectURL(result.value.blob), failed: false } : { doc, url: null, failed: true };
+      });
+    },
+    [api, session],
+  );
+
+  const closePreview = useCallback(() => {
+    setPreview((p) => {
+      if (p?.url) URL.revokeObjectURL(p.url);
+      return null;
+    });
+  }, []);
 
   const remove = useCallback(
     async (ids: number[]): Promise<boolean> => {
@@ -206,6 +268,47 @@ export function useMailbox(client?: MailboxClient) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setLabels(selected ? loadLabels(selected.number) : {});
+  }, [selected]);
+
+  useEffect(() => {
+    if (phase === "open" && selected && documents.length < 100) setLabels(pruneLabels(selected.number, documents.map((d) => d.name)));
+  }, [phase, selected, documents]);
+
+  // Thumbnails: render page 1 of each document, one at a time to go easy on the printer.
+  useEffect(() => {
+    if (phase !== "open" || !session) return;
+    const gen = generation.current;
+    const todo = documents.filter((d) => isRetrievable(d) && !thumbnails[`${session.box}:${d.name}`]).slice(0, MAX_THUMBNAILS);
+    if (todo.length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      for (const doc of todo) {
+        if (cancelled || gen !== generation.current) return;
+        const key = `${session.box}:${doc.name}`;
+        setThumbnails((t) => ({ ...t, [key]: { kind: "loading" } }));
+        let thumb: Thumbnail = { kind: "failed" };
+        try {
+          const page = await api.fetchDocument(session, doc.id, { page: 1 });
+          if (page.ok) {
+            const view = await loadPdfView();
+            thumb = { kind: "ready", url: await view.renderThumbnail(new Uint8Array(await page.value.blob.arrayBuffer()), THUMBNAIL_WIDTH) };
+          }
+        } catch {
+          thumb = { kind: "failed" };
+        }
+        if (gen !== generation.current) return;
+        setThumbnails((t) => ({ ...t, [key]: thumb }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Re-run when the document list changes; `thumbnails` is read, not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, session?.box, documents, api]);
+
   // While a box is open: refresh the list regularly and close it after inactivity.
   useEffect(() => {
     if (phase !== "open") return;
@@ -225,5 +328,29 @@ export function useMailbox(client?: MailboxClient) {
   // Forget secrets when the page goes away.
   useEffect(() => () => void (password.current = null), []);
 
-  return { boxes, myBox, setMyBox, selected, phase, session, documents, updatedAt, notice, busy, choose, unlock, refresh, save, remove, back, close };
+  return {
+    boxes,
+    myBox,
+    setMyBox,
+    selected,
+    phase,
+    session,
+    documents,
+    updatedAt,
+    notice,
+    busy,
+    labels,
+    thumbnails,
+    preview,
+    choose,
+    unlock,
+    refresh,
+    save,
+    remove,
+    rename,
+    openPreview,
+    closePreview,
+    back,
+    close,
+  };
 }

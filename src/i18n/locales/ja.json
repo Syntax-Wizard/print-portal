@@ -352,7 +352,16 @@
       "PRINTER_UNREACHABLE": "プリンターに接続できません。研究室のネットワークにつながっているか確認してください。",
       "UNEXPECTED_RESPONSE": "プリンターから想定外の応答がありました。もう一度お試しください。",
       "listFailed": "ボックスの一覧を取得できません。"
-    }
+    },
+    "view": "表示",
+    "thumbnailOf": "{{name}} の 1 ページ目（クリックで表示）",
+    "rename": "名前を付ける",
+    "renameLabel": "表示名",
+    "renameApply": "決定",
+    "renamePlaceholder": "例: 研究室ミーティング資料",
+    "renameNote": "名前はこのブラウザーにだけ保存されます。プリンター上の文書名は変わりません。",
+    "scannedAt": "{{time}} にスキャン",
+    "cannotView": "この種類の文書は表示できません。"
   },
   "errorLog": {
     "title": "エラー履歴",

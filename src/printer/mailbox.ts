@@ -53,6 +53,11 @@ export type OpenResult =
 
 export type RetrieveFormat = "pdf" | "tiffJpeg";
 
+/** The printer only retrieves scanned, faxed and e-mailed documents (not stored print jobs). */
+export function isRetrievable(doc: MailboxDocument): boolean {
+  return doc.type === "scan" || doc.type === "fax" || doc.type === "mail";
+}
+
 /** The printer accepts at most this many documents per retrieve or delete request. */
 export const MAX_DOCUMENTS_PER_REQUEST = 9;
 
@@ -204,8 +209,12 @@ export class MailboxClient {
     return res ? parseOpenResponse(res.text) : { ok: false, code: "PRINTER_UNREACHABLE" };
   }
 
-  /** Ask the printer to prepare download links (one per document). */
-  async retrieve(session: MailboxSession, ids: readonly number[], format: RetrieveFormat = "pdf"): Promise<MailboxResult<RetrieveLink[]>> {
+  /**
+   * Ask the printer to prepare download links (one per document). `page` retrieves a single
+   * page and only works for one document; it is used for thumbnails (about half the size).
+   */
+  async retrieve(session: MailboxSession, ids: readonly number[], format: RetrieveFormat = "pdf", page?: number): Promise<MailboxResult<RetrieveLink[]>> {
+    if (page !== undefined && ids.length !== 1) throw new Error("A single page can only be retrieved from one document");
     const links: RetrieveLink[] = [];
     for (const group of chunk(ids)) {
       const params = new URLSearchParams({
@@ -217,7 +226,7 @@ export class MailboxClient {
         ACNTUID: "",
         DOC: docParam(group),
         FORM: format === "pdf" ? "PDF" : "TIFJPG",
-        PAGE: "",
+        PAGE: page !== undefined ? String(page) : "",
         SMNL: "0",
         HCMP: "0",
         ICMP: "0",
@@ -245,6 +254,15 @@ export class MailboxClient {
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  /** Retrieve one document (or one page of it) and download it. */
+  async fetchDocument(session: MailboxSession, id: number, options: { format?: RetrieveFormat; page?: number } = {}): Promise<MailboxResult<{ blob: Blob; fileName: string }>> {
+    const links = await this.retrieve(session, [id], options.format ?? "pdf", options.page);
+    if (!links.ok) return links;
+    const link = links.value[0]!;
+    const file = await this.download(link);
+    return file.ok ? { ok: true, value: { blob: file.value, fileName: link.fileName } } : file;
   }
 
   /** Delete documents. Fails with PRINTER_BUSY while the printer is in use. */

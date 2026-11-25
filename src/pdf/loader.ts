@@ -31,6 +31,35 @@ function checked(tools: PdfTools): PdfTools {
   return tools;
 }
 
+/** Base URL that portal.js (and therefore every lazily loaded bundle) is served from. */
+export function bundleBase(): string | undefined {
+  return (window as WithTools).__printPortalBase;
+}
+
+/** URL of another file from this build, cache-busted with the build id. */
+export function bundleUrl(file: string): string {
+  const base = bundleBase();
+  if (!base) throw new Error(`Location of ${file} unknown`);
+  return `${base}${file}?b=${encodeURIComponent(__BUILD_ID__)}`;
+}
+
+/** Load a script from this build once; resolves when it has run. */
+export function injectScript(file: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let src: string;
+    try {
+      src = bundleUrl(file);
+    } catch (err) {
+      return reject(err);
+    }
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Could not load ${file}`));
+    document.head.appendChild(script);
+  });
+}
+
 export function loadPdfTools(): Promise<PdfTools> {
   const w = window as WithTools;
   if (w.PrintPortalPdf) {

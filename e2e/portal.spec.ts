@@ -290,3 +290,40 @@ test("printing a few pages of a large PDF uploads only those pages", async ({ pa
   expect(upload.pages).toBe(1);
   expect(upload.size).toBeLessThan(big.length / 10);
 });
+
+test("mailbox: thumbnails, preview and local display names", async ({ page }) => {
+  await openPortal(page);
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await page.getByRole("button", { name: /^027\s*test$/ }).click();
+  await page.getByLabel("パスワード").fill("1234");
+  await page.getByRole("button", { name: "開く", exact: true }).click();
+  await expect(page.getByText(/件の文書/)).toBeVisible();
+
+  // Thumbnails are rendered with pdf.js (loaded on demand, worker from a blob: URL).
+  const firstRow = page.locator("li").filter({ has: page.getByRole("button", { name: "表示" }) }).first();
+  const thumb = firstRow.locator("img");
+  await expect(thumb).toHaveAttribute("src", /^data:image\/png/, { timeout: 20_000 });
+
+  // Clicking the thumbnail opens the whole document.
+  await firstRow.getByRole("button", { name: /1 ページ目/ }).click();
+  await expect(page.getByRole("dialog").locator("iframe")).toHaveAttribute("src", /^blob:/);
+  await page.getByRole("dialog").getByRole("button", { name: "閉じる" }).click();
+
+  // Give it a name: shown instead of the timestamp and used for the downloaded file.
+  await firstRow.getByRole("button", { name: "名前を付ける" }).click();
+  await page.getByLabel("表示名").fill("ゼミ資料: 第3回");
+  await page.getByRole("button", { name: "決定" }).click();
+  await expect(page.getByText("ゼミ資料: 第3回")).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.locator("li", { hasText: "ゼミ資料: 第3回" }).getByRole("button", { name: "保存", exact: true }).click();
+  expect((await download).suggestedFilename()).toBe("ゼミ資料_ 第3回.pdf");
+
+  // Names survive a reload (kept in this browser), the password does not.
+  await page.reload();
+  await page.evaluate(bookmarkletCode);
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await page.getByRole("button", { name: /^027\s*test$/ }).click();
+  await page.getByLabel("パスワード").fill("1234");
+  await page.getByRole("button", { name: "開く", exact: true }).click();
+  await expect(page.getByText("ゼミ資料: 第3回")).toBeVisible();
+});

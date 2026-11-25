@@ -364,7 +364,16 @@
       "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",
       "UNEXPECTED_RESPONSE": "The printer sent an unexpected response. Try again.",
       "listFailed": "Can't load the list of mailboxes."
-    }
+    },
+    "view": "View",
+    "thumbnailOf": "First page of {{name}} (click to view)",
+    "rename": "Rename",
+    "renameLabel": "Display name",
+    "renameApply": "OK",
+    "renamePlaceholder": "e.g. Lab meeting handout",
+    "renameNote": "Names are kept in this browser only. The document on the printer keeps its own name.",
+    "scannedAt": "Scanned {{time}}",
+    "cannotView": "This kind of document can't be viewed."
   },
   "errorLog": {
     "title": "Error history",

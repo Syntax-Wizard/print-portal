@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { formatDateTime, formatTime, useT } from "../../i18n";
-import type { MailboxDocument, MailboxSummary, RetrieveFormat } from "../../printer/mailbox";
+import { type MailboxDocument, type MailboxSummary, type RetrieveFormat, isRetrievable } from "../../printer/mailbox";
 import { cx } from "../components/controls";
 import { usePrinter } from "../PrinterContext";
-import { type MailboxNotice, useMailbox } from "../useMailbox";
+import { type MailboxNotice, type Thumbnail, useMailbox } from "../useMailbox";
+import { PdfDialog } from "../components/PdfDialog";
 
 /** The printer shows box numbers with three digits (027). */
 const boxNumber = (n: number) => String(n).padStart(3, "0");
@@ -115,27 +116,116 @@ function PasswordForm(props: { box: MailboxSummary; busy: boolean; onSubmit: (pa
   );
 }
 
+/** First page of the document; clicking it opens the preview. */
+function ThumbnailButton(props: { thumb: Thumbnail | undefined; viewable: boolean; name: string; onView: () => void }) {
+  const { t } = useT();
+  const frame = "grid h-[72px] w-[54px] shrink-0 place-items-center overflow-hidden rounded-md border border-rule bg-sheet";
+  if (!props.viewable) {
+    return (
+      <span class={cx(frame, "text-[10px] font-bold text-ink-faint")} title={t("mailbox.cannotView")} aria-hidden="true">
+        PDF
+      </span>
+    );
+  }
+  const thumb = props.thumb;
+  return (
+    <button type="button" class={cx(frame, "cursor-pointer p-0 transition-shadow hover:ring-2 hover:ring-accent/50")} onClick={props.onView} aria-label={t("mailbox.thumbnailOf", { name: props.name })}>
+      {thumb?.kind === "ready" ? (
+        <img src={thumb.url} alt="" class="h-full w-full object-cover object-top" />
+      ) : (
+        <span class={cx("h-full w-full", thumb?.kind === "failed" ? "bg-well" : "animate-pulse bg-well")} aria-hidden="true" />
+      )}
+    </button>
+  );
+}
+
+function RenameForm(props: { initial: string; onDone: (label: string | null) => void }) {
+  const { t } = useT();
+  const [value, setValue] = useState(props.initial);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => input.current?.select(), []);
+  return (
+    <form
+      class="mt-1 flex flex-wrap items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        props.onDone(value);
+      }}
+    >
+      <input
+        ref={input}
+        type="text"
+        maxLength={80}
+        aria-label={t("mailbox.renameLabel")}
+        placeholder={t("mailbox.renamePlaceholder")}
+        class="w-full max-w-xs rounded-lg border border-rule bg-sheet px-2.5 py-1 text-sm text-ink"
+        value={value}
+        onInput={(e) => setValue((e.currentTarget as HTMLInputElement).value)}
+        onKeyDown={(e) => e.key === "Escape" && props.onDone(null)}
+      />
+      <button type="submit" class={secondaryButton}>
+        {t("mailbox.renameApply")}
+      </button>
+      <button type="button" class={secondaryButton} onClick={() => props.onDone(null)}>
+        {t("mailbox.cancel")}
+      </button>
+      <p class="m-0 w-full text-[11px] text-ink-faint">{t("mailbox.renameNote")}</p>
+    </form>
+  );
+}
+
 function DocumentRow(props: {
   doc: MailboxDocument;
+  label: string | undefined;
+  thumb: Thumbnail | undefined;
   checked: boolean;
   onToggle: () => void;
   onSave: () => void;
+  onView: () => void;
+  onRename: (label: string) => void;
   saving: boolean;
 }) {
   const { t, lang } = useT();
   const { doc } = props;
+  const [renaming, setRenaming] = useState(false);
   const when = doc.storedAt ? formatDateTime(doc.storedAt, lang) : doc.name;
+  const title = props.label ?? when;
+  const viewable = isRetrievable(doc);
   return (
     <li class={cx("flex items-center gap-3 px-4 py-3 transition-colors", props.checked && "bg-accent-wash/40")}>
-      <input type="checkbox" class="h-4 w-4 shrink-0 accent-[var(--color-accent)]" checked={props.checked} onChange={props.onToggle} aria-label={t("mailbox.selectDocument", { name: when })} />
+      <input type="checkbox" class="h-4 w-4 shrink-0 accent-[var(--color-accent)]" checked={props.checked} onChange={props.onToggle} aria-label={t("mailbox.selectDocument", { name: title })} />
+      <ThumbnailButton thumb={props.thumb} viewable={viewable} name={title} onView={props.onView} />
       <div class="min-w-0 flex-1">
-        <p class="tabular m-0 truncate text-sm font-semibold">{when}</p>
-        <p class="m-0 flex flex-wrap gap-x-3 text-xs text-ink-soft">
-          <span>{doc.pages !== null ? t("mailbox.pages", { count: doc.pages }) : "—"}</span>
-          <span>{t(`mailbox.type.${doc.type}`)}</span>
-          <span class="tabular text-ink-faint">{doc.name}</span>
-        </p>
+        {renaming ? (
+          <RenameForm
+            initial={props.label ?? ""}
+            onDone={(label) => {
+              if (label !== null) props.onRename(label);
+              setRenaming(false);
+            }}
+          />
+        ) : (
+          <>
+            <p class="m-0 flex items-center gap-1.5">
+              <span class={cx("truncate text-sm font-semibold", !props.label && "tabular")}>{title}</span>
+              <button type="button" class="shrink-0 cursor-pointer rounded px-1.5 py-0.5 text-xs font-medium text-accent-ink hover:bg-accent-wash" onClick={() => setRenaming(true)}>
+                {t("mailbox.rename")}
+              </button>
+            </p>
+            <p class="m-0 flex flex-wrap gap-x-3 text-xs text-ink-soft">
+              {props.label && <span class="tabular">{t("mailbox.scannedAt", { time: when })}</span>}
+              <span>{doc.pages !== null ? t("mailbox.pages", { count: doc.pages }) : "—"}</span>
+              <span>{t(`mailbox.type.${doc.type}`)}</span>
+              <span class="tabular text-ink-faint">{doc.name}</span>
+            </p>
+          </>
+        )}
       </div>
+      {viewable && (
+        <button type="button" class={secondaryButton} onClick={props.onView}>
+          {t("mailbox.view")}
+        </button>
+      )}
       <button type="button" class={secondaryButton} disabled={props.saving} onClick={props.onSave}>
         {t("mailbox.save")}
       </button>
@@ -222,6 +312,10 @@ function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
             <DocumentRow
               key={doc.id}
               doc={doc}
+              label={mb.labels[doc.name]}
+              thumb={mb.session ? mb.thumbnails[`${mb.session.box}:${doc.name}`] : undefined}
+              onView={() => void mb.openPreview(doc)}
+              onRename={(label) => mb.rename(doc, label)}
               checked={checked.has(doc.id)}
               saving={mb.busy !== null}
               onToggle={() =>
@@ -239,6 +333,21 @@ function OpenBox(props: { mb: ReturnType<typeof useMailbox> }) {
       )}
 
       {mb.updatedAt && <p class="m-0 text-xs text-ink-faint">{t("device.updatedAt", { time: formatTime(mb.updatedAt, lang) })}</p>}
+
+      {mb.preview && (
+        <PdfDialog
+          title={mb.labels[mb.preview.doc.name] ?? (mb.preview.doc.storedAt ? formatDateTime(mb.preview.doc.storedAt, lang) : mb.preview.doc.name)}
+          subtitle={[mb.preview.doc.pages !== null ? t("mailbox.pages", { count: mb.preview.doc.pages }) : null, mb.preview.doc.name].filter(Boolean).join("　")}
+          url={mb.preview.url}
+          failed={mb.preview.failed}
+          onClose={mb.closePreview}
+          actions={
+            <button type="button" class={secondaryButton} disabled={mb.busy !== null} onClick={() => void mb.save([mb.preview!.doc.id], format)}>
+              {t("mailbox.save")}
+            </button>
+          }
+        />
+      )}
     </div>
   );
 }

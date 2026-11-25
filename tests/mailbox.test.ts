@@ -3,6 +3,7 @@ import { fixture } from "./fixtures";
 import {
   MailboxClient,
   chunk,
+  isRetrievable,
   parseDeleteResponse,
   parseMailboxList,
   parseOpenResponse,
@@ -91,6 +92,21 @@ describe("MailboxClient", () => {
     expect(params.get("PWD")).toBe("*TOKEN=");
     expect(params.get("DOC")).toBe("967/966/");
     expect(params.get("FORM")).toBe("PDF");
+  });
+
+  it("retrieves a single page for thumbnails, and downloads it", async () => {
+    const { calls, client } = recorder({ "PBDOCLNK.cmd": fixture("box-retrieve.html"), "/box/": "%PDF-1.3 page" });
+    const result = await client.fetchDocument(session, 967, { page: 1 });
+    expect(result.ok).toBe(true);
+    expect(new URL(calls[0]!.url, "http://x").searchParams.get("PAGE")).toBe("1");
+    expect(calls[1]!.url).toBe("/box/FAKELINKabcdefghijklmnopqrstu/20261125155253.pdf");
+    await expect(client.retrieve(session, [1, 2], "pdf", 1)).rejects.toThrow();
+  });
+
+  it("knows which documents the printer can retrieve", () => {
+    const doc = { id: 1, name: "x", storedAt: null, pages: 1 };
+    expect(isRetrievable({ ...doc, type: "scan" })).toBe(true);
+    expect(isRetrievable({ ...doc, type: "print" })).toBe(false);
   });
 
   it("splits large selections into requests of at most 9 documents", async () => {
