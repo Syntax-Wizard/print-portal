@@ -5,6 +5,8 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "e2e",
   timeout: 60_000,
+  // On CI, failures also become annotations on the commit, readable without the (login-only) logs.
+  reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: {
     baseURL: "http://localhost:8631",
     // Use the locally installed Chrome; set PW_CHANNEL="" to use Playwright's bundled Chromium (e.g. in CI).
