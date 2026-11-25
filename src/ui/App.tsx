@@ -268,7 +268,7 @@ function Shell() {
         >
           {t("app.classicUi")}
         </button>
-        <span class="tabular rounded-md bg-well/70 px-2 py-0.5 font-medium text-ink-faint">v{__PORTAL_VERSION__}</span>
+        <span class="tabular rounded-md bg-well/70 px-2 py-0.5 font-medium text-ink-faint">v{__PORTAL_VERSION__} ({__BUILD_ID__.slice(0, 7)})</span>
       </footer>
     </div>
   );

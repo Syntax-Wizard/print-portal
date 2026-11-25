@@ -123,6 +123,7 @@ const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".map": "application/json",
+  ".json": "application/json",
 };
 
 function send(res: ServerResponse, status: number, body: string | Buffer, type = "text/html"): void {

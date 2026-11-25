@@ -327,3 +327,16 @@ test("mailbox: thumbnails, preview and local display names", async ({ page }) =>
   await page.getByRole("button", { name: "開く", exact: true }).click();
   await expect(page.getByText("ゼミ資料: 第3回")).toBeVisible();
 });
+
+test("an outdated cached portal.js switches to the current build before starting", async ({ page }) => {
+  const portal = readFileSync(fileURLToPath(new URL("../dist/portal.js", import.meta.url)), "utf-8");
+  const requested: string[] = [];
+  page.on("request", (r) => r.url().includes("portal.js") && requested.push(new URL(r.url()).search));
+  // Pretend a newer build has been released since this portal.js was cached.
+  await page.route("**/version.json*", (route) => route.fulfill({ json: { buildId: "newer-build" } }));
+  await page.route("**/portal.js?b=newer-build", (route) => route.fulfill({ contentType: "text/javascript", body: portal }));
+  await openPortal(page);
+  expect(requested).toContain("?b=newer-build");
+  expect(requested.filter((q) => q === "?b=newer-build")).toHaveLength(1); // no loop
+  await expect(page.getByText(/^v\d+\.\d+\.\d+ \([0-9a-f-]+/)).toBeVisible(); // build shown in the footer
+});
