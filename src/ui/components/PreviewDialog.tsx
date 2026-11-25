@@ -53,7 +53,7 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
       {rotation ? <span class="tabular text-accent-ink">{rotation}°</span> : null}
     </button>
   );
-  return <PdfDialog title={`${t("preview.title")}: ${props.item.file.name}`} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} actions={actions} />;
+  return <PdfDialog title={`${t("preview.title")}: ${props.item.file.name}`} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} actions={actions} hideViewerToolbar />;
 }
 
 export function PreviewDialog(props: { item: PrintItem | null; options: PrintOptions; onClose: () => void; onRotate?: (key: string) => void }) {
@@ -84,5 +84,5 @@ export function MergedPreview(props: { items: PrintItem[]; options: PrintOptions
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} />;
+  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} hideViewerToolbar />;
 }

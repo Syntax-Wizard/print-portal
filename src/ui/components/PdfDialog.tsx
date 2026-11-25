@@ -15,6 +15,12 @@ export function PdfDialog(props: {
   failed?: boolean;
   /** Extra buttons next to "Close" (e.g. Save). */
   actions?: ComponentChildren;
+  /**
+   * Hide the viewer's own toolbar (Chrome and Edge honour "#toolbar=0"). Used for print
+   * previews: its rotate button only turns the view and its print button would bypass the
+   * portal's settings, both easy to mistake for ours.
+   */
+  hideViewerToolbar?: boolean;
   onClose: () => void;
 }) {
   const { t } = useT();
@@ -52,7 +58,7 @@ export function PdfDialog(props: {
         </div>
         <div class="flex-1 bg-well">
           {props.url ? (
-            <iframe src={props.url} title={props.title} class="h-full w-full border-0" />
+            <iframe src={props.hideViewerToolbar ? `${props.url}#toolbar=0` : props.url} title={props.title} class="h-full w-full border-0" />
           ) : (
             <p class={props.failed ? "m-6 text-sm font-medium text-error" : "m-6 text-sm text-ink-soft"}>{props.failed ? t("preview.failed") : t("preview.loading")}</p>
           )}

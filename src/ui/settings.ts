@@ -51,15 +51,27 @@ export function saveRememberOptions(remember: boolean): void {
 }
 
 /**
- * Last used options, restored only when the user opted in to remembering them.
- * Special job types (secure, sample, delayed) are deliberately never restored.
+ * Settings of this visit. The print page is unmounted when the user switches to another tab;
+ * without this, coming back from a glance at the toner would silently reset the settings.
+ * Lives in memory only, so a reload starts from the defaults (or the remembered settings).
+ */
+let sessionOptions: PrintOptions | null = null;
+
+/** Copies are not carried over to a later visit: "3 copies" from last week is rarely wanted. */
+const REMEMBERED_KEYS = ["collate", "duplex", "color", "tray", "paperSize", "media", "pagesPerSheet"] as const;
+
+/**
+ * Settings to start the print page with: those of this visit if any, otherwise the last used
+ * ones when the user opted in to remembering them, otherwise the defaults. Special job types
+ * (secure, sample, delayed) are deliberately never restored from storage.
  */
 export function loadOptions(): PrintOptions {
+  if (sessionOptions) return sessionOptions;
   if (!loadRememberOptions()) return DEFAULT_OPTIONS;
   const saved = read<Partial<PrintOptions>>(KEYS.options);
   if (!saved || typeof saved !== "object") return DEFAULT_OPTIONS;
   const merged: PrintOptions = { ...DEFAULT_OPTIONS };
-  for (const key of ["copies", "collate", "duplex", "color", "tray", "paperSize", "media", "pagesPerSheet"] as const) {
+  for (const key of REMEMBERED_KEYS) {
     if (saved[key] !== undefined && typeof saved[key] === typeof DEFAULT_OPTIONS[key]) {
       (merged as unknown as Record<string, unknown>)[key] = saved[key];
     }
@@ -67,9 +79,17 @@ export function loadOptions(): PrintOptions {
   return merged;
 }
 
-export function saveOptions(options: PrintOptions): void {
-  const { delivery: _delivery, ...rest } = options;
+/** Keep the settings for the rest of this visit (always) and for later visits (only when opted in). */
+export function saveOptions(options: PrintOptions, remember: boolean): void {
+  sessionOptions = options;
+  if (!remember) return;
+  const { delivery: _delivery, copies: _copies, ...rest } = options;
   write(KEYS.options, rest);
+}
+
+/** For tests: forget the settings of this visit. */
+export function resetSessionOptions(): void {
+  sessionOptions = null;
 }
 
 export function loadTheme(): Theme {

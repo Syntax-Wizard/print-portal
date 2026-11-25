@@ -97,7 +97,7 @@ export function PrintPage() {
 
   useEffect(() => {
     saveRememberOptions(remember);
-    if (remember) saveOptions(options);
+    saveOptions(options, remember);
   }, [remember, options]);
 
   // Paste a screenshot (⌘V / Ctrl+V) to print it. Typing in a text field keeps normal pasting.
@@ -132,6 +132,13 @@ export function PrintPage() {
   const isLargeJob = effectiveCopies >= LARGE_JOB_COPIES || (sheets !== null && sheets >= LARGE_JOB_SHEETS);
 
   useEffect(() => setConfirmingLarge(false), [options, readyCount, merging]);
+  // The print button the user just pressed is replaced by the question: move focus to the
+  // question itself (not to "print anyway", so a second Enter cannot print by accident).
+  useEffect(() => {
+    if (!confirmingLarge) return;
+    const boxes = [...document.querySelectorAll<HTMLElement>("[data-confirm-large]")];
+    boxes.find((b) => b.offsetParent !== null)?.focus();
+  }, [confirmingLarge]);
 
   const doPrint = () => {
     setConfirmingLarge(false);
@@ -177,7 +184,14 @@ export function PrintPage() {
       : t("submit.confirmLargeCopies", { copies: effectiveCopies });
 
   const confirmBox = (
-    <div class="pp-pop flex flex-col gap-2.5 rounded-xl border border-warn/40 bg-warn-wash/75 p-3.5" role="alertdialog" aria-label={confirmMessage}>
+    <div
+      data-confirm-large
+      tabIndex={-1}
+      class="pp-pop flex flex-col gap-2.5 rounded-xl border border-warn/40 bg-warn-wash/75 p-3.5 outline-none focus-visible:outline-2 focus-visible:outline-accent"
+      role="alertdialog"
+      aria-label={confirmMessage}
+      onKeyDown={(e) => e.key === "Escape" && setConfirmingLarge(false)}
+    >
       <p class="m-0 text-xs leading-relaxed font-semibold text-warn">{confirmMessage}</p>
       <div class="flex gap-2">
         <button

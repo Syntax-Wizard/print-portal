@@ -116,7 +116,6 @@ function ItemStatusLine({ item }: { item: PrintItem }) {
   return <span class={tone[item.status] ?? "text-ink-soft"}>{t(`item.${item.status}`, { percent: Math.round(item.progress * 100) })}</span>;
 }
 
-/** Page count, page selection and preview for one PDF. */
 /** Rotate the whole file a further 90° clockwise; shows the current angle. */
 function RotateButton(props: { item: PrintItem; onRotate: () => void }) {
   const { t } = useT();

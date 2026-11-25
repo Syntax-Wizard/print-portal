@@ -82,7 +82,8 @@ test("rejects unsupported files before sending", async ({ page }) => {
 
 test("switches language instantly and remembers it", async ({ page }) => {
   await openPortal(page);
-  await page.getByLabel("表示言語").selectOption("en");
+  await page.getByRole("button", { name: /^表示言語/ }).click();
+  await page.getByRole("menuitemradio", { name: "English" }).click();
   await expect(page.getByRole("link", { name: "Mailbox" })).toBeVisible();
   await expect(page.getByText("1 copy of each file, 2-sided (long edge), in auto color on A4.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.lang)).toBe("en");
@@ -563,10 +564,12 @@ test("rotate from inside the preview", async ({ page, request }) => {
   await page.getByRole("button", { name: "仕上がりを確認" }).click();
   const frame = page.getByRole("dialog").locator("iframe");
   const first = await frame.getAttribute("src");
-  await page.getByRole("dialog").getByRole("button", { name: /回転（印刷に反映）/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: /^回転/ }).click();
   // The preview is rebuilt for the new rotation, and the dialog shows the angle.
   await expect(frame).not.toHaveAttribute("src", first!);
-  await expect(page.getByRole("dialog").getByRole("button", { name: /回転（印刷に反映）\s*90°/ })).toBeVisible();
+  // The viewer's own toolbar (with its view-only rotate) is hidden in print previews.
+  await expect(frame).toHaveAttribute("src", /#toolbar=0$/);
+  await expect(page.getByRole("dialog").getByRole("button", { name: /^回転\s*90°/ })).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "閉じる" }).click();
   await expect(page.getByRole("button", { name: /turn-me\.pdf を右に 90° 回転（今は 90°）/ })).toBeVisible();
   const upload = await printAndInspect(page, request, "turn-me.pdf");
@@ -595,4 +598,34 @@ test("cancel a job at the printer, from the file list and from the queue panel",
   } finally {
     await request.post("/__mock/hold?on=0");
   }
+});
+
+test("settings survive a visit to another tab, and advanced settings stay open", async ({ page }) => {
+  await openPortal(page);
+  await page.getByText("片面", { exact: true }).click();
+  await page.getByRole("button", { name: "部数を増やす" }).click();
+  const checked = () => page.evaluate(() => [...document.querySelectorAll<HTMLInputElement>("input[type=radio]:checked")].map((r) => `${r.name}=${r.value}`).join(" "));
+  await page.getByRole("link", { name: "プリンター状態" }).click();
+  await page.getByRole("link", { name: "印刷" }).click();
+  await expect.poll(checked).toContain("duplex=none");
+  await expect(page.getByRole("spinbutton").first()).toHaveValue("2");
+
+  // Choosing a special delivery and then "normal" again must not snap the section shut.
+  const details = page.locator("details").first();
+  await details.locator("summary").click();
+  const delivery = details.locator('input[name="delivery"]');
+  await delivery.nth(1).check({ force: true });
+  await delivery.nth(0).check({ force: true });
+  expect(await details.evaluate((d) => (d as HTMLDetailsElement).open)).toBe(true);
+});
+
+test("language menu works from the keyboard", async ({ page }) => {
+  await openPortal(page);
+  await page.getByRole("button", { name: /^表示言語/ }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("menuitemradio", { name: "日本語" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("menuitemradio", { name: "English" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: /^Language/ })).toBeFocused();
 });

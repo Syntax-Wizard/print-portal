@@ -52,6 +52,11 @@ function useTheme(): [Theme, (t: Theme) => void] {
     theme,
     (t) => {
       const root = document.documentElement;
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+        saveTheme(t);
+        setTheme(t);
+        return;
+      }
       root.classList.add("pp-theme-fading");
       if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
       fadeTimer.current = window.setTimeout(() => root.classList.remove("pp-theme-fading"), 850);
@@ -125,6 +130,26 @@ function LanguageMenu() {
   const { t, lang } = useT();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+
+  // Menu keyboard pattern: focus moves into the menu (on the current language), arrow keys
+  // move between items, Escape closes and returns focus to the button, Tab just closes.
+  useEffect(() => {
+    if (open) menu.current?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
+  }, [open]);
+  const onMenuKeyDown = (e: KeyboardEvent) => {
+    const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitemradio"]') ?? [])];
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    const go = (i: number) => items[(i + items.length) % items.length]?.focus();
+    if (e.key === "ArrowDown") go(at + 1);
+    else if (e.key === "ArrowUp") go(at - 1);
+    else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(items.length - 1);
+    else if (e.key === "Tab") return setOpen(false);
+    else return;
+    e.preventDefault();
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -132,7 +157,10 @@ function LanguageMenu() {
       if (root.current && !root.current.contains(e.target as Node)) setOpen(false);
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        trigger.current?.focus();
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -144,28 +172,13 @@ function LanguageMenu() {
 
   return (
     <div ref={root} class="relative">
-      {/* Native <select> kept visually hidden for screen-reader/automated selectOption compatibility */}
-      <label class="sr-only" for="pp-lang">
-        {t("app.language")}
-      </label>
-      <select
-        id="pp-lang"
-        tabIndex={-1}
-        class="sr-only"
-        value={lang}
-        onChange={(e) => setLanguage((e.currentTarget as HTMLSelectElement).value as (typeof LANGUAGES)[number]["code"])}
-      >
-        {LANGUAGES.map((l) => (
-          <option key={l.code} value={l.code} lang={l.code}>
-            {l.label}
-          </option>
-        ))}
-      </select>
 
       <button
+        ref={trigger}
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label={`${t("app.language")}: ${LANGUAGES.find((l) => l.code === lang)?.label ?? lang}`}
         title={t("app.language")}
         class={cx(
           "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors",
@@ -196,7 +209,10 @@ function LanguageMenu() {
 
       {open && (
         <div
+          ref={menu}
           role="menu"
+          aria-label={t("app.language")}
+          onKeyDown={onMenuKeyDown}
           class="pp-pop absolute top-full right-0 z-30 mt-1.5 min-w-36 origin-top-right rounded-xl border border-rule bg-sheet p-1 shadow-[0_10px_28px_-6px_rgb(15_23_42/0.16),0_2px_6px_-2px_rgb(15_23_42/0.06)] dark:shadow-[0_12px_32px_-6px_rgb(0_0_0/0.55)]"
         >
           {LANGUAGES.map((l) => {
@@ -207,6 +223,7 @@ function LanguageMenu() {
                 type="button"
                 role="menuitemradio"
                 aria-checked={active}
+                tabIndex={active ? 0 : -1}
                 lang={l.code}
                 class={cx(
                   "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-xs transition-colors",
@@ -215,6 +232,7 @@ function LanguageMenu() {
                 onClick={() => {
                   setLanguage(l.code);
                   setOpen(false);
+                  trigger.current?.focus();
                 }}
               >
                 <span>{l.label}</span>

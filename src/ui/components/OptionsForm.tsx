@@ -4,6 +4,7 @@
  */
 
 import type { ComponentChildren } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import type { TFunction } from "i18next";
 import { useT } from "../../i18n";
 import { LIMITS, type OptionsValidationError } from "../../printer/options";
@@ -114,6 +115,14 @@ export function OptionsForm(props: {
   const { t } = useT();
   const { options: o, onChange } = props;
   const set = <K extends keyof PrintOptions>(key: K, value: PrintOptions[K]) => onChange({ ...o, [key]: value });
+  // Advanced settings start open when one of them is in use, open by themselves when one
+  // starts being used (e.g. restored settings), and otherwise stay as the user left them:
+  // choosing "normal" again must not snap the section shut under the pointer.
+  const advancedInUse = o.delivery.type !== "normal" || o.collate !== "default" || o.media !== "default";
+  const [advancedOpen, setAdvancedOpen] = useState(advancedInUse);
+  useEffect(() => {
+    if (advancedInUse) setAdvancedOpen(true);
+  }, [advancedInUse]);
   const ids = {
     copies: useFieldId("copies"),
     size: useFieldId("size"),
@@ -206,7 +215,11 @@ export function OptionsForm(props: {
       </div>
 
       {/* Advanced settings */}
-      <details class="group border-t border-rule/80 pt-4" open={o.delivery.type !== "normal" || o.collate !== "default" || o.media !== "default" || undefined}>
+      <details
+        class="group border-t border-rule/80 pt-4"
+        open={advancedOpen}
+        onToggle={(e) => setAdvancedOpen((e.currentTarget as HTMLDetailsElement).open)}
+      >
         <summary class="inline-flex cursor-pointer list-none items-center gap-2 rounded-xl bg-well/70 px-3.5 py-2 text-xs font-semibold text-ink-soft transition-colors hover:bg-well hover:text-ink [&::-webkit-details-marker]:hidden">
           <svg
             class="h-3.5 w-3.5 text-ink-faint transition-transform duration-150 group-open:rotate-90"

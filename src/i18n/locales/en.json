@@ -506,7 +506,7 @@
     "close": "Close",
     "openInTab": "Open in new tab",
     "notShowing": "If the preview doesn't show, use “Open in new tab”.",
-    "rotate": "Rotate (for printing)",
-    "rotateHint": "Rotates 90° clockwise, and prints that way. The viewer's own rotate button only changes the view."
+    "rotate": "Rotate",
+    "rotateHint": "Turns the file 90° clockwise. It prints this way too."
   }
 }
