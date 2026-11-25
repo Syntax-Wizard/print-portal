@@ -24,7 +24,7 @@ export function PreviewDialog(props: { item: PrintItem | null; options: PrintOpt
     setUrl(null);
     setFailed(false);
     buildPrintFile(item, options)
-      .then((file) => {
+      .then(({ file }) => {
         if (cancelled) return;
         objectUrl = URL.createObjectURL(file);
         setUrl(objectUrl);

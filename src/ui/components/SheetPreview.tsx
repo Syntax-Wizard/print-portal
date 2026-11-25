@@ -153,9 +153,10 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
   // Leave room for the stack and the back side peeking out.
   const front: SheetBox = { x: (VIEW_W - w) / 2 - 8, y: (VIEW_H - h) / 2 - 4, w, h };
   const back: SheetBox = { ...front, x: front.x + 14, y: front.y + 10 };
-  // On a landscape sheet the long edge is horizontal, so the binding marks move to the top.
+  // Binding as the reader experiences it: for 2 per sheet the binding sent to the printer is
+  // swapped (see duplexForPrinter), so "long edge" still turns like a book, bound on the left.
   const bindingLong = options.duplex === "long-edge";
-  const bindLeft = landscape ? !bindingLong : bindingLong;
+  const bindLeft = bindingLong;
 
   return (
     <figure

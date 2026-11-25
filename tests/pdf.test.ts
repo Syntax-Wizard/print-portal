@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PDFDocument, degrees } from "pdf-lib";
 import { parsePageRange } from "../src/pdf/pageRange";
-import { PAPER_POINTS, chooseLayout, placePage, sheetsNeeded } from "../src/pdf/layout";
+import { PAPER_POINTS, chooseLayout, duplexForPrinter, placePage, sheetsNeeded } from "../src/pdf/layout";
 import { PdfToolError, countPages, preparePdf } from "../src/pdf/tools";
 
 async function makePdf(pages: Array<{ w: number; h: number; rotate?: number; blank?: boolean }>): Promise<Uint8Array> {
@@ -69,6 +69,14 @@ describe("layout", () => {
     expect(placePage(200, 100, 270, cell)).toEqual({ x: 100, y: 0, scale: 1, rotate: 90 });
   });
 
+  it("swaps the binding for landscape output so pages still turn like a book", () => {
+    // Verified on the real printer: 2-up landscape sheets with "long edge" turned like a calendar.
+    expect(duplexForPrinter("long-edge", true)).toBe("short-edge");
+    expect(duplexForPrinter("short-edge", true)).toBe("long-edge");
+    expect(duplexForPrinter("none", true)).toBe("none");
+    expect(duplexForPrinter("long-edge", false)).toBe("long-edge");
+  });
+
   it("counts sheets of paper", () => {
     expect(sheetsNeeded(10, 1, false, 1)).toBe(10);
     expect(sheetsNeeded(10, 2, true, 1)).toBe(3);
@@ -83,29 +91,39 @@ describe("pdf tools", () => {
 
   it("keeps only the selected pages, in order", async () => {
     const src = await makePdf([{ w: 100, h: 100 }, { w: 200, h: 200 }, { w: 300, h: 300 }]);
-    const out = await PDFDocument.load(await preparePdf(src, { pages: [2, 0], pagesPerSheet: 1, paper: PAPER_POINTS.A4! }));
+    const out = await PDFDocument.load((await preparePdf(src, { pages: [2, 0], pagesPerSheet: 1, paper: PAPER_POINTS.A4! })).bytes);
     expect(out.getPages().map((p) => p.getWidth())).toEqual([300, 100]);
+  });
+
+  it("reports whether the output sheets are landscape", async () => {
+    const portraitDoc = await makePdf([A4, A4]);
+    expect((await preparePdf(portraitDoc, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4! })).landscape).toBe(true);
+    expect((await preparePdf(portraitDoc, { pages: null, pagesPerSheet: 4, paper: PAPER_POINTS.A4! })).landscape).toBe(false);
+    expect((await preparePdf(portraitDoc, { pages: [0], pagesPerSheet: 1, paper: PAPER_POINTS.A4! })).landscape).toBe(false);
+    // Landscape slides 2-up are stacked on a portrait sheet: no swap needed.
+    const slides = await makePdf([{ w: 960, h: 540 }, { w: 960, h: 540 }]);
+    expect((await preparePdf(slides, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4! })).landscape).toBe(false);
   });
 
   it("puts 2 and 4 pages on each A4 sheet", async () => {
     const src = await makePdf(Array.from({ length: 5 }, () => A4));
-    const two = await PDFDocument.load(await preparePdf(src, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4! }));
+    const two = await PDFDocument.load((await preparePdf(src, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4! })).bytes);
     expect(two.getPageCount()).toBe(3);
     expect(two.getPage(0).getSize()).toEqual({ width: 842, height: 595 });
-    const four = await PDFDocument.load(await preparePdf(src, { pages: null, pagesPerSheet: 4, paper: PAPER_POINTS.A4! }));
+    const four = await PDFDocument.load((await preparePdf(src, { pages: null, pagesPerSheet: 4, paper: PAPER_POINTS.A4! })).bytes);
     expect(four.getPageCount()).toBe(2);
     expect(four.getPage(0).getSize()).toEqual({ width: 595, height: 842 });
   });
 
   it("handles rotated source pages", async () => {
     const src = await makePdf([{ w: 842, h: 595, rotate: 90 }, A4]);
-    const out = await PDFDocument.load(await preparePdf(src, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4! }));
+    const out = await PDFDocument.load((await preparePdf(src, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4! })).bytes);
     expect(out.getPageCount()).toBe(1);
   });
 
   it("leaves blank pages empty instead of failing", async () => {
     const src = await makePdf([A4, { ...A4, blank: true }, A4]);
-    const out = await PDFDocument.load(await preparePdf(src, { pages: null, pagesPerSheet: 4, paper: PAPER_POINTS.A4! }));
+    const out = await PDFDocument.load((await preparePdf(src, { pages: null, pagesPerSheet: 4, paper: PAPER_POINTS.A4! })).bytes);
     expect(out.getPageCount()).toBe(1);
   });
 

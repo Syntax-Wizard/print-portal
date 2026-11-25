@@ -166,17 +166,18 @@ export function useSubmissions() {
             // Without a snapshot we can still upload; tracking just becomes less precise.
           }
           let upload = t.file;
+          let sendOptions = options;
           if (needsProcessing(t, options)) {
             update(t.key, { status: "preparing" });
             try {
-              upload = await buildPrintFile(t, options);
+              ({ file: upload, options: sendOptions } = await buildPrintFile(t, options));
             } catch (err) {
               update(t.key, { status: "failed", pdfIssue: issueFromError(err) });
               continue;
             }
             update(t.key, { status: "uploading" });
           }
-          const result = await client.submit(upload, options, { onProgress: (p) => update(t.key, { progress: p }) });
+          const result = await client.submit(upload, sendOptions, { onProgress: (p) => update(t.key, { progress: p }) });
           if (result.ok) {
             update(t.key, { status: "sent", progress: 1 });
             void track(t.key, before, since);

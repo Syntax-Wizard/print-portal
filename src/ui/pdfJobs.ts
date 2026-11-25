@@ -4,7 +4,7 @@
  * Files that need no change are sent byte-for-byte as the user chose them.
  */
 
-import { PAPER_POINTS, type Size } from "../pdf/layout";
+import { PAPER_POINTS, type Size, duplexForPrinter } from "../pdf/layout";
 import { loadPdfTools } from "../pdf/loader";
 import { type PageRangeResult, parsePageRange } from "../pdf/pageRange";
 import type { PrintOptions } from "../printer/types";
@@ -60,16 +60,25 @@ export async function countPdfPages(file: File): Promise<number> {
   return tools.countPages(new Uint8Array(await file.arrayBuffer()));
 }
 
-/** The file to upload: the original, or a rewritten PDF when the options call for it. */
-export async function buildPrintFile(info: PdfInfo, options: PrintOptions): Promise<File> {
-  if (!needsProcessing(info, options)) return info.file;
+export interface PrintFile {
+  file: File;
+  /** Options to send with it: the binding may be adjusted for landscape output. */
+  options: PrintOptions;
+}
+
+/** The file to upload (the original, or a rewritten PDF when the options call for it) and its options. */
+export async function buildPrintFile(info: PdfInfo, options: PrintOptions): Promise<PrintFile> {
+  if (!needsProcessing(info, options)) return { file: info.file, options };
   const range = checkRange(info);
   if (range && !range.ok) throw new Error(`Invalid page range: ${range.error}`);
   const tools = await loadPdfTools();
-  const bytes = await tools.preparePdf(new Uint8Array(await info.file.arrayBuffer()), {
+  const prepared = await tools.preparePdf(new Uint8Array(await info.file.arrayBuffer()), {
     pages: range?.ok ? range.pages : null,
     pagesPerSheet: options.pagesPerSheet,
     paper: paperFor(options),
   });
-  return new File([bytes as BlobPart], info.file.name, { type: "application/pdf" });
+  return {
+    file: new File([prepared.bytes as BlobPart], info.file.name, { type: "application/pdf" }),
+    options: { ...options, duplex: duplexForPrinter(options.duplex, prepared.landscape) },
+  };
 }

@@ -35,8 +35,18 @@ export interface PrepareOptions {
   paper: Size;
 }
 
+export interface PreparedPdf {
+  bytes: Uint8Array;
+  /**
+   * True when the output sheets are landscape (2 portrait pages side by side). The printer
+   * rotates them onto the paper, which swaps what "long edge" and "short edge" binding mean
+   * for the reader; see duplexForPrinter().
+   */
+  landscape: boolean;
+}
+
 /** Build the PDF that will actually be sent to the printer. */
-export async function preparePdf(data: ArrayBuffer | Uint8Array, options: PrepareOptions): Promise<Uint8Array> {
+export async function preparePdf(data: ArrayBuffer | Uint8Array, options: PrepareOptions): Promise<PreparedPdf> {
   const src = await load(data, true);
   const indices = options.pages ?? src.getPageIndices();
   const out = await PDFDocument.create();
@@ -44,7 +54,7 @@ export async function preparePdf(data: ArrayBuffer | Uint8Array, options: Prepar
   if (options.pagesPerSheet === 1) {
     const copied = await out.copyPages(src, indices);
     for (const page of copied) out.addPage(page);
-    return out.save();
+    return { bytes: await out.save(), landscape: false };
   }
 
   const srcPages = indices.map((i) => src.getPage(i));
@@ -64,5 +74,5 @@ export async function preparePdf(data: ArrayBuffer | Uint8Array, options: Prepar
       sheet.drawPage(page, { x: p.x, y: p.y, xScale: p.scale, yScale: p.scale, rotate: degrees(p.rotate) });
     });
   }
-  return out.save();
+  return { bytes: await out.save(), landscape: layout.sheet.width > layout.sheet.height };
 }

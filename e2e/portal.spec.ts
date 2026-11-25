@@ -212,7 +212,8 @@ test("PDF: count pages, select pages, 2 per sheet, preview and send the processe
   expect(upload.name).toBe("thesis.pdf");
   expect(upload.pages).toBe(2); // 3 selected pages, 2 per sheet
   expect(upload.firstPageSize).toEqual([842, 595]); // landscape A4
-  expect(upload.fields.DUP).toBe("DP");
+  // "Long edge" was chosen; for landscape 2-up sheets the printer needs short edge to turn like a book.
+  expect(upload.fields.DUP).toBe("TB");
 });
 
 test("PDF: files that need no change are sent untouched", async ({ page, request }) => {

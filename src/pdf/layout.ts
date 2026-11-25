@@ -117,3 +117,16 @@ export function sheetsNeeded(pages: number, pagesPerSheet: PagesPerSheet, duplex
   const sides = Math.ceil(pages / pagesPerSheet);
   return (duplex ? Math.ceil(sides / 2) : sides) * copies;
 }
+
+/**
+ * The binding to request from the printer so that the sheets turn the way the user expects.
+ *
+ * The printer interprets long/short edge relative to the paper itself. For landscape output
+ * (2 portrait pages side by side) the paper's long edge is the top of the content, so
+ * "long edge" would turn the pages like a calendar. Verified on the real ApeosPort-V C4476
+ * (2026-11-25). Swapping gives the book-style turning people expect, as with 1-up printing.
+ */
+export function duplexForPrinter<T extends "none" | "long-edge" | "short-edge">(duplex: T, landscapeOutput: boolean): "none" | "long-edge" | "short-edge" {
+  if (!landscapeOutput || duplex === "none") return duplex;
+  return duplex === "long-edge" ? "short-edge" : "long-edge";
+}
