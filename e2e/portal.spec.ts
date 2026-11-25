@@ -525,3 +525,27 @@ test("job history hides the printer's mailbox retrievals", async ({ page }) => {
   await expect(page.getByRole("cell", { name: "ボックス取り出し" })).toHaveCount(0);
   await expect(page.getByText(/ボックスからの取り出し.*表示していません/)).toBeVisible();
 });
+
+test("rotate a file before printing", async ({ page, request }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "upside-down-scan.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(2) });
+  await expect(page.getByText("全 2 ページ")).toBeVisible();
+  const rotate = page.getByRole("button", { name: /upside-down-scan\.pdf を右に 90° 回転/ });
+  await rotate.click();
+  await rotate.click();
+  await expect(rotate).toContainText("180°");
+  await page.getByRole("button", { name: "1 ファイルを印刷" }).first().click();
+  await expect(page.locator("li", { hasText: "upside-down-scan.pdf" }).getByText(/プリンターに送信しました|プリンターで待機中|印刷中|印刷しました/)).toBeVisible({ timeout: 15_000 });
+  const upload = await (await request.get("/__mock/last-upload")).json();
+  expect(upload.name).toBe("upside-down-scan.pdf");
+  expect(upload.firstPageRotation).toBe(180);
+});
+
+test("rotate an image", async ({ page, request }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "sideways.png", mimeType: "image/png", buffer: await canvasImage(page, "image/png", 400, 300) });
+  await page.getByRole("button", { name: /sideways\.png を右に 90° 回転/ }).click();
+  const upload = await printAndInspect(page, request, "sideways.png");
+  expect(upload.name).toBe("sideways.pdf");
+  expect(upload.firstPageRotation).toBe(90);
+});

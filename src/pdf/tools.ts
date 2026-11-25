@@ -66,6 +66,8 @@ export interface PrepareOptions {
   pagesPerSheet: PagesPerSheet;
   /** Paper size in points, used for several pages per sheet. */
   paper: Size;
+  /** Extra clockwise rotation for every page (e.g. a scan fed upside down). */
+  rotate?: 0 | 90 | 180 | 270;
 }
 
 export interface PreparedPdf {
@@ -86,6 +88,13 @@ export async function preparePdf(data: ArrayBuffer | Uint8Array, options: Prepar
   // Only carry over the images and fonts each page uses (see prune.ts): keeps a few pages
   // taken from a large document small, so they upload quickly.
   for (const i of new Set(indices)) prunePageResources(src.getPage(i));
+  // Rotate before copying or laying out: both paths honour a page's /Rotate.
+  if (options.rotate) {
+    for (const i of new Set(indices)) {
+      const page = src.getPage(i);
+      page.setRotation(degrees((page.getRotation().angle + options.rotate) % 360));
+    }
+  }
 
   if (options.pagesPerSheet === 1) {
     const copied = await out.copyPages(src, indices);

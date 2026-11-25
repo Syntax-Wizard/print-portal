@@ -144,7 +144,15 @@ async function estimatePages(file: File): Promise<number> {
 }
 
 /** What the last upload looked like, for end-to-end tests (GET /__mock/last-upload). */
-let lastUpload: { name: string; size: number; pages: number; firstPageSize: [number, number] | null; fields: Record<string, string> } | null = null;
+let lastUpload: { name: string; size: number; pages: number; firstPageSize: [number, number] | null; firstPageRotation: number | null; fields: Record<string, string> } | null = null;
+
+async function firstPageRotation(file: File): Promise<number | null> {
+  try {
+    return (await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true })).getPage(0).getRotation().angle;
+  } catch {
+    return null;
+  }
+}
 
 async function firstPageSize(file: File): Promise<[number, number] | null> {
   try {
@@ -173,7 +181,7 @@ async function handleUpload(req: IncomingMessage, res: ServerResponse): Promise<
   }
   const job: MockJob = { id: (nextJobId++).toString(16), owner: clientAddress(req), state: 0, submittedAt: Date.now(), pages: await estimatePages(file) };
   queue.push(job);
-  lastUpload = { name: file.name, size: file.size, pages: job.pages, firstPageSize: await firstPageSize(file), fields };
+  lastUpload = { name: file.name, size: file.size, pages: job.pages, firstPageSize: await firstPageSize(file), firstPageRotation: await firstPageRotation(file), fields };
   console.log(`[mock] accepted "${file.name}" (${file.size} bytes) as job ${job.id}`, fields);
   send(res, 200, fixture("upload-accepted.html"));
 }

@@ -11,6 +11,8 @@ import { isImageFile, pdfName } from "../images/plan";
 import { type PageRangeResult, parsePageRange } from "../pdf/pageRange";
 import type { PrintOptions } from "../printer/types";
 
+export type Rotation = 0 | 90 | 180 | 270;
+
 export type PdfIssue = "encrypted" | "unreadable" | "toolsUnavailable" | "toolsOutdated";
 
 export function isImageItem(info: { file: File }): boolean {
@@ -23,6 +25,8 @@ export interface PdfInfo {
   pageCount: number | null;
   /** What the user typed, e.g. "1-3, 5". Empty means all pages. */
   pageRange: string;
+  /** Clockwise rotation chosen for the whole file. */
+  rotation?: Rotation;
   pdfIssue?: PdfIssue;
 }
 
@@ -64,7 +68,7 @@ export function needsProcessing(info: PdfInfo, options: PrintOptions): boolean {
   // Protected or unreadable PDFs are printed as they are (the list says so). If only the tools
   // failed to load, keep trying: printing the whole file 1-up would ignore the user's settings.
   if (!isPdf(info.file) || info.pdfIssue === "encrypted" || info.pdfIssue === "unreadable") return false;
-  return info.pageRange.trim() !== "" || options.pagesPerSheet > 1;
+  return info.pageRange.trim() !== "" || options.pagesPerSheet > 1 || (info.rotation ?? 0) !== 0;
 }
 
 export function paperFor(options: PrintOptions): Size {
@@ -86,7 +90,7 @@ export interface PrintFile {
 /** The file to upload (the original, or a rewritten PDF when the options call for it) and its options. */
 export async function buildPrintFile(info: PdfInfo, options: PrintOptions): Promise<PrintFile> {
   if (!needsProcessing(info, options)) return { file: info.file, options };
-  if (isImageItem(info)) return buildImageFile(info.file, options);
+  if (isImageItem(info)) return buildImageFile(info.file, options, info.rotation ?? 0);
   const range = checkRange(info);
   if (range && !range.ok) throw new Error(`Invalid page range: ${range.error}`);
   const tools = await loadPdfTools();
@@ -94,6 +98,7 @@ export async function buildPrintFile(info: PdfInfo, options: PrintOptions): Prom
     pages: range?.ok ? range.pages : null,
     pagesPerSheet: options.pagesPerSheet,
     paper: paperFor(options),
+    rotate: info.rotation ?? 0,
   });
   // Never send something that is not a PDF (e.g. if the tools bundle misbehaves).
   if (!isPdfBytes(prepared?.bytes)) throw new Error("PDF tools returned something that is not a PDF");
@@ -104,13 +109,13 @@ export async function buildPrintFile(info: PdfInfo, options: PrintOptions): Prom
 }
 
 /** Image -> one upright PDF page sized for the paper (then several per sheet, if chosen). */
-async function buildImageFile(file: File, options: PrintOptions): Promise<PrintFile> {
+async function buildImageFile(file: File, options: PrintOptions, rotation: Rotation): Promise<PrintFile> {
   const paper = paperFor(options);
   const [image, tools] = await Promise.all([prepareImage(file, Math.max(paper.width, paper.height)), loadPdfTools()]);
   let bytes = await tools.imageToPdf(image, paper);
   let sendOptions = options;
-  if (options.pagesPerSheet > 1) {
-    const prepared = await tools.preparePdf(bytes, { pages: null, pagesPerSheet: options.pagesPerSheet, paper });
+  if (options.pagesPerSheet > 1 || rotation !== 0) {
+    const prepared = await tools.preparePdf(bytes, { pages: null, pagesPerSheet: options.pagesPerSheet, paper, rotate: rotation });
     bytes = prepared.bytes;
     sendOptions = { ...options, duplex: duplexForPrinter(options.duplex, prepared.landscape) };
   }
@@ -123,12 +128,17 @@ async function buildImageFile(file: File, options: PrintOptions): Promise<PrintF
 async function partBytes(info: PdfInfo, options: PrintOptions): Promise<Uint8Array> {
   const tools = await loadPdfTools();
   const paper = paperFor(options);
-  if (isImageItem(info)) return tools.imageToPdf(await prepareImage(info.file, Math.max(paper.width, paper.height)), paper);
+  const rotate = info.rotation ?? 0;
+  if (isImageItem(info)) {
+    const page = await tools.imageToPdf(await prepareImage(info.file, Math.max(paper.width, paper.height)), paper);
+    return rotate ? (await tools.preparePdf(page, { pages: null, pagesPerSheet: 1, paper, rotate })).bytes : page;
+  }
   const original = new Uint8Array(await info.file.arrayBuffer());
   const range = checkRange(info);
   if (range && !range.ok) throw new Error(`Invalid page range: ${range.error}`);
-  if (!range?.ok || range.pages === null) return original;
-  return (await tools.preparePdf(original, { pages: range.pages, pagesPerSheet: 1, paper })).bytes;
+  const pages = range?.ok ? range.pages : null;
+  if (pages === null && !rotate) return original;
+  return (await tools.preparePdf(original, { pages, pagesPerSheet: 1, paper, rotate })).bytes;
 }
 
 /**

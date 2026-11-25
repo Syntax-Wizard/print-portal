@@ -117,7 +117,31 @@ function ItemStatusLine({ item }: { item: PrintItem }) {
 }
 
 /** Page count, page selection and preview for one PDF. */
-function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => void; onPreview: () => void }) {
+/** Rotate the whole file a further 90° clockwise; shows the current angle. */
+function RotateButton(props: { item: PrintItem; onRotate: () => void }) {
+  const { t } = useT();
+  const angle = props.item.rotation;
+  return (
+    <button
+      type="button"
+      class={cx(
+        "inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold transition-colors hover:bg-accent-wash",
+        angle ? "bg-accent-wash/60 text-accent-ink" : "text-accent-ink",
+      )}
+      aria-label={t("files.rotateLabel", { name: props.item.file.name, angle })}
+      onClick={props.onRotate}
+    >
+      <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M13 8a5 5 0 1 1-1.5-3.6" />
+        <path d="M13 2.5V5h-2.5" />
+      </svg>
+      {t("files.rotate")}
+      {angle ? <span class="tabular">{angle}°</span> : null}
+    </button>
+  );
+}
+
+function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => void; onPreview: () => void; onRotate: () => void }) {
   const { t } = useT();
   const { item } = props;
   const id = `range-${item.key}`;
@@ -128,7 +152,8 @@ function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => 
   if (isImageItem(item)) {
     // Images are a single page: only the preview of the converted page makes sense.
     return (
-      <div class="mt-1.5">
+      <div class="mt-1.5 flex flex-wrap items-center gap-1">
+        <RotateButton item={item} onRotate={props.onRotate} />
         <button type="button" class="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold text-accent-ink transition-colors hover:bg-accent-wash" onClick={props.onPreview}>
           {t("files.preview")}
         </button>
@@ -154,6 +179,7 @@ function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => 
           aria-describedby={rangeError ? `${id}-error` : undefined}
           onInput={(e) => props.onRangeChange((e.currentTarget as HTMLInputElement).value)}
         />
+        <RotateButton item={item} onRotate={props.onRotate} />
         <button type="button" class="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold text-accent-ink transition-colors hover:bg-accent-wash disabled:cursor-not-allowed disabled:text-ink-faint" disabled={Boolean(rangeError)} onClick={props.onPreview}>
           {t("files.preview")}
         </button>
@@ -176,6 +202,7 @@ export function FileList(props: {
   onPreview: (key: string) => void;
   /** When set (merged printing), files can be reordered. */
   onMove?: (key: string, delta: -1 | 1) => void;
+  onRotate: (key: string) => void;
   tooMany: boolean;
 }) {
   const { t, lang } = useT();
@@ -207,7 +234,7 @@ export function FileList(props: {
                   <ItemStatusLine item={item} />
                 </p>
                 {(isPdf(item.file) || isImageItem(item)) && !item.problem && (
-                  <PdfControls item={item} onRangeChange={(text) => props.onRangeChange(item.key, text)} onPreview={() => props.onPreview(item.key)} />
+                  <PdfControls item={item} onRangeChange={(text) => props.onRangeChange(item.key, text)} onPreview={() => props.onPreview(item.key)} onRotate={() => props.onRotate(item.key)} />
                 )}
               </div>
               {item.status === "failed" && !item.problem && (

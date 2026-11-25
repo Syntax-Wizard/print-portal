@@ -62,7 +62,9 @@
     "mergedPreview": "まとめた仕上がりを確認",
     "mergedPreviewTitle": "まとめた仕上がり（{{count}} ファイル）",
     "moveUp": "{{name}} を上へ",
-    "moveDown": "{{name}} を下へ"
+    "moveDown": "{{name}} を下へ",
+    "rotate": "回転",
+    "rotateLabel": "{{name}} を右に 90° 回転（今は {{angle}}°）"
   },
   "item": {
     "ready": "印刷待ち",

@@ -121,6 +121,19 @@ describe("pdf tools", () => {
     expect(out.getPageCount()).toBe(1);
   });
 
+  it("rotates every page clockwise, adding to any existing rotation", async () => {
+    const src = await makePdf([A4, { ...A4, rotate: 90 }]);
+    const out = await PDFDocument.load((await preparePdf(src, { pages: null, pagesPerSheet: 1, paper: PAPER_POINTS.A4!, rotate: 270 })).bytes);
+    expect(out.getPages().map((p) => p.getRotation().angle)).toEqual([270, 0]);
+  });
+
+  it("lays out rotated pages by how they look: portrait pages turned 90° stack on a portrait sheet", async () => {
+    const src = await makePdf([A4, A4]);
+    const prepared = await preparePdf(src, { pages: null, pagesPerSheet: 2, paper: PAPER_POINTS.A4!, rotate: 90 });
+    expect(prepared.landscape).toBe(false);
+    expect((await PDFDocument.load(prepared.bytes)).getPage(0).getSize()).toEqual({ width: 595, height: 842 });
+  });
+
   it("leaves blank pages empty instead of failing", async () => {
     const src = await makePdf([A4, { ...A4, blank: true }, A4]);
     const out = await PDFDocument.load((await preparePdf(src, { pages: null, pagesPerSheet: 4, paper: PAPER_POINTS.A4! })).bytes);

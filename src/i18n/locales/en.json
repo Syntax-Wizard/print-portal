@@ -64,7 +64,9 @@
     "mergedPreview": "Preview combined",
     "mergedPreviewTitle": "Combined ({{count}} files)",
     "moveUp": "Move {{name}} up",
-    "moveDown": "Move {{name}} down"
+    "moveDown": "Move {{name}} down",
+    "rotate": "Rotate",
+    "rotateLabel": "Rotate {{name}} 90° clockwise (now {{angle}}°)"
   },
   "item": {
     "ready": "Ready",

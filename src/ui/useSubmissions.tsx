@@ -9,7 +9,7 @@ import { findFinishedJob, findNewJob } from "../printer/client";
 import type { PrintOptions, QueuedJob, SubmitResult } from "../printer/types";
 import { isUnmapped } from "../printer/types";
 import { type FileProblem, MAX_FILES, checkFile } from "./files";
-import { type PdfIssue, buildMergedFile, buildPrintFile, countPdfPages, isImageItem, isPdf, issueFromError, needsProcessing } from "./pdfJobs";
+import { type PdfIssue, type Rotation, buildMergedFile, buildPrintFile, countPdfPages, isImageItem, isPdf, issueFromError, needsProcessing } from "./pdfJobs";
 import { canReadImage } from "../images/convert";
 import { usePrinter } from "./PrinterContext";
 
@@ -27,6 +27,8 @@ export interface PrintItem {
   pageCount: number | null;
   pageRange: string;
   pdfIssue?: PdfIssue;
+  /** Clockwise rotation for the whole file, chosen with the Rotate button. */
+  rotation: Rotation;
 }
 
 const FIRST_TRACK_DELAY_MS = 800;
@@ -74,7 +76,7 @@ export function useSubmissions() {
       setTooMany(incoming.length > room);
       const added = incoming.slice(0, room).map<PrintItem>((file) => {
         const problem = checkFile(file);
-        return { key: `f${++keySeq}`, file, problem, status: problem ? "failed" : "ready", progress: 0, pageCount: null, pageRange: "" };
+        return { key: `f${++keySeq}`, file, problem, status: problem ? "failed" : "ready", progress: 0, pageCount: null, pageRange: "", rotation: 0 };
       });
       return [...list, ...added];
     });
@@ -102,6 +104,11 @@ export function useSubmissions() {
   }, [items, update]);
 
   const setPageRange = useCallback((key: string, pageRange: string) => update(key, { pageRange }), [update]);
+
+  /** Turn a file a further 90° clockwise (0 -> 90 -> 180 -> 270 -> 0). */
+  const rotate = useCallback((key: string) => {
+    setItems((list) => list.map((it) => (it.key === key ? { ...it, rotation: (((it.rotation + 90) % 360) as Rotation) } : it)));
+  }, []);
 
   const remove = useCallback((key: string) => setItems((list) => list.filter((i) => i.key !== key)), []);
 
@@ -228,7 +235,7 @@ export function useSubmissions() {
     [items, update, sendOne],
   );
 
-  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange };
+  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate };
 }
 
 export type Submissions = ReturnType<typeof useSubmissions>;

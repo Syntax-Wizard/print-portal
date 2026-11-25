@@ -74,7 +74,7 @@ export function PrintPage() {
   const { status } = usePrinter();
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
   const [showErrors, setShowErrors] = useState(false);
-  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange } = usePrintList();
+  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate } = usePrintList();
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [merge, setMerge] = useState(false);
   const [mergedPreview, setMergedPreview] = useState(false);
@@ -157,6 +157,7 @@ export function PrintPage() {
           onRangeChange={setPageRange}
           onPreview={setPreviewKey}
           onMove={merging ? move : undefined}
+          onRotate={rotate}
           tooMany={tooMany}
         />
         {readyItems.length > 1 && (
