@@ -1,7 +1,7 @@
 # Print Portal 设计文档
 
 > 研究室打印机现代化打印管理界面
-> 版本：v0.5 · 日期：2026-11-25 · 状态：M1–M3 已实现，待发布（M4）
+> 版本：v0.6 · 日期：2026-11-25 · 状态：已发布到 GitHub Pages，试用阶段
 
 ### 修订记录
 
@@ -12,6 +12,7 @@
 | v0.3 | 2026-11-25 | 研究室没有常开设备，也不打算购买 → **改为在打印机自身网页中运行的无服务器架构**；加入浏览器可行性验证结果；确定默认设置与访问范围 |
 | v0.4 | 2026-11-25 | 确定：**以书签方式为主**，浏览器扩展作为后续可选；新旧界面并存；托管在开发者个人的 GitHub 账号 |
 | v0.5 | 2026-11-25 | M1–M3 实现完成；补充实现中的发现（13 章）；更新体积估算与目录结构 |
+| v0.6 | 2026-11-25 | 发布：仓库 `Syntax-Wizard/print-portal`（公开），安装页 https://syntax-wizard.github.io/print-portal/ |
 
 ---
 
@@ -691,8 +692,8 @@ interface PrintOptions {
 
 ### 13.3 发布前剩余工作（M4）
 
-1. 在 GitHub 上创建公开仓库 `print-portal`，推送代码。
-2. 在仓库设置中启用 GitHub Pages（来源选 "GitHub Actions"），之后每次推送到 `main` 都会自动测试、构建、发布。
+1. ~~在 GitHub 上创建公开仓库 `print-portal`，推送代码。~~ ✅ `Syntax-Wizard/print-portal`（推送使用 SSH）
+2. ~~在仓库设置中启用 GitHub Pages（来源选 "GitHub Actions"）。~~ ✅ 之后每次推送到 `main` 都会自动测试、构建、发布。安装页：https://syntax-wizard.github.io/print-portal/
 3. 打开发布后的安装页面，把书签拖到书签栏，在真实打印机上**实际打印 1 页**做最终验收（Chrome、Safari 各一次）。
 4. 编写面向研究室成员的使用说明（中文），并在打印机旁张贴安装页面的网址。
 
