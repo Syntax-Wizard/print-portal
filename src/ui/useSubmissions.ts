@@ -8,7 +8,8 @@ import { findFinishedJob, findNewJob } from "../printer/client";
 import type { PrintOptions, QueuedJob, SubmitResult } from "../printer/types";
 import { isUnmapped } from "../printer/types";
 import { type FileProblem, MAX_FILES, checkFile } from "./files";
-import { type PdfIssue, buildPrintFile, countPdfPages, isPdf, issueFromError, needsProcessing } from "./pdfJobs";
+import { type PdfIssue, buildPrintFile, countPdfPages, isImageItem, isPdf, issueFromError, needsProcessing } from "./pdfJobs";
+import { canReadImage } from "../images/convert";
 import { usePrinter } from "./PrinterContext";
 
 export type ItemStatus = "ready" | "queued" | "preparing" | "uploading" | "sent" | "waiting" | "printing" | "held" | "done" | "failed";
@@ -85,6 +86,16 @@ export function useSubmissions() {
       countPdfPages(item.file)
         .then((pageCount) => update(item.key, { pageCount }))
         .catch((err) => update(item.key, { pdfIssue: issueFromError(err) }));
+    }
+  }, [items, update]);
+
+  // Make sure new images can be decoded by this browser (e.g. HEIC outside Safari), so the
+  // problem shows up right away rather than when printing.
+  useEffect(() => {
+    for (const item of items) {
+      if (item.problem || item.pageCount !== null || !isImageItem(item) || counting.current.has(item.key)) continue;
+      counting.current.add(item.key);
+      void canReadImage(item.file).then((ok) => update(item.key, ok ? { pageCount: 1 } : { problem: "imageUnreadable", status: "failed" }));
     }
   }, [items, update]);
 

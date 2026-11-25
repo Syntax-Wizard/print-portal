@@ -1,29 +1,27 @@
 /**
  * Client-side checks before a file is sent to the printer.
- * The printer's web upload accepts PDF and JPEG directly (verified on the device).
+ * PDFs are sent as they are (or rewritten in the browser for page selection); any image the
+ * browser can decode is converted to a one-page PDF first (src/images/).
  */
+
+import { isImageFile } from "../images/plan";
 
 export const MAX_FILE_MB = 100;
 export const MAX_FILES = 20;
 
-const SUPPORTED = [
-  { ext: [".pdf"], mime: ["application/pdf"] },
-  { ext: [".jpg", ".jpeg"], mime: ["image/jpeg"] },
-];
-
-export type FileProblem = "unsupported" | "tooLarge" | "empty";
+/** "imageUnreadable" is found after adding, when the browser fails to decode the image. */
+export type FileProblem = "unsupported" | "tooLarge" | "empty" | "imageUnreadable";
 
 export function checkFile(file: { name: string; type: string; size: number }): FileProblem | null {
-  const name = file.name.toLowerCase();
-  const supported = SUPPORTED.some((s) => s.ext.some((e) => name.endsWith(e)) || s.mime.includes(file.type));
-  if (!supported) return "unsupported";
+  const pdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  if (!pdf && !isImageFile(file)) return "unsupported";
   if (file.size === 0) return "empty";
   if (file.size > MAX_FILE_MB * 1024 * 1024) return "tooLarge";
   return null;
 }
 
-/** Value for <input accept>. */
-export const ACCEPT = SUPPORTED.flatMap((s) => [...s.ext, ...s.mime]).join(",");
+/** Value for <input accept>. HEIC is listed explicitly: some systems do not map it to image/*. */
+export const ACCEPT = ".pdf,application/pdf,image/*,.heic,.heif";
 
 export function formatSize(bytes: number, lang: string): string {
   const units = ["B", "KB", "MB", "GB"];

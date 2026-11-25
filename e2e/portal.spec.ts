@@ -75,7 +75,7 @@ test("prints a file with the lab defaults and follows the job to completion", as
 test("rejects unsupported files before sending", async ({ page }) => {
   await openPortal(page);
   await page.locator('input[type="file"]').setInputFiles({ name: "paper.docx", mimeType: "application/msword", buffer: Buffer.from("x") });
-  await expect(page.getByText("この形式は直接印刷できません。PDF に書き出してから追加してください。")).toBeVisible();
+  await expect(page.getByText("この形式は直接印刷できません。PDF に書き出すか、画像として保存してから追加してください。")).toBeVisible();
   await expect(page.getByRole("button", { name: "印刷", exact: true })).toBeDisabled();
 });
 
@@ -354,4 +354,77 @@ test("an outdated cached portal.js switches to the current build before starting
   expect(requested).toContain("?b=newer-build");
   expect(requested.filter((q) => q === "?b=newer-build")).toHaveLength(1); // no loop
   await expect(page.getByText(/^v\d+\.\d+\.\d+ \([0-9a-f-]+/)).toBeVisible(); // build shown in the footer
+});
+
+/** Make an image in the page (real browser encoders), returned as bytes for setInputFiles. */
+async function canvasImage(page: Page, type: "image/png" | "image/jpeg", width: number, height: number, exifOrientation?: number): Promise<Buffer> {
+  const bytes = await page.evaluate(
+    async ({ type, width, height, exifOrientation }) => {
+      const c = document.createElement("canvas");
+      c.width = width;
+      c.height = height;
+      const ctx = c.getContext("2d")!;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = "#c00";
+      ctx.fillRect(0, 0, width / 2, height / 4); // a marker in the top-left corner
+      const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), type, 0.9));
+      let out = new Uint8Array(await blob.arrayBuffer());
+      if (exifOrientation) {
+        // Insert an APP1 Exif segment with the Orientation tag right after SOI.
+        const tiff = new Uint8Array([0x49, 0x49, 42, 0, 8, 0, 0, 0, 1, 0, 0x12, 0x01, 3, 0, 1, 0, 0, 0, exifOrientation, 0, 0, 0, 0, 0, 0, 0]);
+        const body = new Uint8Array([...new TextEncoder().encode("Exif"), 0, 0, ...tiff]);
+        const app1 = new Uint8Array([0xff, 0xe1, (body.length + 2) >> 8, (body.length + 2) & 0xff, ...body]);
+        out = new Uint8Array([...out.subarray(0, 2), ...app1, ...out.subarray(2)]);
+      }
+      return [...out];
+    },
+    { type, width, height, exifOrientation },
+  );
+  return Buffer.from(bytes);
+}
+
+async function printAndInspect(page: Page, request: import("@playwright/test").APIRequestContext, name: string) {
+  await page.getByRole("button", { name: "1 ファイルを印刷" }).first().click();
+  await expect(page.locator("li", { hasText: name }).getByText(/プリンターに送信しました|プリンターで待機中|印刷中|印刷しました/)).toBeVisible({ timeout: 15_000 });
+  return (await request.get("/__mock/last-upload")).json();
+}
+
+test("images: a landscape PNG is printed as a landscape PDF page", async ({ page, request }) => {
+  await openPortal(page);
+  const png = await canvasImage(page, "image/png", 800, 400);
+  await page.locator('input[type="file"]').setInputFiles({ name: "chart.png", mimeType: "image/png", buffer: png });
+  await expect(page.locator("li", { hasText: "chart.png" }).getByRole("button", { name: "仕上がりを確認" })).toBeVisible();
+  const upload = await printAndInspect(page, request, "chart.png");
+  expect(upload.name).toBe("chart.pdf");
+  expect(upload.pages).toBe(1);
+  expect(upload.firstPageSize).toEqual([842, 595]);
+});
+
+test("images: a phone photo with EXIF rotation prints upright", async ({ page, request }) => {
+  await openPortal(page);
+  // Stored 600x300 but tagged "rotate 90°": displayed (and printed) as a 300x600 portrait photo.
+  const jpeg = await canvasImage(page, "image/jpeg", 600, 300, 6);
+  await page.locator('input[type="file"]').setInputFiles({ name: "IMG_0001.jpg", mimeType: "image/jpeg", buffer: jpeg });
+  const upload = await printAndInspect(page, request, "IMG_0001.jpg");
+  expect(upload.name).toBe("IMG_0001.pdf");
+  expect(upload.firstPageSize).toEqual([595, 842]);
+});
+
+test("images: paste a screenshot with Ctrl+V", async ({ page }) => {
+  await openPortal(page);
+  const png = await canvasImage(page, "image/png", 320, 200);
+  await page.evaluate((bytes) => {
+    const data = new DataTransfer();
+    data.items.add(new File([new Uint8Array(bytes)], "image.png", { type: "image/png" }));
+    document.body.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true }));
+  }, [...png]);
+  await expect(page.getByText(/^screenshot-\d{8}-\d{6}\.png$/)).toBeVisible();
+  await expect(page.locator("li", { hasText: "screenshot-" })).toHaveCount(1);
+});
+
+test("images: one the browser cannot decode is flagged right away", async ({ page }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "IMG_0002.HEIC", mimeType: "image/heic", buffer: Buffer.from("not really heic") });
+  await expect(page.getByText(/このブラウザーではこの画像を読み込めません/)).toBeVisible();
 });

@@ -68,6 +68,25 @@ export function PrintPage() {
 
   useEffect(() => saveOptions(options), [options]);
 
+  // Paste a screenshot (⌘V / Ctrl+V) to print it. Typing in a text field keeps normal pasting.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const target = e.target;
+      if (target instanceof Element && target.closest("input, textarea, [contenteditable]")) return;
+      const files = [...(e.clipboardData?.files ?? [])].filter((f) => f.type.startsWith("image/") || f.type === "application/pdf");
+      if (files.length === 0) return;
+      e.preventDefault();
+      // Clipboard images are all called "image.png": give each a recognisable, unique name.
+      // Local time, like the screenshot tools themselves: 20261125-174030.
+      const now = new Date();
+      const two = (n: number) => String(n).padStart(2, "0");
+      const stamp = `${now.getFullYear()}${two(now.getMonth() + 1)}${two(now.getDate())}-${two(now.getHours())}${two(now.getMinutes())}${two(now.getSeconds())}`;
+      addFiles(files.map((f, i) => (f.name && f.name !== "image.png" ? f : new File([f], `screenshot-${stamp}${files.length > 1 ? `-${i + 1}` : ""}.${f.type.split("/")[1] || "png"}`, { type: f.type }))));
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [addFiles]);
+
   // Reloading shows the printer's original screen and loses the file list, so ask first.
   const pending = items.some((i) => ["ready", "queued", "preparing", "uploading"].includes(i.status));
   useEffect(() => {

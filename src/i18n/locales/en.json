@@ -34,11 +34,11 @@
   "files": {
     "dropTitle": "Drop files to print here",
     "dropAction": "or choose files",
-    "dropHint": "PDF and JPEG print directly (up to {{max}} MB per file)",
+    "dropHint": "Print PDFs and images (JPEG, PNG, screenshots…). You can also paste with ⌘V / Ctrl+V (up to {{max}} MB per file)",
     "dropActive": "Release to add",
     "remove": "Remove {{name}}",
     "clearDone": "Clear printed files",
-    "unsupported": "This file type can't be printed directly. Export it to PDF and add it again.",
+    "unsupported": "This file type can't be printed. Export it to PDF or save it as an image, then add it again.",
     "tooLarge": "Files over {{max}} MB can't be printed.",
     "empty": "This file is empty.",
     "tooMany": "You can add up to {{max}} files at a time.",
@@ -56,7 +56,8 @@
       "unreadable": "This PDF can't be read, so page selection and several pages per sheet aren't available. It can still be printed as is.",
       "toolsUnavailable": "Couldn't load the PDF tools. Check your internet connection.",
       "toolsOutdated": "Print Portal was just updated. Reload the page, then click the bookmark again."
-    }
+    },
+    "imageUnreadable": "This browser can't read this image (e.g. HEIC outside Safari). Convert it to JPEG or PNG and add it again."
   },
   "item": {
     "ready": "Ready",

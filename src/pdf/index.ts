@@ -4,9 +4,9 @@
  */
 
 import { PDF_TOOLS_API } from "./api";
-import { PdfToolError, countPages, preparePdf } from "./tools";
+import { PdfToolError, countPages, imageToPdf, preparePdf } from "./tools";
 
-export const pdfTools = { apiVersion: PDF_TOOLS_API, buildId: __BUILD_ID__, countPages, preparePdf, PdfToolError };
+export const pdfTools = { apiVersion: PDF_TOOLS_API, buildId: __BUILD_ID__, countPages, preparePdf, imageToPdf, PdfToolError };
 export type PdfTools = typeof pdfTools;
 
 (window as unknown as { PrintPortalPdf?: PdfTools }).PrintPortalPdf = pdfTools;

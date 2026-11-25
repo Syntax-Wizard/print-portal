@@ -5,4 +5,4 @@
  * right after a release a new portal.js can meet an old pdf-tools.js. Bump this number
  * whenever the tools' functions change shape; the loader refuses a mismatching bundle.
  */
-export const PDF_TOOLS_API = 2;
+export const PDF_TOOLS_API = 3;

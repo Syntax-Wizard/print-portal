@@ -2,7 +2,7 @@
  * File intake: the drop zone and the list of files with their per-file progress.
  */
 
-import { checkRange, isPdf } from "../pdfJobs";
+import { checkRange, isImageItem, isPdf } from "../pdfJobs";
 import { useRef, useState } from "preact/hooks";
 import { useT } from "../../i18n";
 import { ACCEPT, MAX_FILE_MB, MAX_FILES, formatSize } from "../files";
@@ -125,6 +125,16 @@ function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => 
   const editable = item.status === "ready" || item.status === "failed";
   if (item.pdfIssue) return <p class="m-0 mt-1.5 text-xs font-medium text-warn">{t(`files.pdfIssue.${item.pdfIssue}`)}</p>;
   if (!editable || item.pageCount === null) return null;
+  if (isImageItem(item)) {
+    // Images are a single page: only the preview of the converted page makes sense.
+    return (
+      <div class="mt-1.5">
+        <button type="button" class="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold text-accent-ink transition-colors hover:bg-accent-wash" onClick={props.onPreview}>
+          {t("files.preview")}
+        </button>
+      </div>
+    );
+  }
   const rangeError = range && !range.ok ? (range.error === "outOfRange" ? t("files.rangeOutOfRange", { count: item.pageCount }) : t("files.rangeInvalid")) : null;
   return (
     <div class="mt-2 flex flex-col gap-1">
@@ -194,7 +204,7 @@ export function FileList(props: {
                   </span>
                   <ItemStatusLine item={item} />
                 </p>
-                {isPdf(item.file) && !item.problem && (
+                {(isPdf(item.file) || isImageItem(item)) && !item.problem && (
                   <PdfControls item={item} onRangeChange={(text) => props.onRangeChange(item.key, text)} onPreview={() => props.onPreview(item.key)} />
                 )}
               </div>

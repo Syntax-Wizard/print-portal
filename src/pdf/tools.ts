@@ -24,6 +24,26 @@ async function load(data: ArrayBuffer | Uint8Array, forEditing: boolean): Promis
   }
 }
 
+/**
+ * One page holding the image, scaled to fit the paper with a small margin and centred.
+ * The page is landscape for landscape images, so the image is as large as possible.
+ */
+export async function imageToPdf(image: { bytes: Uint8Array; format: "jpeg" | "png"; width: number; height: number }, paper: Size): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const embedded = image.format === "jpeg" ? await doc.embedJpg(image.bytes) : await doc.embedPng(image.bytes);
+  const long = Math.max(paper.width, paper.height);
+  const short = Math.min(paper.width, paper.height);
+  const landscape = image.width > image.height;
+  const sheet = landscape ? { width: long, height: short } : { width: short, height: long };
+  const margin = 18;
+  const scale = Math.min((sheet.width - 2 * margin) / image.width, (sheet.height - 2 * margin) / image.height);
+  const w = image.width * scale;
+  const h = image.height * scale;
+  const page = doc.addPage([sheet.width, sheet.height]);
+  page.drawImage(embedded, { x: (sheet.width - w) / 2, y: (sheet.height - h) / 2, width: w, height: h });
+  return doc.save();
+}
+
 export async function countPages(data: ArrayBuffer | Uint8Array): Promise<number> {
   return (await load(data, false)).getPageCount();
 }
