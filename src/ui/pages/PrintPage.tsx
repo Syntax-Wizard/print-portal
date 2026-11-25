@@ -167,7 +167,7 @@ export function PrintPage() {
       : t("submit.confirmLargeCopies", { copies: effectiveCopies });
 
   const confirmBox = (
-    <div class="flex flex-col gap-2.5 rounded-xl border border-warn/40 bg-warn-wash/75 p-3.5" role="alertdialog" aria-label={confirmMessage}>
+    <div class="pp-pop flex flex-col gap-2.5 rounded-xl border border-warn/40 bg-warn-wash/75 p-3.5" role="alertdialog" aria-label={confirmMessage}>
       <p class="m-0 text-xs leading-relaxed font-semibold text-warn">{confirmMessage}</p>
       <div class="flex gap-2">
         <button

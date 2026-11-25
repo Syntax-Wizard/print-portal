@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { LANGUAGES, setLanguage, useT } from "../i18n";
 import type { PrinterClient } from "../printer/client";
 import { PrinterUnreachableError } from "../printer/client";
@@ -14,6 +14,7 @@ import { type Theme, applyTheme, loadTheme, saveTheme } from "./settings";
 
 type View = "print" | "mailbox" | "status";
 const VIEWS: View[] = ["print", "mailbox", "status"];
+const THEMES: readonly Theme[] = ["system", "light", "dark"];
 
 /** Keep the current view in the URL hash so the back button works inside the app. */
 const hashName = () => location.hash.replace(/^#\/?/, "");
@@ -190,7 +191,7 @@ function LanguageMenu() {
       {open && (
         <div
           role="menu"
-          class="absolute top-full right-0 z-30 mt-1.5 min-w-36 origin-top-right rounded-xl border border-rule bg-sheet p-1 shadow-[0_10px_28px_-6px_rgb(15_23_42/0.16),0_2px_6px_-2px_rgb(15_23_42/0.06)] dark:shadow-[0_12px_32px_-6px_rgb(0_0_0/0.55)]"
+          class="pp-pop absolute top-full right-0 z-30 mt-1.5 min-w-36 origin-top-right rounded-xl border border-rule bg-sheet p-1 shadow-[0_10px_28px_-6px_rgb(15_23_42/0.16),0_2px_6px_-2px_rgb(15_23_42/0.06)] dark:shadow-[0_12px_32px_-6px_rgb(0_0_0/0.55)]"
         >
           {LANGUAGES.map((l) => {
             const active = l.code === lang;
@@ -227,6 +228,63 @@ function LanguageMenu() {
   );
 }
 
+function PrimaryNav({ view, onView, dotClass }: { view: View; onView: (v: View) => void; dotClass: string | null }) {
+  const { t, lang } = useT();
+  const navRef = useRef<HTMLElement>(null);
+  const [pill, setPill] = useState<{ left: number; width: number; ready: boolean }>({ left: 0, width: 0, ready: false });
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const measure = () => {
+      const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!active) return;
+      setPill((prev) => ({ left: active.offsetLeft, width: active.offsetWidth, ready: prev.width > 0 }));
+    };
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    ro?.observe(nav);
+    return () => ro?.disconnect();
+  }, [view, lang]);
+
+  return (
+    <nav ref={navRef} class="relative order-last flex w-full gap-1 overflow-x-auto rounded-xl bg-well/80 p-1 md:order-none md:w-auto" aria-label={t("app.name")}>
+      {pill.width > 0 && (
+        <span
+          aria-hidden="true"
+          class={cx(
+            "pointer-events-none absolute top-1 bottom-1 left-0 rounded-lg bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10",
+            pill.ready && "transition-[transform,width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          )}
+          style={{ width: `${pill.width}px`, transform: `translateX(${pill.left}px)` }}
+        />
+      )}
+      {VIEWS.map((v) => {
+        const active = view === v;
+        return (
+          <a
+            key={v}
+            href={`#/${v}`}
+            aria-current={active ? "page" : undefined}
+            class={cx(
+              "relative z-10 inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm no-underline transition-colors duration-150 md:flex-initial",
+              active ? "font-semibold text-ink" : "font-medium text-ink-soft hover:text-ink",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              onView(v);
+            }}
+          >
+            <NavIcon view={v} />
+            {t(`nav.${v}`)}
+            {v === "status" && dotClass && <span class={cx("h-1.5 w-1.5 rounded-full", dotClass)} aria-hidden="true" />}
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
 function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const { t, lang } = useT();
   const { status, queue } = usePrinter();
@@ -244,9 +302,10 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const tonerSummary = [urgent.length ? t("supplies.urgentSummary", { colors: colors(urgent) }) : "", notUrgent.length ? t("supplies.lowSummary", { colors: colors(notUrgent) }) : ""]
     .filter(Boolean)
     .join(lang === "ja" ? "　" : ". ");
+  const themeIndex = Math.max(0, THEMES.indexOf(theme));
 
   return (
-    <header class="sticky top-0 z-20 border-b border-rule/80 bg-sheet/88 backdrop-blur-md">
+    <header class="sticky top-0 z-20 border-b border-rule/80 bg-sheet/88 backdrop-blur-md transition-colors duration-200">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 py-2.5 sm:px-6">
         {/* Left: Brand & Device */}
         <div class="flex min-w-0 items-center gap-2.5">
@@ -262,41 +321,21 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
           </div>
         </div>
 
-        {/* Center: Primary Navigation */}
-        <nav class="order-last flex w-full gap-1 overflow-x-auto rounded-xl bg-well/80 p-1 md:order-none md:w-auto" aria-label={t("app.name")}>
-          {VIEWS.map((v) => {
-            const active = view === v;
-            return (
-              <a
-                key={v}
-                href={`#/${v}`}
-                aria-current={active ? "page" : undefined}
-                class={cx(
-                  "relative inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm no-underline transition-all md:flex-initial",
-                  active
-                    ? "bg-sheet font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
-                    : "font-medium text-ink-soft hover:text-ink",
-                )}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onView(v);
-                }}
-              >
-                <NavIcon view={v} />
-                {t(`nav.${v}`)}
-                {v === "status" && low.length > 0 && <span class={cx("h-1.5 w-1.5 rounded-full", urgent.length ? "bg-error" : "bg-warn")} aria-hidden="true" />}
-              </a>
-            );
-          })}
-        </nav>
+        {/* Center: Primary Navigation with sliding pill */}
+        <PrimaryNav view={view} onView={onView} dotClass={low.length > 0 ? (urgent.length ? "bg-error" : "bg-warn") : null} />
 
-        {/* Right: Compact Icon Controls (Language + Theme) */}
+        {/* Right: Compact Icon Controls (Language + Sliding Theme Switcher) */}
         <div class="flex items-center gap-2">
           <LanguageMenu />
 
-          {/* 3-way Icon Theme Switcher */}
-          <div class="inline-flex items-center rounded-lg border border-rule/80 bg-well/80 p-0.5" role="group" aria-label={t("app.theme.label")}>
-            {(["system", "light", "dark"] as const).map((mode) => {
+          {/* 3-way Icon Theme Switcher with sliding thumb */}
+          <div class="relative inline-grid grid-cols-3 items-center rounded-lg border border-rule/80 bg-well/80 p-0.5" role="group" aria-label={t("app.theme.label")}>
+            <span
+              aria-hidden="true"
+              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
+              style={{ transform: `translateX(${themeIndex * 100}%)` }}
+            />
+            {THEMES.map((mode) => {
               const active = theme === mode;
               return (
                 <button
@@ -306,10 +345,8 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
                   aria-label={t(`app.theme.${mode}`)}
                   title={t(`app.theme.${mode}`)}
                   class={cx(
-                    "grid h-7 w-7 cursor-pointer place-items-center rounded-md transition-all",
-                    active
-                      ? "bg-sheet text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
-                      : "text-ink-faint hover:text-ink",
+                    "relative z-10 grid h-7 w-7 cursor-pointer place-items-center rounded-md transition-colors duration-150",
+                    active ? "text-ink" : "text-ink-faint hover:text-ink",
                   )}
                   onClick={() => setTheme(mode)}
                 >
@@ -323,7 +360,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
 
       {/* Slim contextual alert strip when toner is low — keeps the header clean and balanced */}
       {low.length > 0 && view !== "status" && (
-        <div class={cx("border-t", urgent.length ? "border-error/25 bg-error-wash/80" : "border-warn/20 bg-warn-wash/75")}>
+        <div class={cx("border-t transition-colors duration-200", urgent.length ? "border-error/25 bg-error-wash/80" : "border-warn/20 bg-warn-wash/75")}>
           <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5 text-xs sm:px-6">
             <button
               type="button"
@@ -351,9 +388,11 @@ function Shell() {
     <div class="flex min-h-screen flex-col">
       <Header view={view} onView={setView} />
       <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-7">
-        {view === "print" && <PrintPage />}
-        {view === "mailbox" && <MailboxPage />}
-        {view === "status" && <StatusPage showHistory={jobsLink} />}
+        <div key={view} class="pp-view">
+          {view === "print" && <PrintPage />}
+          {view === "mailbox" && <MailboxPage />}
+          {view === "status" && <StatusPage showHistory={jobsLink} />}
+        </div>
       </main>
       <footer class="mx-auto flex w-full max-w-6xl items-center justify-between border-t border-rule/70 px-4 py-4 text-xs text-ink-faint sm:px-6">
         <button

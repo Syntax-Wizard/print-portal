@@ -4,7 +4,7 @@
  */
 
 import type { ComponentChildren } from "preact";
-import { useId } from "preact/hooks";
+import { useId, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 export function cx(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -37,25 +37,67 @@ export interface SegmentOption<T extends string> {
   label: ComponentChildren;
 }
 
-/** Segmented control backed by radio buttons. */
+/** Segmented control backed by radio buttons, with a sliding active pill. */
 export function Segmented<T extends string>(props: {
   name: string;
   value: T;
   options: ReadonlyArray<SegmentOption<T>>;
   onChange: (value: T) => void;
 }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [thumb, setThumb] = useState<{ left: number; top: number; width: number; height: number; ready: boolean }>({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+    ready: false,
+  });
+
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const measure = () => {
+      const active = track.querySelector<HTMLElement>('[data-active="true"]');
+      if (!active) return;
+      setThumb((prev) => ({
+        left: active.offsetLeft,
+        top: active.offsetTop,
+        width: active.offsetWidth,
+        height: active.offsetHeight,
+        ready: prev.width > 0,
+      }));
+    };
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    ro?.observe(track);
+    return () => ro?.disconnect();
+  }, [props.value, props.options.length]);
+
   return (
-    <div class="inline-flex max-w-full flex-wrap gap-0.5 rounded-xl border border-rule/70 bg-well p-1">
+    <div ref={trackRef} class="relative inline-flex max-w-full flex-wrap gap-0.5 rounded-xl border border-rule/70 bg-well p-1">
+      {thumb.width > 0 && (
+        <span
+          aria-hidden="true"
+          class={cx(
+            "pointer-events-none absolute top-0 left-0 rounded-lg bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10",
+            thumb.ready && "transition-[transform,width,height] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          )}
+          style={{
+            width: `${thumb.width}px`,
+            height: `${thumb.height}px`,
+            transform: `translate3d(${thumb.left}px, ${thumb.top}px, 0)`,
+          }}
+        />
+      )}
       {props.options.map((o) => {
         const active = props.value === o.value;
         return (
           <label
             key={o.value}
+            data-active={active ? "true" : undefined}
             class={cx(
-              "relative cursor-pointer select-none whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm transition-all has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
-              active
-                ? "bg-sheet font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
-                : "text-ink-soft hover:text-ink",
+              "relative z-10 cursor-pointer select-none whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm transition-colors duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
+              active ? "font-semibold text-ink" : "text-ink-soft hover:text-ink",
             )}
           >
             <input

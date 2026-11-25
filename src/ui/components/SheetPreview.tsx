@@ -96,6 +96,7 @@ function Content({ box, colorMode, faded }: { box: SheetBox; colorMode: PrintOpt
 function Sheet({ box, shadow, back }: { box: SheetBox; shadow?: boolean; back?: boolean }) {
   return (
     <rect
+      class="pp-sheet-rect"
       x={box.x}
       y={box.y}
       width={box.w}
