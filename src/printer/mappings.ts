@@ -157,7 +157,11 @@ function mapText<T extends string>(rules: ReadonlyArray<[RegExp, T]>, text: unkn
   return { raw: text };
 }
 
+// Order matters: "使用できます(一部節電中)" mentions power saving but means "ready",
+// so the more specific rules come before the generic power-saver rule.
 const DEVICE_STATE_RULES: ReadonlyArray<[RegExp, DeviceState]> = [
+  [/パネル操作中|panel (is )?in use|control panel/, "panelInUse"],
+  [/^使用できます|^available/, "ready"],
   [/節電|低電力|スリープ|power ?sav|sleep|low power/, "sleep"],
   [/ウォームアップ|warm/, "warmingUp"],
   [/プリント中|印刷中|printing/, "printing"],

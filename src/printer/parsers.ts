@@ -68,7 +68,8 @@ export function parseGeneral(html: string): DeviceInfo {
   // spcs = [model, addresses, fax, location, statusText, statusFlag]
   const statusText = spec[4];
   const state = mapDeviceState(statusText) ?? { raw: "" };
-  const severity = mapDeviceSeverity(spec[5]);
+  // Some states (e.g. "使用できます(一部節電中)") come without a severity flag.
+  const severity = spec[5] === undefined && typeof state === "string" ? "ok" : mapDeviceSeverity(spec[5]);
 
   const alerts: DeviceAlert[] = [];
   const artinfo = extractVar(html, "artinfo");

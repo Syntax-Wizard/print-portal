@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>親展ボックスの文書取り出し</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+var lTop='親展ボックスの文書取り出し';
+var lLnk='このリンクから保存してください';
+var lHd=['ボックス番号','文書番号','ページ番号','リンク先'];
+var info=[[27,967,0,'20261125155253','/box/FAKELINKabcdefghijklmnopqrstu/20261125155253.pdf']
+,[27,966,0,'20261125155139','/box/FAKELINKabcdefghijklmnopqrstu/20261125155139.pdf']
+];
+var colon=':';
+lTop =lTop +' - '+lHd[0]+colon+info[0][0];
+function wrTd(s) {document.write('<TD nowrap><SMALL>', s, '</SMALL></TD>');}
+function wrTdB(s) {document.write('<TD nowrap><SMALL><B>', s, '</B></SMALL></TD>');}
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function wrHd() {
+document.writeln('<P><FONT size="+2" color="#000000"><B>', lTop, '</B></FONT></P>');
+}
+function wrTbl() {
+for(i=0;i<info.length;i++){
+bgnTblCntnt();
+// wrTh(lHd[0]); wrTd(info[0]); wrTre();
+wrTh(lHd[1]); wrTd(info[i][1]); wrTre();
+if (info[i][2]) {wrTh(lHd[2]); wrTd(info[i][2]); wrTre();}
+wrTh(lHd[3]); document.writeln('<TD nowrap><SMALL><A href="', info[i][4], '" target="_self">', info[i][3], '</A></SMALL></TD></TR>');
+endTblCntnt();
+wrBr();
+}
+} 
+//--></SCRIPT>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="blue" alink="blue" vlink="blue">
+<SCRIPT language="JavaScript1.2"><!--
+wrHd(); wrTbl();
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+//--></SCRIPT>
+</BODY>
+</HTML>

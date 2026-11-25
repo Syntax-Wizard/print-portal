@@ -5,13 +5,14 @@ import { PrinterUnreachableError } from "../printer/client";
 import { cx } from "./components/controls";
 import { DeviceBadge, effectiveState, lowToners } from "./components/status";
 import { JobsPage } from "./pages/JobsPage";
+import { MailboxPage } from "./pages/MailboxPage";
 import { PrintPage } from "./pages/PrintPage";
 import { StatusPage } from "./pages/StatusPage";
 import { PrinterProvider, usePrinter } from "./PrinterContext";
 import { type Theme, applyTheme, loadTheme, saveTheme } from "./settings";
 
-type View = "print" | "jobs" | "status";
-const VIEWS: View[] = ["print", "jobs", "status"];
+type View = "print" | "jobs" | "mailbox" | "status";
+const VIEWS: View[] = ["print", "jobs", "mailbox", "status"];
 
 /** Keep the current view in the URL hash so the back button works inside the app. */
 function viewFromHash(): View {
@@ -66,6 +67,14 @@ function NavIcon({ view }: { view: View }) {
         <path d="M5 7V3.5h10V7" />
         <rect x="3" y="7" width="14" height="7" rx="2" />
         <path d="M6 12h8v4.5H6V12Z" />
+      </svg>
+    );
+  }
+  if (view === "mailbox") {
+    return (
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11.5 5.2 4.5h9.6l2.2 7" />
+        <path d="M3 11.5V16h14v-4.5h-4.2l-1 2h-3.6l-1-2H3Z" />
       </svg>
     );
   }
@@ -251,6 +260,7 @@ function Shell() {
       <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-7">
         {view === "print" && <PrintPage />}
         {view === "jobs" && <JobsPage />}
+        {view === "mailbox" && <MailboxPage />}
         {view === "status" && <StatusPage />}
       </main>
       <footer class="mx-auto flex w-full max-w-6xl items-center justify-between border-t border-rule/70 px-4 py-4 text-xs text-ink-faint sm:px-6">

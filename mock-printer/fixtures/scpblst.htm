@@ -1,0 +1,498 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>ボックス</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+var lTop='ボックス';
+var lNum='表示開始番号';
+var hnt ='(001～200)';
+var lJmp = '実行';
+var lLst = '文書の一覧表示';
+var lEd = '編集';
+var lReg = '登録';
+var lHd=['ボックス番号','ボックス名称','文書数'];
+var lRm='削除';
+var cfmRm='以下のボックスを削除してよろしいですか？';
+var nolststr = ['unregbox','(未登録)'];
+var sbox = 0;
+var pNum = 1;
+ var box = [[1,'Box 1','',0,1],[2,'Box 2','',0,1],[3,'Box 3','',0,1],[4,'Box 4','',0,1],[5,'Box 5','',0,1],[6,'Box 6','',0,1],[7,'Box 7','',0,1],[8,'Box 8','',0,1],[9,'Box 9','',0,1],[10,'Box 10','',0,1],[11,'Box 11','',0,1],[12,'Box 12','',0,1],[13,'Box 13','',0,1],[14,'Box 14','',0,1],[15,'Box 15','',0,1],[16,'Box 16','',0,1],[17,'Box 17','',0,1],[18,'Box 18','',0,1],[19,'Box 19','',0,1],[20,'Box 20','',0,1],[21,'Box 21','',0,1],[22,'Box 22','',0,1],[23,'Box 23','',0,1],[24,'Box 24','',0,1],[25,'Box 25','',0,1],[26,'Box 26','',0,1],[27,'test','',0,1],[28,'Box 28','',0,1]];
+var lMax = '200';
+var colon=':';
+var pMax = 100;
+var lHdw = ['15%', '30%', '20%'];
+var lststr = ['regbox',''];
+var enapagejmp = ['first','previ','next','last'];
+var enapagejmp2 = ['firstover','prevover','nextover','lastover'];
+var dispagejmp = ['disfirst','disprev','disnext','dislast'];
+var pagejmpparts = ['pjmpleft','pjmpline','pjmpbg','pjmpright'];
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function wrHd() {
+document.writeln('<P><FONT size="+2" color="#000000"><B>', lTop, '</B></FONT></P>');
+}
+function wrTdB(s,w) {
+document.write('<TD nowrap width ="', w, '"><SMALL><B>', s, '</B></SMALL></TD>');
+}
+function endTbllstCntnt(){
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrTxt(n, v, s, w, l) {
+document.write('<SMALL><INPUT type="text" name="', n, '" size="', s, '" maxlength="', w, '">', l, '</SMALL>');
+}
+function wrBtn1(v,f){
+document.write('<SMALL><INPUT type="button" value="', v, '" onClick=JavaScript:', f, '()></SMALL>');
+}
+function wrTd(s) {
+document.write('<SMALL><FONT color="#000000">', s, '</FONT></SMALL>');
+}
+function wrNbsp(){
+document.write('&nbsp;');
+}
+function doJmp() {
+var n = document.F.TXT.value;
+var lStart = lsttop(pNum);
+lEnd = (lStart + pMax)-1;
+if(lEnd > lMax){
+lEnd = lMax;
+}
+if(n >= lStart && n <= lEnd){
+lstjmp(n);
+}
+else{
+if (parent != self) {parent.apply_changes(document.F, window.location.href);}
+if(n <= pMax){
+lStart = 1;
+}
+else{
+if((n % pMax) == 0){
+lStart = (n - pMax)+1;
+}
+else{
+lStart = (n - (n % pMax))+1;
+}
+}
+document.B.LTOP.value = lStart;
+document.B.LNUM.value = pMax;
+if(n != 0 && n != '0'){
+document.B.SBOX.value = n;
+}
+else{
+document.B.SBOX.value = lMax+1;
+}
+document.B.PAGE.value = pagenum(lStart);
+//
+document.S.LTOP.value = lsttop(pNum);
+document.S.LNUM.value = pMax;
+document.S.PAGE.value = pNum;
+if (parent != self) {parent.apply_cgi_params(document.S, window.location.href);}
+document.B.submit();
+}
+return;
+}
+function doEdt(n){
+if (parent != self) {parent.apply_changes(document.F, window.location.href);}
+document.P.BOX.value  = n;
+document.P.LTOP.value = lsttop(pNum);
+document.P.LNUM.value = pMax;
+document.P.PAGE.value = pNum;
+if (parent != self) {parent.apply_cgi_params(document.P, window.location.href);}
+document.P.submit();
+return;
+}
+function doLst(n) {
+if (parent != self) {parent.apply_changes(document.F, window.location.href);}
+document.L.BOX.value = n;
+document.L.LTOP.value = lsttop(pNum);
+document.L.LNUM.value = pMax;
+document.L.PAGE.value = pNum;
+if (parent != self) {parent.apply_cgi_params(document.L, window.location.href);}
+document.L.submit();
+}
+function doRm(n,s) {
+if (parent != self) {parent.apply_changes(document.F, window.location.href);}
+if(n < 10){
+if(confirm(cfmRm+'\n'+lHd[0]+':00'+ n)==false) return;
+}
+else if(n >= 10 && n < 100){
+if(confirm(cfmRm+'\n'+lHd[0]+':0'+ n)==false) return;
+}
+else{
+if(confirm(cfmRm+'\n'+lHd[0]+':'+ n)==false) return;
+}
+document.R.BOX.value = n;
+document.R.LTOP.value = lsttop(pNum);
+document.R.LNUM.value = pMax;
+document.R.PAGE.value = pNum;
+if (box[s][4]) document.R.action="PBOXRMLSTKO.cmd";
+if (parent != self) {parent.apply_cgi_params(document.R, window.location.href);}
+document.R.submit();
+}
+function doReg() {
+if (parent != self) {parent.apply_changes(document.F, window.location.href);}
+document.P.BOX.value = n;
+document.P.LTOP.value = lsttop(pNum);
+document.P.LNUM.value = pMax;
+document.P.PAGE.value = pNum;
+if (parent != self) {parent.apply_cgi_params(document.P, window.location.href);}
+document.P.submit();
+}
+function doPagejmp(n){
+if (parent != self) {parent.apply_changes(document.F, window.location.href);}
+document.B.LTOP.value = lsttop(n);
+document.B.LNUM.value = pMax;
+document.B.SBOX.value = 0;
+document.B.PAGE.value = n;
+if (parent != self) {parent.apply_cgi_params(document.B, window.location.href);}
+document.B.submit();
+}
+function lsttop(page){
+var ltop = 1;
+if(page != 1){
+ltop = ((page-1) * pMax)+1;
+}
+return(ltop); 
+}
+function pagenum(lsttop){
+var pagenum = 1;
+if(lsttop > pMax){
+pagenum = (lsttop +  pMax -1)/ pMax;
+}
+return(pagenum);
+}
+function lastpage(){
+var pnum = lMax / pMax;
+if(lMax % pMax != 0){
+pnum = pnum + 1;
+}
+return pnum;
+}
+function wrIc(s,w,h) {
+document.write('<IMG src="I/', s, '.png" alt="" border = "0">');
+}
+function wrBoxnum(n){
+if(n < 10){
+document.write('<SMALL><FONT color="#000000">00',n,'</FONT></SMALL>'); 
+}
+else if(n >= 10 && n < 100){
+document.write('<SMALL><FONT color="#000000">0',n,'</FONT></SMALL>'); 
+}
+else{
+document.write('<SMALL><FONT color="#000000">',n,'</FONT></SMALL>'); 
+}
+}
+function wrLstcl(n){
+if(n % 2 == 0){
+document.write('<TR bgcolor="#ffffff">');
+}
+else{
+document.write('<TR>');
+}
+}
+function wrLstcle(){
+//   document.write('</TR>');
+wrTr();
+}
+function wrLink1(f,p){
+document.write('<A href="JavaScript:',f,'(',p,');">'); 
+}
+function wrLinke(){
+document.write('</A>');
+}
+function wrLstbtn(v,f,p){
+document.write('<SMALL><INPUT type="button" value="',v,'" onClick="JavaScript:',f,'(',p,');"></SMALL>');
+}
+function wrLstbtndis(v,f,p){
+document.write('<SMALL><INPUT disabled type="button" value="',v,'" onClick="JavaScript:',f,'(',p,');"></SMALL>');
+}
+function wrLstbtn2(v,f,p,r){
+document.write('<SMALL><INPUT type="button" value="',v,'" onClick="JavaScript:',f,'(',p,',',r,');"></SMALL>');
+}
+function wrBox(n,s,r,t){
+document.write('<TD nowrap align="center">');
+wrLink1('doLst',n);   wrIc(lststr[0],20,20);   wrLinke();
+document.write('</TD>');
+document.write('<TD nowrap><A NAME = "list',n,'" href="JavaScript:doLst(',n,');">');
+wrBoxnum(n);  
+document.write('</A></TD>'); 
+document.write('<TD nowrap>');
+wrLink1('doLst',n); 
+wrTd(s);
+wrLinke();
+document.write('</TD>'); 
+document.write('<TD nowrap>');
+wrTd(r);
+document.write('</TD>'); 
+document.write('<TD nowrap align="right">'); 
+wrLstbtn(lLst,'doLst',n);  wrNbsp(); wrLstbtn2(lRm,'doRm',n,t); wrNbsp();wrLstbtn(lEd,'doEdt',n);
+document.write('</TD>'); 
+}
+function wrNobox(n){
+document.write('<TD nowrap align="center">'); 
+wrIc(nolststr[0],20,20);
+document.write('</TD>');
+document.write('<TD nowrap><A NAME = "list',n,'">');
+wrBoxnum(n);
+document.write('</A></TD>');
+document.write('<TD nowrap>'); 
+wrTd(nolststr[1]);
+document.write('</TD>'); 
+document.write('<TD></TD>'); 
+document.write('<TD nowrap align="right">'); 
+wrLstbtn(lReg,'doEdt',n);
+document.write('</TD>'); 
+}
+function wrRow() {
+var lEnd;
+var lStart = 1;
+if(pNum != 1){
+lStart = ((pNum-1) * pMax)+1;
+}
+lEnd = (lStart + pMax)-1;
+if(lEnd > lMax){
+lEnd = lMax;
+}
+for (var r=lStart,s=0; r<=lEnd; r++){
+wrLstcl(r);
+if(box.length > s  && box[s][0] == r){
+wrBox(r,box[s][1],box[s][2],s);
+s++;
+}
+else{
+wrNobox(r);
+}
+wrLstcle();
+}
+}
+function wrPageIc(s,i) {
+document.write('<IMG src = "I/', s, '.png" alt="" border = "0" onMouseover = "JavaScript:mouseover(this,',i,');" onMouseout = "JavaScript:mouseout(this,',i,');">');
+}
+function mouseout(obj,i){
+obj.src = 'I/' + enapagejmp[i] + '.png';
+}
+function mouseover(obj,i){
+obj.src = 'I/' + enapagejmp2[i] + '.png';
+}
+function wrPagedownicn(i,n,s){
+// wrJmpicnbgn();
+if(pNum <= 1){
+wrIc(dispagejmp[i],22,22);
+}
+else{
+wrLink1('doPagejmp',n);  wrPageIc(enapagejmp[i],i); wrLinke();
+}
+// wrJmpicnend();
+}
+function wrPageupicn(i,n,s){
+var lpnum;
+// wrJmpicnbgn();
+lpnum = lastpage();
+if(pNum >= lpnum){
+wrIc(dispagejmp[i],22,22);
+}
+else{
+if(n == 0){
+n = lpnum;
+}
+document.write('<A href="JavaScript:doPagejmp(',n,');">');
+wrPageIc(enapagejmp[i],i);
+document.write('</A>'); 
+}
+// wrJmpicnend();
+}
+function wrJmpicnbgn(){
+document.write('<TD>'); 
+document.write('<TABLE border="0" cellspacing="0" cellpadding="0" height="100%">');
+document.write('<TR><TD>');
+document.write('<TABLE height="100%" border="0" bgcolor="#ffffff" cellspacing="0" cellpadding="0">');
+document.write('<TR><TD>');
+}
+function wrJmpicnend(){
+document.write('</TD></TR>');
+document.write('</TABLE></TD></TR></TABLE>');
+document.write('</TD>'); 
+}
+function  wrPage(){
+document.write('<TABLE border="0" bgcolor="#D1D8E8" cellspacing="0" cellpadding="0">');
+document.write('<TR><TD>');
+wrIc(pagejmpparts[0],22,22);
+wrPagedownicn(0,1,'img1');
+wrIc(pagejmpparts[1],22,22);
+wrPagedownicn(1,pNum-1,'img2');
+wrIc(pagejmpparts[1],22,22);
+document.write('</TD>');
+wrPagejmp();
+document.write('<TD>');
+wrIc(pagejmpparts[1],22,22);
+wrPageupicn(2,pNum+1,'img3');
+wrIc(pagejmpparts[1],22,22);
+wrPageupicn(3,0,'img4');
+wrIc(pagejmpparts[3],22,22);
+document.write('</TD></TR></TABLE>');
+}
+function wrPagejmp(){
+var n;
+var s = pagejmpparts[2];
+document.write('<TD nowrap style="background-image: url(I/',pagejmpparts[2],'.png);">');
+document.write('&nbsp;');
+for(var s = 1 ;;s++){
+if(pNum == s){
+document.write('<SMALL>',s,'</SMALL>');
+}
+else{
+document.write('<SMALL><A href="JavaScript:doPagejmp(',s,');"><FONT color="#000000">', s, '</FONT></A></SMALL>');
+}
+document.write('&nbsp;');
+if(s * pMax >= lMax){
+break;
+}
+}
+document.write('</TD>'); 
+}
+function lstjmp(s){
+var t = '#list'
+s = parseInt(s,10);
+if(s != 0){
+t = t.concat(s);
+self.window.location = t;
+}
+// document.write(t);
+}
+function  wrHdr(){
+document.write('<TR><TD nowrap width= "10%"><BR></TD>'); 
+for (var i=0; i<lHd.length; i++) 
+if(i == 2){
+for(var cnt=0;box.length > cnt;cnt++){
+if(box[cnt][3] == 1){
+wrTdB(lHd[i],lHdw[i]);
+break;
+}
+}
+}
+else{
+wrTdB(lHd[i],lHdw[i]); 
+}
+document.write('<TD></TD></TR>');
+wrHr(5); 
+}
+function wrHdBtn(){
+document.writeln('<TABLE border="0" bgcolor="#D1D8E8" width="100%">');
+document.writeln('<TR><TD nowrap>');
+wrTd(lNum);wrTd(hnt);wrNbsp();wrTxt('TXT','',5,3,'');wrNbsp();
+wrBtn1(lJmp,'doJmp');
+document.writeln('</TD><TD nowrap align="right">');
+wrPage();
+document.writeln('</TD></TR></TABLE>');
+}
+function wrLst() {
+bgnTblCntnt();
+wrHdr()
+wrRow();
+endTbllstCntnt();
+}
+function wrFt(){
+document.writeln('<TABLE border="0" bgcolor="#D1D8E8" width="100%">');
+document.writeln('<TR><TD nowrap align="right">');
+wrPage();
+document.writeln('</TD></TR></TABLE>');
+}
+// -->
+</script>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="black" alink="black" vlink="black" onLoad = " lstjmp(sbox)">
+<FORM name="F" action="" method="POST" onSubmit = 'return false;' target="_self">
+<SCRIPT language="JavaScript1.2"><!--
+wrHd();
+wrHdBtn();
+wrLst();
+wrFt();
+if (parent != self){parent.restore_saved_params(document.F, window.location.href);}
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+// -->
+</script>
+</FORM>
+<FORM name="B" action="PBLST.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="LTOP" value="">
+<INPUT type="hidden" name="LNUM" value="">
+<INPUT type="hidden" name="SBOX" value="">
+<INPUT type="hidden" name="PAGE" value="">
+</FORM>
+<FORM name="P" action="PBINFO.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="SET" value=2>
+<INPUT type="hidden" name="LTOP" value="">
+<INPUT type="hidden" name="LNUM" value="">
+<INPUT type="hidden" name="PAGE" value="">
+</FORM>
+<FORM name="L" action="PBDOCLST.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="ORD" value="DD">
+<INPUT type="hidden" name="SET" value=1>
+<INPUT type="hidden" name="LTOP" value="">
+<INPUT type="hidden" name="LNUM" value="">
+<INPUT type="hidden" name="PAGE" value="">
+</FORM>
+<FORM name="R" action="PBOXRMLST.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="SET" value=3>
+<INPUT type="hidden" name="LTOP" value="">
+<INPUT type="hidden" name="LNUM" value="">
+<INPUT type="hidden" name="PAGE" value="">
+</FORM>
+<FORM name="S" action="PBLST.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="LTOP" value="">
+<INPUT type="hidden" name="LNUM" value="">
+<INPUT type="hidden" name="SBOX" value=0>
+<INPUT type="hidden" name="PAGE" value="">
+</FORM>
+</BODY>
+</HTML>

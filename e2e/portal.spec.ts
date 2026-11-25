@@ -117,3 +117,48 @@ test("shows exact toner levels from the published snapshot", async ({ page }) =>
   await expect(page.getByRole("meter", { name: "イエロー 1%" })).toBeVisible();
   await expect(page.getByRole("meter", { name: "マゼンタ 1%" })).toBeVisible();
 });
+
+test("mailbox: unlock, save, see new scans, delete, remember my box", async ({ page, request }) => {
+  await openPortal(page);
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await page.getByRole("button", { name: /^027\s*test$/ }).click();
+
+  // Wrong password first, then the right one (the mock printer uses 1234).
+  await page.getByLabel("パスワード").fill("0000");
+  await page.getByRole("button", { name: "開く", exact: true }).click();
+  await expect(page.getByText("パスワードが違います。")).toBeVisible();
+  await page.getByLabel("パスワード").fill("1234");
+  await page.getByRole("button", { name: "開く", exact: true }).click();
+  await expect(page.getByText("2 件の文書")).toBeVisible();
+  await expect(page.getByText("2 ページ")).toBeVisible();
+
+  // The password never reaches persistent storage.
+  const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }));
+  expect(stored).not.toContain("1234");
+  expect(stored).not.toContain("FAKETOKEN");
+
+  // Save one document as PDF.
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "保存", exact: true }).first().click();
+  expect((await download).suggestedFilename()).toMatch(/^\d{14}\.pdf$/);
+  await expect(page.getByText("1 件を保存しました。")).toBeVisible();
+
+  // Someone scans into the box on the printer: the list updates on its own.
+  await request.post("/__mock/scan?box=27");
+  await expect(page.getByText("3 件の文書")).toBeVisible({ timeout: 15_000 });
+
+  // Delete one document after confirming.
+  await page.getByRole("checkbox").nth(1).check();
+  await page.getByRole("button", { name: "選択した 1 件を削除" }).click();
+  await page.getByRole("button", { name: "削除する" }).click();
+  await expect(page.getByText("1 件を削除しました。")).toBeVisible();
+  await expect(page.getByText("2 件の文書")).toBeVisible();
+
+  // Remember this box: next time the page goes straight to its password.
+  await page.getByRole("button", { name: "自分のボックスにする" }).click();
+  await page.reload();
+  await page.evaluate(bookmarkletCode);
+  await page.getByRole("link", { name: "ボックス" }).click();
+  await expect(page.getByLabel("パスワード")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "test" })).toBeVisible();
+});

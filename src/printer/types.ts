@@ -11,7 +11,7 @@ export interface Unmapped {
   raw: string;
 }
 
-export type DeviceState = "ready" | "printing" | "sleep" | "warmingUp" | "error" | "warning" | "offline";
+export type DeviceState = "ready" | "printing" | "sleep" | "warmingUp" | "panelInUse" | "error" | "warning" | "offline";
 
 export interface DeviceAlert {
   severity: Severity;

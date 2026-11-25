@@ -1,0 +1,636 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>ボックスの文書一覧</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+var lTop='ボックスの文書一覧';
+var lPbn='ボックス番号';
+var lPbna='ボックス名称';
+var lEn='有効';
+var lDo='する';
+var opr=[['削除','doRm']];
+var chkall = 'すべて選択';
+var chkalldel = 'すべて解除';
+var cfmRm='選択した文書を削除します'+'\n'+'よろしいですか？';
+var lGet='文書取り出し';
+var noSel='文書が選択されていません';
+var maxSel='同時に印刷できる文書数の制限を超えています。選択する文書数を9個以内にしてください。';
+var maxSelScan='同時に取り出せる文書数の制限を超えています。選択する文書数を9個以内にしてください。';
+var noSng='文書は一つだけ選択してください';
+var noPage='ページ番号が指定されていません';
+var errGet='スキャナー文書、ファクス文書あるいはメール文書を選択してください';
+var errPrt='ファクス文書かメール文書を選択してください';
+var errBndl='スキャナー文書かプリンター文書を選択してください';
+var errNColor1='少数色に変換できない文書が選択されているため、';
+var errNColor2='[少数色PDF]または[少数色DocuWorks]は選択できません。';
+var noDoc='文書はありません。';
+var lHd=['文書番号','文書名','登録日時','圧縮形式','ページ数','種別'];
+var lPg=['1ページ取り出し','ページ番号','取り出しフォーマット','サムネール'];
+var cmp=['-','MH','MR','MMR','JBIG','JPEG','非圧縮'];
+var job=['-','プリンター','スキャナー','ファクス','メール','未完了文書']; 
+var formOpt = [['TIFF/JPEG','TIFJPG'],['PDF','PDF']]; 
+formOpt=formOpt.concat([['DocuWorks','XDW']]);
+formOpt=formOpt.concat([['XPS','XPS']]);
+var box=[27,'*FAKETOKEN0000000000000=','DD',1,'test',0];
+var lst=[[967,'2026/11/25 15:52',3,2,2,'20261125155253',0,0,0],[966,'2026/11/25 15:51',3,1,2,'20261125155139',0,0,0]];
+var lAcntType='Account Type';
+var lType = [['Default Group Account','DGACC'],['Group Account','GACC']];
+var xsaFlg=0;
+var netFlg=0;
+var usrPrompts_2 = 0;
+var accInternal=0;
+var noGAcnt='Enter a Group Account ID.';
+lHd=lHd.concat(['高圧縮(MRC)']);
+lPg=lPg.concat(['高圧縮(MRC)','画質']);
+var hcmp=['不可','可'];
+var cmpimg=[['標準画質','HIGH'],['高画質+2','MID'],['最高画質','LOW']];
+var opehcmp='する';
+var opesmnl='あり';
+lHd=lHd.concat(['少数色']);
+var ncolor = ['不可', '可'];
+formOpt = formOpt.concat([['少数色PDF', 'NCPDF']]);
+formOpt = formOpt.concat([['少数色DocuWorks', 'NCXDW']]);
+var lPrt='文書のプリント';
+var lPr=['用紙トレイ','排出先','プリント部数','両面','ホチキス','パンチ','束ね印刷'];
+var hnt='(1'+'～'+'999)';
+var itOpt=[['自動','AUTO']];
+itOpt=itOpt.concat([['トレイ1','T1'],['トレイ2','T2'],['トレイ3','T3'],['トレイ4','T4'],['トレイ5(手差し)','SMH']]);
+var otOpt=[['センタートレイ','CT']];
+var dupOpt=[['しない','NO'],['長辺とじ','DP'],['短辺とじ','TB']];
+var lAcnt='Accounting';
+var lGAcnt=['AccountID','text'];
+var lAuthUid=['UserID','text'];
+var colon=':';
+var obj = null;
+var dMax=9;
+var chks=parent.zeros(lst.length);
+// ofst:チェックボックス以前のコントロールの数
+//var ofst=3;
+var doc=[];
+var Sort = [['DD','sdown'],['DU','sup'],['ND','sdown'],['NU','sup']];
+function wrTxt(n, v, s, w) {
+document.write('<TD nowrap><SMALL><INPUT type="text" name="', n, '" size="', s, '" maxlength="', w, '" value="', v, '"></SMALL></TD>');
+}
+function wrTxtp(n, v, w, m, h, t) {
+document.write('<TD nowrap align="left"><SMALL><INPUT name="', n, '" type="', t, '" value="', v, '" size="', w, '" maxlength="', m, '">', h, '</SMALL></TD>');
+}
+function wrCb(n, c, t) {
+document.write('<TD nowrap><SMALL><INPUT type="checkbox" name="', n, '"');
+if (c) document.write(' CHECKED');
+document.write('>', t, '</SMALL></TD>');
+}
+function wrCbf(n, c, t) {
+document.write('<TD nowrap><SMALL><INPUT type="checkbox" name="', n, '"');
+if (c) document.write(' CHECKED ');
+document.write('onClick="doChkRetrive()">', t, '</SMALL></TD>');
+}
+function wrTd(s) {document.write('<TD nowrap><SMALL>', s, '</SMALL></TD>');}
+function wrTdB(s) {document.write('<TD nowrap><SMALL><B>', s, '</B></SMALL></TD>');}
+function wrTdH(s) {document.write('<TD nowrap width="50%"><SMALL><B>', s, '</B></SMALL></TD>');}
+function wrIc(s) {
+document.write('<IMG src="I/', s, '.png" alt="" border = "0">');
+}
+function wrTdBlink(f,s,i) {
+var cnt;
+var presort = 0;
+document.write('<TD nowrap>');
+document.write('<SMALL><A href="JavaScript:',f,'();"><FONT color="#000000"><B>', s, '</B></FONT></A>');
+if((i == 1 && (box[2] == 'ND' || box[2] == 'NU')) || 
+(i == 2 && (box[2] == 'DD' || box[2] == 'DU'))){
+if(box[2] == 'DU'){
+presort = 1;
+}
+else if(box[2] == 'ND'){
+presort = 2;
+}
+else if(box[2] == 'NU'){
+presort = 3;
+}
+else{
+presort = 0;
+}
+wrIc(Sort[presort][1]);
+}
+document.write('</SMALL></TD>');
+}
+function wrLstth(s) {
+document.write('<TR><TH nowrap align="left" width="10%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function wrHdBtn(b) {
+document.writeln('<P><FONT size="+2" color="#000000"><B>', lTop, '</B></FONT>');
+if (b) {
+document.write('<DIV align="right"><SMALL>');
+for (var i=0; i<opr.length; i++) {
+document.write('<INPUT type="button" value="',chkall,'" name ="b1";  onClick="JavaScript:cboxall(document.L,this);">');
+document.write('&nbsp <INPUT type="button" value="',  opr[i][0], '" onClick="JavaScript:', opr[i][1], '();">');
+}
+document.writeln('</SMALL></DIV>');
+}
+else {
+document.writeln('</P>');
+}
+}
+function wrThe() {
+document.writeln('<TD></TD></TR>');
+}
+function wrOpt2(n, s, a) {
+document.write('<TD nowrap><SMALL><SELECT name="', n, '">');
+for (var i=0; i<a.length; i++) {
+if(a[i][0].length != 0){
+document.write('<OPTION value="', a[i][1]);
+if (i==s) document.write('" selected>', a[i][0]);
+else document.write('">', a[i][0]);}
+}
+document.write('</SELECT></SMALL></TD>');}
+function wrOptf(n, s, a) {
+document.write('<TD nowrap><SMALL><SELECT name="', n, '" onChange="JavaScript:doChkForm()">');
+for (var i=0; i<a.length; i++) {
+if(a[i][0].length != 0){
+document.write('<OPTION value="', a[i][1]);
+if (i==s) document.write('" selected>', a[i][0]);
+else document.write('">', a[i][0]);}
+}
+document.write('</SELECT></SMALL></TD>');}
+function wrHdr() {
+document.write('<TR><TD></TD>'); 
+for (var i=0; i<lHd.length; i++){
+if(i == 1){
+wrTdBlink('doSortN',lHd[i],i)
+}
+else if(i == 2){
+wrTdBlink('doSortD',lHd[i],i)
+}
+else{
+wrTdB(lHd[i]);
+}
+}
+wrTre();
+}
+function wrRow(n, r) {
+document.writeln('<TR><TD><INPUT type="checkbox" onClick="doChkone(', n, ');"></TD>');
+wrTd(r[0]); wrTd(r[5]); wrTd(r[1]); wrTd(cmp[r[2]]); wrTd(r[3]); wrTd(job[r[4]]);
+wrTd(hcmp[r[6]]);
+wrTd(ncolor[r[8]]);
+wrTre();
+}
+function wrBoxnum(n){
+if(n < 10){
+document.write('<TD><SMALL>00',n, '</SMALL></TD>'); 
+}
+else if(n >= 10 && n < 100){
+document.write('<TD><SMALL>0',n, '</SMALL></TD>'); 
+}
+else{
+document.write('<TD><SMALL>',n, '</SMALL></TD>'); 
+}
+}
+function wrLst() {
+bgnTblCntnt();
+wrLstth(lPbn);
+wrBoxnum(box[0]);
+document.writeln('</TR>');
+wrLstth(lPbna); document.writeln('<TD><SMALL>', box[4], '</SMALL></TD></TR>');
+wrBr();
+document.writeln('</TABLE></TD></TR>');
+document.writeln('<TR><TD nowrap><TABLE bgcolor="#E3E7F1" border="0" width="100%" cellspacing="8" cellpadding="0">');
+if (!lst.length) {
+document.writeln('<TR><TD align="center">', noDoc, '</TD></TR>');
+}
+else {
+wrHdr(); for (var r=0; r<lst.length; r++) wrRow(r, lst[r]);
+}
+endTblCntnt();
+}
+function wrPg() {
+bgnTblItem();
+wrTHd(lGet);
+endTblItem();
+bgnTblCntnt();
+wrTh(lPg[0]); 
+wrCbf('RP', 0 ,lEn);
+document.writeln('<TD></TD></TR>');
+wrTh(lPg[1]); document.writeln('<TD nowrap><SMALL><INPUT type="text" name="PG" size="5" maxlength="5" value="" onFocus="if (!document.L.RP.checked) document.L.PG.blur();"></SMALL></TD>');
+document.writeln('<TD></TD></TR>');
+wrTh(lPg[2]); wrOptf('FORM', box[3], formOpt);
+document.writeln('<TD></TD></TR>');
+wrTh(lPg[3]); wrCb('SMNL', 0 ,opesmnl);
+document.writeln('<TD></TD></TR>');
+wrTh(lPg[4]); wrCbf('HCMP', 0 ,opehcmp);
+document.writeln('<TD></TD></TR>');
+wrTh(lPg[5]); wrOpt2('ICMP', box[5], cmpimg);
+document.write('<TD align="right" valign="bottom" rowspan = "', lPg.length, '"');
+wrBt(lGet, 'doGet');
+document.writeln('</TD></TR>');
+endTblCntnt();
+}
+function wrOpt(n, a) {
+document.write('<TD nowrap><SMALL><SELECT name="', n, '">');
+for (var i=0; i<a.length; i++) document.write('<OPTION value="', a[i][1], '">', a[i][0]);
+document.writeln('</SELECT></SMALL></TD>');
+}
+function wrPr() {
+var span = 2;
+bgnTblItem();
+wrTHd(lPrt);
+endTblItem();
+bgnTblCntnt();
+wrTh(lPr[0]); wrOpt('IT', itOpt);
+if (otOpt.length>1){wrTh(lPr[1]); wrOpt('OT', otOpt);}
+wrTh(lPr[2]); document.writeln('<TD nowrap><SMALL><INPUT type="text" name="CPN" size="3" maxlength="3" value="1">', hnt, '</SMALL></TD></TR>'); 
+wrTh(lPr[3]); wrOpt('DUP', dupOpt);wrThe();
+wrTh(lPr[6]); wrCb('BNDL',0,lDo);
+span++;
+span++;
+span++;
+document.write('<TD align="right" valign="bottom" rowspan = "',span,'"');
+wrBt(lPrt, 'doPrt');
+document.writeln('</TD></TR>');
+endTblCntnt();
+}
+function wrAccount() {
+bgnTblItem();
+wrTHd(lAcnt);
+endTblItem();
+bgnTblCntnt();
+endTblCntnt();
+}
+function wrBt(l, f) {
+document.write('<SMALL><INPUT type="button" value="', l);
+document.writeln('" onClick="JavaScript:', f, '();"></SMALL>');
+}
+function doSortD(){
+var n;
+if(box[2] == 'DD'){
+n = 1;
+}
+else{
+n = 0;
+}
+doSort(n);
+}
+function doSortN(){
+var n;
+if(box[2] == 'ND'){
+n = 3;
+}
+else{
+n = 2;
+}
+doSort(n);
+}
+function doSort(n){
+document.D.BOX.value = box[0];
+document.D.ORD.value = Sort[n][0];
+if (parent != self) {parent.apply_cgi_params(document.D, window.location.href);}
+document.D.submit();
+}
+function doChkRetrive() {
+if (document.L.RP.checked) {document.L.PG.disabled = false}
+else {document.L.PG.disabled = true; document.L.PG.value='';}
+ if ((document.L.FORM.value == 'XDW') || (document.L.FORM.value == 'XPS') || (document.L.FORM.value == 'NCXDW')) {
+document.L.SMNL.disabled = false;
+}else{document.L.SMNL.disabled = true;}
+if (!doc.length) {
+   document.L.HCMP.disabled = true;
+}
+ document.L.ICMP.disabled = (!document.L.HCMP.disabled && document.L.HCMP.checked)? false: true;
+}
+function doOcrDisable() {
+return ((document.L.FORM.value == 'TIFJPG') || (document.L.FORM.value == 'XPS'))? true: false;
+}
+function doTCmpDisable() {
+return ((document.L.FORM.value == 'PDF') || (document.L.FORM.value == 'NCPDF'))? true: false;
+}
+function doHCmpDiable(){
+return ((document.L.FORM.value == 'TIFJPG') || (document.L.FORM.value == 'NCXDW') || (document.L.FORM.value == 'NCPDF')) ? true: false;
+}
+function doDisable(n) {
+ document.L.HCMP.disabled = lst[n][6]? (doHCmpDiable() ? true: false) : true;
+ document.L.ICMP.disabled = lst[n][6]? ((document.L.FORM.value == 'TIFJPG') ? true: ((!document.L.HCMP.disabled && document.L.HCMP.checked) ? false : true)) : true;
+}
+function doChkForm() {
+ if ((document.L.FORM.value == 'XDW') || (document.L.FORM.value == 'XPS') || (document.L.FORM.value == 'NCXDW')) {
+document.L.SMNL.disabled = false;
+}else{document.L.SMNL.disabled = true;}
+if  (doc.length==1) {
+doDisable(doc[0]);
+}
+else
+{
+ document.L.HCMP.disabled = true;
+ document.L.ICMP.disabled = true;
+}	
+}
+function chkalldisp() {
+if(check(document.L)){
+document.L.b1.value = chkalldel;
+}
+else{
+document.L.b1.value = chkall;
+}
+}
+function doChkone(n) {
+doChk(n);
+chkalldisp();
+}
+function retriveDsbl(n, l) {
+ document.L.SMNL.disabled = ((document.L.FORM.value == 'XDW') || (document.L.FORM.value == 'XPS') || (document.L.FORM.value == 'NCXDW'))? false: true;
+if (!l) {
+document.L.RP.disabled = true; document.L.PG.disabled = true; document.L.FORM.disabled = true;
+ document.L.HCMP.disabled = true; document.L.ICMP.disabled = true;
+}
+else if (l == 1) {
+document.L.RP.disabled = false; document.L.PG.disabled = document.L.RP.checked ? false: true;
+document.L.FORM.disabled = false;
+doDisable(n);
+}
+else {
+//  document.L.RP.disabled = true; document.L.PG.disabled = true; document.L.FORM.disabled = true;
+document.L.RP.disabled = true; document.L.PG.disabled = true; 
+ document.L.HCMP.disabled = true; document.L.ICMP.disabled = true;
+}
+}
+function doChk(n) {
+var form = document.L;
+var ofst=0;
+var num;
+for (var i = 0; i < form.length; i++) {
+if (form.elements[i].type == "checkbox") {
+ofst = i;
+break;
+}
+}
+chks[n]=1-chks[n];
+if (chks[n]) {
+//  if (doc.length>=dMax) {
+//   chks[doc[0]]=0; document.L.elements[doc[0]+ofst].checked=false; doc=doc.slice(1,dMax);
+//  }
+doc[doc.length]=n;
+retriveDsbl(n, doc.length);
+}
+else {
+document.L.elements[n+ofst].checked=false;
+if (doc[0]==n) doc=doc.slice(1,doc.length);
+else if (doc[doc.length-1]==n) doc=doc.slice(0,doc.length-1);
+else for (var i=1; i<doc.length-1; i++) if (doc[i]==n) {doc=doc.slice(0,i).concat(doc.slice(i+1,doc.length)); break;}
+if (doc.length) retriveDsbl(doc[0], doc.length);
+else {doChkRetrive();}
+}
+}
+function doRm() {
+if (!doc.length) {alert(noSel); return;}
+if (confirm(cfmRm)==false) return;
+if (parent != self) {
+parent.apply_changes(document.L, window.location.href);
+apply_changes_ex(document.P);}
+document.R.BOX.value=box[0]; document.R.PWD.value=box[1]; document.R.ORD.value=box[2];
+document.R.DOC.value=''; for (var i=0; i<doc.length; i++) document.R.DOC.value+=lst[doc[i]][0]+'/';
+document.R.submit();
+}
+function doGet() {
+if (!doc.length) {alert(noSel); return;}
+if (doc.length>dMax) {alert(maxSelScan); return;}
+if (doc.length==1) {
+if (lst[doc[0]][4]<2) {alert(errGet); return;}
+if (document.L.RP.checked&&document.L.PG.value=='') {alert(noPage); return;}
+if((document.L.FORM.options[document.L.FORM.selectedIndex].value=='NCXDW')||
+(document.L.FORM.options[document.L.FORM.selectedIndex].value=='NCPDF')) {
+if(lst[doc[0]][8]==0) {alert(errNColor1+'\n'+errNColor2); return;}
+} 
+} 
+else{
+for(i=0;i<doc.length;i++){
+if (lst[doc[i]][4]<2) {alert(errGet); return;}
+if((document.L.FORM.options[document.L.FORM.selectedIndex].value=='NCXDW')||
+(document.L.FORM.options[document.L.FORM.selectedIndex].value=='NCPDF')) {
+if(lst[doc[i]][8]==0) {alert(errNColor1+'\n'+errNColor2); return;}
+} 
+}
+}  
+if (parent != self) {
+parent.apply_changes(document.P, window.location.href);
+apply_changes_ex(document.L);}
+document.G.BOX.value=box[0]; document.G.PWD.value=box[1]; document.G.ORD.value=box[2];
+document.G.DOC.value=''; for (var i=0; i<doc.length; i++) document.G.DOC.value+=lst[doc[i]][0]+'/';
+document.G.FORM.value=document.L.FORM.options[document.L.FORM.selectedIndex].value;
+if ((doc.length == 1)&&(document.L.RP.checked)) document.G.PAGE.value=document.L.PG.value;
+else
+document.G.PAGE.value = '';
+document.G.SMNL.value=document.L.SMNL.checked? 1:0;
+ if(document.G.FORM.value=='NCPDF') {document.G.FORM.value='PDF'; document.G.NCOLOR.value=true;}
+ else if (document.G.FORM.value=='NCXDW') {document.G.FORM.value='XDW'; document.G.NCOLOR.value=true;}
+ else {document.G.NCOLOR.value=false;}
+if (doc.length == 1){
+document.G.HCMP.value=document.L.HCMP.checked? 1:0;
+document.G.ICMP.value=document.L.ICMP.value;
+}
+else if (doc.length > 1){
+document.G.HCMP.value=0;
+document.G.ICMP.value=0;
+}
+if (parent != self) {parent.apply_cgi_params(document.G, window.location.href);}
+document.G.submit();
+}
+function doPrt() {
+if (!doc.length) {alert(noSel); return;}
+if (doc.length>dMax) {alert(maxSel); return;}
+if (document.P.BNDL) {
+ if (document.P.BNDL.checked) {
+  for (var i=0; i<doc.length; i++) {
+   if (lst[doc[i]][4]!=1 && lst[doc[i]][4]!=2) {alert(errBndl); return;}
+  }
+ }
+}
+if (xsaFlg) {
+if (document.L.DGACNT.value=='GACC')
+if (document.L.GACNT.value=='') {alert(noGAcnt); return;}
+}
+if (parent != self) {
+parent.apply_changes(document.P, window.location.href);
+apply_changes_ex(document.L);}
+document.P.BOX.value=box[0]; document.P.PWD.value=box[1]; document.P.ORD.value=box[2];
+document.P.DOC.value=''; for (var i=0; i<doc.length; i++) document.P.DOC.value+=lst[doc[i]][0]+'/';
+document.P.submit();
+}
+function apply_changes_ex(form) {
+var obj = new Object;
+obj = top.saved_params;
+parent.saved_key(obj, form);
+top.saved_params = obj;
+}
+function cboxevent(form) {
+var docnum=0;
+for (var i = 0; i < form.length; i++) {
+if (form.elements[i].type == "checkbox") {
+if (form.elements[i].checked) doChk(docnum);
+if (++docnum >= lst.length) return;
+}
+}
+}
+function cboxall(form,obj) {
+var docnum=0;
+var i =0;
+if(!check(form)){
+for (i = 0; i < form.length; i++) {
+if (form.elements[i].type == "checkbox") {
+if (form.elements[i].checked == false){
+form.elements[i].checked = true;
+doChk(docnum);
+}
+if (++docnum >= lst.length) {
+break;
+}
+}
+}
+obj.value = chkalldel;
+}
+else{
+for (i = 0; i < form.length; i++) {
+if (form.elements[i].type == "checkbox") {
+if (form.elements[i].checked == true){
+form.elements[i].checked = false;
+doChk(docnum);
+}
+if (++docnum >= lst.length) {
+break;
+}
+}
+}
+obj.value = chkall;
+}
+}
+function check(form){
+var docnum=0;
+var res = true;
+for (var i = 0; i < form.length; i++) {
+if (form.elements[i].type == "checkbox") {
+if (form.elements[i].checked == false){
+res = false;
+break;
+}
+if (++docnum >= lst.length) {
+break;
+}
+}
+}
+return res;
+}
+//--></SCRIPT>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="black" alink="black" vlink="black">
+<FORM name="G" action="PBDOCLNK.cmd" method="GET" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="PWD" value="">
+<INPUT type="hidden" name="ORD" value="">
+<INPUT type="hidden" name="DGACNT" value="">
+<INPUT type="hidden" name="GACNT" value=""> 
+<INPUT type="hidden" name="ACNTUID" value=""> 
+<INPUT type="hidden" name="DOC" value="">
+<INPUT type="hidden" name="FORM" value="">
+<INPUT type="hidden" name="PAGE" value="">
+<INPUT type="hidden" name="SMNL" value="">
+<INPUT type="hidden" name="HCMP" value="">
+<INPUT type="hidden" name="ICMP" value="">
+<INPUT type="hidden" name="NCOLOR" value="">
+</FORM>
+<FORM name="R" action="PBDOCRM.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="PWD" value="">
+<INPUT type="hidden" name="ORD" value="">
+<INPUT type="hidden" name="DOC" value="">
+</FORM>
+<FORM name="D" action="PBDOCSORT.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="ORD" value="DD">
+</FORM>
+<FORM name="L">
+<SCRIPT language="JavaScript1.2"><!--
+wrHdBtn(lst.length); wrLst(); wrBr();
+if (lst.length) {
+wrPg(); 
+if (parent != self) {
+if (parent.saved_params) obj = parent.saved_params;
+parent.restore_saved_params(document.L, window.location.href); cboxevent(document.L);}
+}
+if (lst.length) {
+}
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+//--></SCRIPT>
+</FORM>
+<FORM name="P" action="PBDOCPRT.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="BOX" value="">
+<INPUT type="hidden" name="PWD" value="">
+<INPUT type="hidden" name="ORD" value="">
+<INPUT type="hidden" name="DOC" value="">
+<INPUT type="hidden" name="DGACNT" value="">
+<INPUT type="hidden" name="GACNT" value="">
+<INPUT type="hidden" name="ACNTUID" value="">
+<SCRIPT language="JavaScript1.2"><!--
+document.P.BOX.value=box[0]; document.P.PWD.value=box[1]; document.P.ORD.value=box[2];
+if (lst.length) {wrPr();
+if (parent != self) {
+  if (obj) {parent.saved_params = obj; obj = null;}
+  parent.restore_saved_params(document.P, window.location.href);}
+doChkRetrive();}
+if (lst.length) {
+chkalldisp();
+}
+if (lst.length) {
+}
+//--></SCRIPT>
+</FORM>
+</BODY>
+</HTML>

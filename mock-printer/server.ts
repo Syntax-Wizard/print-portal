@@ -7,7 +7,10 @@
  *
  * Usage:  npm run mock                     (port 8631)
  *         MOCK_SCENARIO=paperOut npm run mock
- *         Scenarios: default | lowToner | paperOut | jam | slow
+ *         Scenarios: default | lowToner | paperOut | jam | slow | boxBusy
+ *
+ * Mailboxes: every box opens with the password "1234"; box 27 starts with two documents.
+ * POST /__mock/scan?box=27 adds a document, as if someone had just scanned into the box.
  *
  * The built bundle (dist/) is served under /__portal/ so the real bookmarklet can be tested.
  */
@@ -163,6 +166,106 @@ function serveDist(path: string, res: ServerResponse): void {
   send(res, 200, readFileSync(file), CONTENT_TYPES[extname(file)] ?? "application/octet-stream");
 }
 
+// ---- Mailboxes ----
+
+const BOX_PASSWORD = "1234";
+const BOX_TOKEN = "*FAKETOKEN0000000000000=";
+const LINK_DIR = "/box/FAKELINKabcdefghijklmnopqrstu/";
+
+interface MockDocument {
+  id: number;
+  storedAt: Date;
+  pages: number;
+}
+
+const mailboxes = new Map<number, MockDocument[]>([
+  [
+    27,
+    [
+      { id: 967, storedAt: new Date("2026-11-25T06:52:53Z"), pages: 2 },
+      { id: 966, storedAt: new Date("2026-11-25T06:51:39Z"), pages: 1 },
+    ],
+  ],
+]);
+let nextDocumentId = 968;
+
+function readBody(req: IncomingMessage): Promise<URLSearchParams> {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => resolve(new URLSearchParams(body)));
+    req.on("error", reject);
+  });
+}
+
+function boxName(box: number): string {
+  return box === 27 ? "test" : `Box ${box}`;
+}
+
+function documentName(d: MockDocument): string {
+  return tokyoTimestamp(d.storedAt).replace(/\D/g, "") + String(d.storedAt.getUTCSeconds()).padStart(2, "0");
+}
+
+function renderDocuments(box: number): string {
+  const docs = mailboxes.get(box) ?? [];
+  const rows = docs.map((d) => `[${d.id},${jsString(tokyoTimestamp(d.storedAt))},3,${d.pages},2,${jsString(documentName(d))},0,0,0]`);
+  return fixture("box-documents.html")
+    .replace(/var box=\[[^\]]*\];/, `var box=[${box},'${BOX_TOKEN}','DD',1,${jsString(boxName(box))},0];`)
+    .replace(/var lst=\[[^;]*\];/, `var lst=[${rows.join(",")}];`);
+}
+
+async function handleMailbox(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
+  const path = url.pathname;
+  if (req.method === "POST" && path === "/PBDOCLST.cmd") {
+    const box = Number((await readBody(req)).get("BOX"));
+    send(res, 200, fixture("box-password.html").replace(/var Boxnum = \d+;/, `var Boxnum = ${box};`));
+    return true;
+  }
+  if (req.method === "POST" && path === "/PBPWD.cmd") {
+    const form = await readBody(req);
+    const box = Number(form.get("BOX"));
+    if (form.get("PWD") !== BOX_PASSWORD) send(res, 503, fixture("box-wrong-password.html"));
+    else send(res, 200, renderDocuments(box));
+    return true;
+  }
+  if (req.method === "GET" && path === "/PBDOCLNK.cmd") {
+    const box = Number(url.searchParams.get("BOX"));
+    if (url.searchParams.get("PWD") !== BOX_TOKEN) return send(res, 503, fixture("box-wrong-password.html")), true;
+    const ids = (url.searchParams.get("DOC") ?? "").split("/").filter(Boolean).map(Number);
+    const docs = (mailboxes.get(box) ?? []).filter((d) => ids.includes(d.id));
+    const info = docs.map((d) => `[${box},${d.id},0,${jsString(documentName(d))},${jsString(LINK_DIR + documentName(d) + ".pdf")}]`);
+    send(res, 200, fixture("box-retrieve.html").replace(/var info=\[[\s\S]*?\];/, `var info=[${info.join("\n,")}];`));
+    return true;
+  }
+  if (req.method === "GET" && path.startsWith(LINK_DIR)) {
+    const file = decodeURIComponent(path.slice(LINK_DIR.length));
+    res.writeHead(200, { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(file)}` });
+    res.end(readFileSync(join(FIXTURES, "box-document.pdf")));
+    return true;
+  }
+  if (req.method === "POST" && path === "/PBDOCRM.cmd") {
+    const form = await readBody(req);
+    await new Promise((r) => setTimeout(r, 200 / SPEED));
+    if (SCENARIO === "boxBusy") return send(res, 503, fixture("box-busy.html")), true;
+    if (form.get("PWD") !== BOX_TOKEN) return send(res, 503, fixture("box-wrong-password.html")), true;
+    const box = Number(form.get("BOX"));
+    const ids = (form.get("DOC") ?? "").split("/").filter(Boolean).map(Number);
+    mailboxes.set(box, (mailboxes.get(box) ?? []).filter((d) => !ids.includes(d.id)));
+    console.log(`[mock] deleted documents ${ids.join(", ")} from box ${box}`);
+    send(res, 200, fixture("box-delete-accepted.html"));
+    return true;
+  }
+  if (req.method === "POST" && path === "/__mock/scan") {
+    const box = Number(url.searchParams.get("box") ?? 27);
+    const doc = { id: nextDocumentId++, storedAt: new Date(), pages: 1 };
+    mailboxes.set(box, [doc, ...(mailboxes.get(box) ?? [])]);
+    send(res, 200, JSON.stringify(doc), "application/json");
+    return true;
+  }
+  return false;
+}
+
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = url.pathname;
@@ -182,6 +285,15 @@ const server = createServer((req, res) => {
     return;
   }
   if (path.startsWith("/__portal/")) return serveDist(path, res);
+  if (/^\/(PBDOCLST|PBPWD|PBDOCLNK|PBDOCRM)\.cmd$/.test(path) || path.startsWith("/box/") || path === "/__mock/scan") {
+    handleMailbox(req, res, url)
+      .then((handled) => handled || send(res, 404, "Not found", "text/plain"))
+      .catch((err) => {
+        console.error("[mock] mailbox request failed", err);
+        send(res, 500, "Internal error", "text/plain");
+      });
+    return;
+  }
   const page = path === "/" ? "print.htm" : path.slice(1);
   const html = /^[A-Za-z0-9_]+\.htm$/.test(page) ? renderPage(page) : undefined;
   if (html === undefined) return send(res, 404, "<HTML><BODY>Not found</BODY></HTML>");

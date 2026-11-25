@@ -14,6 +14,7 @@
   "nav": {
     "print": "Print",
     "jobs": "Jobs",
+    "mailbox": "Mailbox",
     "status": "Printer status"
   },
   "device": {
@@ -22,6 +23,7 @@
       "printing": "Printing",
       "sleep": "Power saver",
       "warmingUp": "Warming up",
+      "panelInUse": "Control panel in use",
       "error": "Error",
       "warning": "Needs attention",
       "offline": "Can't connect"
@@ -282,6 +284,67 @@
       "LPD": "Driver"
     },
     "showMore": "Show more"
+  },
+  "mailbox": {
+    "intro": "Documents you scan to a mailbox on the printer can be saved here as PDF.",
+    "chooseTitle": "Choose a mailbox",
+    "search": "Search by number or name",
+    "noMatch": "No mailbox matches.",
+    "mine": "My mailbox",
+    "setMine": "Set as my mailbox",
+    "unsetMine": "Unset my mailbox",
+    "change": "Open another mailbox",
+    "boxLabel": "{{number}} {{name}}",
+    "password": "Password",
+    "open": "Open",
+    "opening": "Opening…",
+    "passwordNote": "The password is never saved. It is forgotten when you close this page or after 10 minutes without activity.",
+    "plainHttpNote": "Traffic to the printer isn't encrypted. Don't reuse a password from another service.",
+    "close": "Close mailbox",
+    "autoClosed": "The mailbox was closed after 10 minutes without activity.",
+    "documents_one": "{{count}} document",
+    "documents_other": "{{count}} documents",
+    "empty": "This mailbox is empty. Scan on the printer and save to this mailbox, and the documents appear here.",
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "type": {
+      "scan": "Scan",
+      "print": "Print",
+      "fax": "Fax",
+      "mail": "Email",
+      "incomplete": "Incomplete",
+      "unknown": "Other"
+    },
+    "format": {
+      "label": "Format",
+      "pdf": "PDF",
+      "tiffJpeg": "TIFF / JPEG"
+    },
+    "save": "Save",
+    "saving": "Saving…",
+    "saved_one": "Saved {{count}} document.",
+    "saved_other": "Saved {{count}} documents.",
+    "selectAll": "Select all",
+    "selectDocument": "Select {{name}}",
+    "saveSelected_one": "Save {{count}} selected",
+    "saveSelected_other": "Save {{count}} selected",
+    "deleteSelected_one": "Delete {{count}} selected",
+    "deleteSelected_other": "Delete {{count}} selected",
+    "confirmDelete_one": "Delete {{count}} document? This can't be undone.",
+    "confirmDelete_other": "Delete {{count}} documents? This can't be undone.",
+    "confirmDeleteYes": "Delete",
+    "cancel": "Cancel",
+    "deleting": "Deleting…",
+    "deleted_one": "Deleted {{count}} document.",
+    "deleted_other": "Deleted {{count}} documents.",
+    "panelInUseHint": "The printer's control panel is in use. Deleting may not work until it's free.",
+    "errors": {
+      "WRONG_PASSWORD": "Wrong password.",
+      "PRINTER_BUSY": "The printer is busy, so nothing was deleted. Check that nobody is using the control panel or has a mailbox open on the original screen, then try again.",
+      "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",
+      "UNEXPECTED_RESPONSE": "The printer sent an unexpected response. Try again.",
+      "listFailed": "Can't load the list of mailboxes."
+    }
   },
   "errorLog": {
     "title": "Error history",

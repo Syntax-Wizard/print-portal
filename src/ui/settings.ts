@@ -75,3 +75,23 @@ export function loadOwner(): string | null {
 export function saveOwner(owner: string): void {
   write(KEYS.owner, owner);
 }
+
+const MY_MAILBOX_KEY = "printPortal.myMailbox";
+
+/** The user's own mailbox number (never its password). */
+export function loadMyMailbox(): number | null {
+  const n = read<number>(MY_MAILBOX_KEY);
+  return typeof n === "number" && Number.isInteger(n) && n > 0 ? n : null;
+}
+
+export function saveMyMailbox(box: number | null): void {
+  if (box === null) {
+    try {
+      localStorage.removeItem(MY_MAILBOX_KEY);
+    } catch {
+      // Storage unavailable.
+    }
+    return;
+  }
+  write(MY_MAILBOX_KEY, box);
+}

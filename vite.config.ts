@@ -12,7 +12,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // Printer pages (e.g. /sttray.htm) and the upload endpoint, kept same-origin like production.
-      "^/[A-Za-z0-9_]+\\.(htm|cmd)$": { target: printerTarget, changeOrigin: true },
+      "^/[A-Za-z0-9_]+\\.(htm|cmd)(\\?.*)?$": { target: printerTarget, changeOrigin: true },
+      // Mailbox download links.
+      "^/box/": { target: printerTarget, changeOrigin: true },
     },
   },
   build: {

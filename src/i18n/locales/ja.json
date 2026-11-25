@@ -14,6 +14,7 @@
   "nav": {
     "print": "印刷",
     "jobs": "ジョブ",
+    "mailbox": "ボックス",
     "status": "プリンター状態"
   },
   "device": {
@@ -22,6 +23,7 @@
       "printing": "印刷中",
       "sleep": "節電中",
       "warmingUp": "準備中",
+      "panelInUse": "操作パネル使用中",
       "error": "エラー",
       "warning": "注意",
       "offline": "接続できません"
@@ -280,6 +282,60 @@
       "LPD": "ドライバー"
     },
     "showMore": "さらに表示"
+  },
+  "mailbox": {
+    "intro": "プリンターでスキャンしてボックスに保存した文書を、ここから PDF で保存できます。",
+    "chooseTitle": "ボックスを選ぶ",
+    "search": "番号か名前で探す",
+    "noMatch": "該当するボックスがありません。",
+    "mine": "自分のボックス",
+    "setMine": "自分のボックスにする",
+    "unsetMine": "自分のボックスから外す",
+    "change": "別のボックスを開く",
+    "boxLabel": "{{number}} {{name}}",
+    "password": "パスワード",
+    "open": "開く",
+    "opening": "開いています…",
+    "passwordNote": "パスワードは保存されません。このページを閉じるか、10 分間操作がないと消去されます。",
+    "plainHttpNote": "プリンターとの通信は暗号化されていません。ほかのサービスと同じパスワードは使わないでください。",
+    "close": "ボックスを閉じる",
+    "autoClosed": "10 分間操作がなかったため、ボックスを閉じました。",
+    "documents_other": "{{count}} 件の文書",
+    "empty": "このボックスに文書はありません。プリンターでスキャンしてこのボックスに保存すると、ここに表示されます。",
+    "pages_other": "{{count}} ページ",
+    "type": {
+      "scan": "スキャン",
+      "print": "プリント",
+      "fax": "ファクス",
+      "mail": "メール",
+      "incomplete": "未完了",
+      "unknown": "その他"
+    },
+    "format": {
+      "label": "保存形式",
+      "pdf": "PDF",
+      "tiffJpeg": "TIFF / JPEG"
+    },
+    "save": "保存",
+    "saving": "保存中…",
+    "saved_other": "{{count}} 件を保存しました。",
+    "selectAll": "すべて選択",
+    "selectDocument": "{{name}} を選択",
+    "saveSelected_other": "選択した {{count}} 件を保存",
+    "deleteSelected_other": "選択した {{count}} 件を削除",
+    "confirmDelete_other": "{{count}} 件の文書を削除します。元に戻せません。",
+    "confirmDeleteYes": "削除する",
+    "cancel": "キャンセル",
+    "deleting": "削除しています…",
+    "deleted_other": "{{count}} 件を削除しました。",
+    "panelInUseHint": "プリンターの操作パネルが使用中です。この間は文書を削除できないことがあります。",
+    "errors": {
+      "WRONG_PASSWORD": "パスワードが違います。",
+      "PRINTER_BUSY": "プリンターが使用中のため削除できませんでした。操作パネルを使っている人や、元の画面でボックスを開いている人がいないか確認して、もう一度お試しください。",
+      "PRINTER_UNREACHABLE": "プリンターに接続できません。研究室のネットワークにつながっているか確認してください。",
+      "UNEXPECTED_RESPONSE": "プリンターから想定外の応答がありました。もう一度お試しください。",
+      "listFailed": "ボックスの一覧を取得できません。"
+    }
   },
   "errorLog": {
     "title": "エラー履歴",
