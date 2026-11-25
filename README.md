@@ -45,7 +45,7 @@ test fixtures under `mock-printer/fixtures/` are sanitized (no real user names o
 The **Mailbox** page lists the printer's mailboxes (ボックス), opens one with its password
 and saves scanned documents as PDF (or TIFF/JPEG), or deletes them. The password and the
 printer's token (which is equivalent to it) are kept in memory only and dropped after
-10 minutes without activity. Deleting fails while someone uses the control panel; the UI
+30 minutes without activity. Deleting fails while someone uses the control panel; the UI
 says so. In the mock printer every box opens with `1234`; `POST /__mock/scan?box=27` adds a
 document and `MOCK_SCENARIO=boxBusy` makes deletes fail.
 
