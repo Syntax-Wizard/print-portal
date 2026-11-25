@@ -52,7 +52,7 @@ export function Segmented<T extends string>(props: {
           <label
             key={o.value}
             class={cx(
-              "relative cursor-pointer select-none rounded-lg px-3.5 py-1.5 text-sm transition-all has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
+              "relative cursor-pointer select-none whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm transition-all has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
               active
                 ? "bg-sheet font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
                 : "text-ink-soft hover:text-ink",

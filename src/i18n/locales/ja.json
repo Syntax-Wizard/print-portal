@@ -211,7 +211,12 @@
     "busy": "送信中…",
     "fixErrors": "設定を確認してください。",
     "fixRanges": "ページ指定を確認してください。",
-    "mergedButton_other": "{{count}} ファイルをまとめて印刷"
+    "mergedButton_other": "{{count}} ファイルをまとめて印刷",
+    "confirmLarge": "合計約 {{sheets}} 枚（各ファイル {{copies}} 部）印刷します。よろしいですか？",
+    "confirmLargeSheets": "合計約 {{sheets}} 枚印刷します。よろしいですか？",
+    "confirmLargeCopies": "各ファイル {{copies}} 部ずつ印刷します。よろしいですか？",
+    "confirmYes": "このまま印刷する",
+    "confirmCancel": "キャンセル"
   },
   "errors": {
     "PRINTER_UNREACHABLE": "プリンターに接続できません。同じネットワークにいるか確認してください。",

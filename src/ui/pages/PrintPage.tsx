@@ -16,6 +16,10 @@ import { PreviewDialog } from "../components/PreviewDialog";
 import { checkRange, isPdf, selectedPageCount } from "../pdfJobs";
 import { sheetsNeeded } from "../../pdf/layout";
 
+/** Ask for confirmation before printing many copies or sheets, to prevent accidental bulk prints. */
+const LARGE_JOB_COPIES = 10;
+const LARGE_JOB_SHEETS = 50;
+
 /** Sheets of paper for the files waiting to print, or null while page counts are unknown. */
 function estimateSheets(items: PrintItem[], o: PrintOptions, merge: boolean): number | null {
   const ready = items.filter((i) => i.status === "ready");
@@ -78,6 +82,7 @@ export function PrintPage() {
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [merge, setMerge] = useState(false);
   const [mergedPreview, setMergedPreview] = useState(false);
+  const [confirmingLarge, setConfirmingLarge] = useState(false);
 
   useEffect(() => saveOptions(options), [options]);
 
@@ -109,6 +114,16 @@ export function PrintPage() {
   const merging = merge && readyItems.length > 1;
   const sheets = useMemo(() => estimateSheets(items, options, merging), [items, options, merging]);
   const trays = status.data?.trays ?? [];
+  const effectiveCopies = options.delivery.type === "sample" ? 1 : options.copies;
+  const isLargeJob = effectiveCopies >= LARGE_JOB_COPIES || (sheets !== null && sheets >= LARGE_JOB_SHEETS);
+
+  useEffect(() => setConfirmingLarge(false), [options, readyCount, merging]);
+
+  const doPrint = () => {
+    setConfirmingLarge(false);
+    setShowErrors(false);
+    void print(options, { merge: merging });
+  };
 
   const onPrint = () => {
     if (errors.length) {
@@ -116,7 +131,11 @@ export function PrintPage() {
       return;
     }
     setShowErrors(false);
-    void print(options, { merge: merging });
+    if (isLargeJob) {
+      setConfirmingLarge(true);
+      return;
+    }
+    doPrint();
   };
 
   const onRetry = (key: string) => {
@@ -136,15 +155,47 @@ export function PrintPage() {
         : "cursor-not-allowed bg-well text-ink-faint",
     );
   const canPrint = readyCount > 0 && !busy && !rangeBlocked;
+  const confirmMessage =
+    sheets !== null
+      ? effectiveCopies > 1
+        ? t("submit.confirmLarge", { sheets, copies: effectiveCopies })
+        : t("submit.confirmLargeSheets", { sheets })
+      : t("submit.confirmLargeCopies", { copies: effectiveCopies });
+
+  const confirmBox = (
+    <div class="flex flex-col gap-2.5 rounded-xl border border-warn/40 bg-warn-wash/75 p-3.5" role="alertdialog" aria-label={confirmMessage}>
+      <p class="m-0 text-xs leading-relaxed font-semibold text-warn">{confirmMessage}</p>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          class="flex-1 cursor-pointer rounded-lg bg-accent px-3 py-2 text-xs font-bold text-on-accent transition-colors hover:bg-accent-hover"
+          onClick={doPrint}
+        >
+          {t("submit.confirmYes")}
+        </button>
+        <button
+          type="button"
+          class="cursor-pointer rounded-lg border border-rule bg-sheet px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-well"
+          onClick={() => setConfirmingLarge(false)}
+        >
+          {t("submit.confirmCancel")}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div class={cx("grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] xl:grid-cols-[minmax(0,1fr)_22.5rem]", (readyCount > 0 || busy) && "pb-24 lg:pb-0")}>
       {(readyCount > 0 || busy) && (
         // On narrow screens the main button sits far below the settings; this bar keeps it in reach.
         <div class="fixed inset-x-0 bottom-0 z-10 border-t border-rule bg-sheet/92 px-4 py-3 shadow-[0_-4px_16px_rgb(15_23_42/0.08)] backdrop-blur-md lg:hidden">
-          <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
-            {buttonLabel}
-          </button>
+          {confirmingLarge ? (
+            confirmBox
+          ) : (
+            <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
+              {buttonLabel}
+            </button>
+          )}
         </div>
       )}
       <div class="flex min-w-0 flex-col gap-5">
@@ -188,14 +239,18 @@ export function PrintPage() {
         <section class="card flex flex-col gap-4 p-5">
           <SheetPreview options={options} label={t("summary.previewLabel")} />
           <Summary o={options} sheets={sheets} />
-          <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
-            <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 7V3.5h10V7" />
-              <rect x="3" y="7" width="14" height="7" rx="2" />
-              <path d="M6 12h8v4.5H6V12Z" />
-            </svg>
-            {buttonLabel}
-          </button>
+          {confirmingLarge ? (
+            confirmBox
+          ) : (
+            <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
+              <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 7V3.5h10V7" />
+                <rect x="3" y="7" width="14" height="7" rx="2" />
+                <path d="M6 12h8v4.5H6V12Z" />
+              </svg>
+              {buttonLabel}
+            </button>
+          )}
           {readyCount === 0 && !busy && <p class="m-0 -mt-1.5 text-center text-xs text-ink-faint">{t("submit.noFiles")}</p>}
           {showErrors && errors.length > 0 && <p class="m-0 -mt-1.5 text-center text-xs font-medium text-error">{t("submit.fixErrors")}</p>}
           {rangeBlocked && <p class="m-0 -mt-1.5 text-center text-xs font-medium text-error">{t("submit.fixRanges")}</p>}

@@ -34,10 +34,10 @@ const PAPER = {
 };
 
 const VIEW_W = 220;
-const VIEW_H = 236;
+const VIEW_H = 226;
 const REF_HEIGHT_MM = 420; // A3 portrait height
-const REF_HEIGHT_PX = 182;
-const MAX_LANDSCAPE_W = 180;
+const REF_HEIGHT_PX = 194;
+const MAX_LANDSCAPE_W = 188;
 
 interface SheetBox {
   x: number;
@@ -152,8 +152,8 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
   const { t } = useT();
   const [mmW, mmH] = PAPER_MM[options.paperSize];
   const ratio = mmH / mmW;
-  // Perceptual relative scaling: A3 > B4 > A4 > B5 > A5 is clearly visible while A5 stays legible.
-  let h = REF_HEIGHT_PX * Math.pow(mmH / REF_HEIGHT_MM, 0.58);
+  // Perceptual relative scaling: generous default size while keeping A3 > B4 > A4 > B5 > A5 unmistakable.
+  let h = REF_HEIGHT_PX * Math.pow(mmH / REF_HEIGHT_MM, 0.45);
   let w = h / ratio;
   // Two portrait pages per sheet are printed side by side on a landscape sheet.
   const landscape = options.pagesPerSheet === 2;
@@ -188,7 +188,7 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
           {t(`paperSize.${options.paperSize}`)}
         </span>
       )}
-      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} class="mx-auto block h-auto w-full max-w-48" role="img" aria-label={label}>
+      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} class="mx-auto block h-auto w-full max-w-60" role="img" aria-label={label}>
         {/* Extra copies, drawn as a stack behind everything else. */}
         {Array.from({ length: stack - 1 }, (_, i) => {
           const off = (stack - 1 - i) * 5;

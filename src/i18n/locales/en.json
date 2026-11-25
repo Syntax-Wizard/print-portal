@@ -217,7 +217,12 @@
     "fixErrors": "Check the settings above.",
     "fixRanges": "Check the page selections.",
     "mergedButton_one": "Print {{count}} file as one job",
-    "mergedButton_other": "Print {{count}} files as one job"
+    "mergedButton_other": "Print {{count}} files as one job",
+    "confirmLarge": "This will print about {{sheets}} sheets ({{copies}} copies each). Continue?",
+    "confirmLargeSheets": "This will print about {{sheets}} sheets. Continue?",
+    "confirmLargeCopies": "This will print {{copies}} copies of each file. Continue?",
+    "confirmYes": "Print anyway",
+    "confirmCancel": "Cancel"
   },
   "errors": {
     "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",

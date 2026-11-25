@@ -128,41 +128,45 @@ export function OptionsForm(props: {
 
   return (
     <div class="flex flex-col gap-5">
-      {/* Primary settings in a clean 2-column studio grid */}
+      {/* Primary settings in a clean studio grid; 3-way segmented controls span full width so English labels never wrap */}
       <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-        <FieldBlock as="fieldset" label={t("options.duplex.label")}>
-          <Segmented
-            name="duplex"
-            value={o.duplex}
-            options={(["none", "long-edge", "short-edge"] as const).map((v) => ({
-              value: v,
-              label: (
-                <span class="inline-flex items-center gap-1.5">
-                  <DuplexIcon mode={v} />
-                  {t(`options.duplex.${v}`)}
-                </span>
-              ),
-            }))}
-            onChange={(v) => set("duplex", v)}
-          />
-        </FieldBlock>
+        <div class="sm:col-span-2">
+          <FieldBlock as="fieldset" label={t("options.duplex.label")}>
+            <Segmented
+              name="duplex"
+              value={o.duplex}
+              options={(["none", "long-edge", "short-edge"] as const).map((v) => ({
+                value: v,
+                label: (
+                  <span class="inline-flex items-center gap-1.5">
+                    <DuplexIcon mode={v} />
+                    {t(`options.duplex.${v}`)}
+                  </span>
+                ),
+              }))}
+              onChange={(v) => set("duplex", v)}
+            />
+          </FieldBlock>
+        </div>
 
-        <FieldBlock as="fieldset" label={t("options.color.label")}>
-          <Segmented
-            name="color"
-            value={o.color}
-            options={(["auto", "color", "bw"] as const).map((v) => ({
-              value: v,
-              label: (
-                <span class="inline-flex items-center gap-1.5">
-                  <ColorSwatch mode={v} />
-                  {t(`options.color.${v}`)}
-                </span>
-              ),
-            }))}
-            onChange={(v) => set("color", v)}
-          />
-        </FieldBlock>
+        <div class="sm:col-span-2">
+          <FieldBlock as="fieldset" label={t("options.color.label")}>
+            <Segmented
+              name="color"
+              value={o.color}
+              options={(["auto", "color", "bw"] as const).map((v) => ({
+                value: v,
+                label: (
+                  <span class="inline-flex items-center gap-1.5">
+                    <ColorSwatch mode={v} />
+                    {t(`options.color.${v}`)}
+                  </span>
+                ),
+              }))}
+              onChange={(v) => set("color", v)}
+            />
+          </FieldBlock>
+        </div>
 
         <FieldBlock label={t("options.copies")} htmlFor={ids.copies}>
           <Stepper
@@ -177,15 +181,6 @@ export function OptionsForm(props: {
           {err("copiesOutOfRange") && <p class="m-0 mt-1.5 text-xs font-medium text-error">{t("options.errors.copiesOutOfRange")}</p>}
         </FieldBlock>
 
-        <FieldBlock label={t("options.paperSize.label")} htmlFor={ids.size}>
-          <Select
-            id={ids.size}
-            value={o.paperSize}
-            options={[{ value: "default" as const, label: t("options.paperSize.default") }, ...PAPER_SIZES.map((s) => ({ value: s, label: t(`paperSize.${s}`) }))]}
-            onChange={(v) => set("paperSize", v)}
-          />
-        </FieldBlock>
-
         <FieldBlock as="fieldset" label={t("options.pagesPerSheet.label")}>
           <Segmented
             name="pagesPerSheet"
@@ -194,6 +189,15 @@ export function OptionsForm(props: {
             onChange={(v) => set("pagesPerSheet", Number(v) as PrintOptions["pagesPerSheet"])}
           />
           {o.pagesPerSheet > 1 && <p class="m-0 mt-1.5 text-xs text-ink-faint">{t("options.pagesPerSheet.hint")}</p>}
+        </FieldBlock>
+
+        <FieldBlock label={t("options.paperSize.label")} htmlFor={ids.size}>
+          <Select
+            id={ids.size}
+            value={o.paperSize}
+            options={[{ value: "default" as const, label: t("options.paperSize.default") }, ...PAPER_SIZES.map((s) => ({ value: s, label: t(`paperSize.${s}`) }))]}
+            onChange={(v) => set("paperSize", v)}
+          />
         </FieldBlock>
 
         <FieldBlock label={t("options.tray.label")} htmlFor={ids.tray}>
