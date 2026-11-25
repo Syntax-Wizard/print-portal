@@ -1,7 +1,6 @@
 /**
  * A live drawing of the printed result: paper proportion, sides and binding edge,
  * black & white versus colour, number of copies, and special job types.
- * It is the one expressive element of the UI; everything around it stays quiet.
  */
 
 import type { PrintOptions } from "../../printer/types";
@@ -22,12 +21,21 @@ const RATIO: Record<PrintOptions["paperSize"], number> = {
 };
 
 /** Paper is white in real life, so the preview ignores the UI theme. */
-const PAPER = { sheet: "#ffffff", back: "#f1f2f0", edge: "#cfd3d6", ink: "#1e2226", line: "#a3aab0", gray: "#6b737b", accent: "#0077b6", k: "#231815" };
+const PAPER = {
+  sheet: "#ffffff",
+  back: "#f3f5f7",
+  edge: "#d5dbe3",
+  ink: "#1e242c",
+  line: "#b4bcc7",
+  gray: "#7b8491",
+  accent: "#0284c7",
+  k: "#231815",
+};
 
 const VIEW_W = 220;
-const VIEW_H = 250;
-const MAX_SHEET_W = 132;
-const MAX_SHEET_H = 186;
+const VIEW_H = 236;
+const MAX_SHEET_W = 128;
+const MAX_SHEET_H = 180;
 
 interface SheetBox {
   x: number;
@@ -38,22 +46,22 @@ interface SheetBox {
 
 function Content({ box, colorMode, faded }: { box: SheetBox; colorMode: PrintOptions["color"]; faded?: boolean }) {
   const { x, y, w } = box;
-  const pad = w * 0.12;
+  const pad = w * 0.125;
   const inner = w - pad * 2;
   const colorful = colorMode !== "bw";
   const ink = PAPER.ink;
   const soft = PAPER.line;
-  const lines = [0.92, 1, 0.97, 0.7];
+  const lines = [0.92, 1, 0.96, 0.68];
   const chartY = y + pad + 44;
   const bars = [
     { h: 0.55, c: "var(--color-process-c)" },
     { h: 0.85, c: "var(--color-process-m)" },
-    { h: 0.4, c: "var(--color-process-y)" },
-    { h: 0.7, c: PAPER.k },
+    { h: 0.42, c: "var(--color-process-y)" },
+    { h: 0.72, c: PAPER.k },
   ];
   return (
-    <g opacity={faded ? 0.45 : 1}>
-      <rect x={x + pad} y={y + pad} width={inner * 0.62} height={7} rx={1.5} fill={colorful ? PAPER.accent : ink} />
+    <g opacity={faded ? 0.42 : 1}>
+      <rect x={x + pad} y={y + pad} width={inner * 0.62} height={7} rx={2} fill={colorful ? PAPER.accent : ink} />
       {lines.map((len, i) => (
         <rect key={i} x={x + pad} y={y + pad + 16 + i * 7} width={inner * len} height={3} rx={1.5} fill={soft} />
       ))}
@@ -67,7 +75,7 @@ function Content({ box, colorMode, faded }: { box: SheetBox; colorMode: PrintOpt
             y={chartY + 34 - bh}
             width={bw}
             height={bh}
-            rx={1}
+            rx={1.5}
             fill={colorful ? b.c : i % 2 ? PAPER.gray : PAPER.line}
           />
         );
@@ -86,11 +94,11 @@ function Sheet({ box, shadow, back }: { box: SheetBox; shadow?: boolean; back?: 
       y={box.y}
       width={box.w}
       height={box.h}
-      rx={2}
+      rx={3}
       fill={back ? PAPER.back : PAPER.sheet}
       stroke={PAPER.edge}
       stroke-width={1}
-      style={shadow ? { filter: "drop-shadow(0 6px 10px rgb(30 34 38 / 0.10))" } : undefined}
+      style={shadow ? { filter: "drop-shadow(0 8px 14px rgb(15 23 42 / 0.12))" } : undefined}
     />
   );
 }
@@ -111,8 +119,11 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
   const bindingLong = options.duplex === "long-edge";
 
   return (
-    <figure class="m-0">
-      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} class="block h-auto w-full" role="img" aria-label={label}>
+    <figure
+      class="m-0 rounded-xl bg-well/75 p-3 ring-1 ring-inset ring-rule/70"
+      style={{ backgroundImage: "radial-gradient(var(--color-rule-strong) 0.75px, transparent 0.75px)", backgroundSize: "14px 14px" }}
+    >
+      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} class="mx-auto block h-auto w-full max-w-48" role="img" aria-label={label}>
         {/* Extra copies, drawn as a stack behind everything else. */}
         {Array.from({ length: stack - 1 }, (_, i) => {
           const off = (stack - 1 - i) * 5;
@@ -147,23 +158,23 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
         )}
 
         {options.delivery.type === "secure" && (
-          <g transform={`translate(${front.x + front.w / 2 - 14} ${front.y + front.h / 2 - 16})`}>
-            <rect x={-6} y={-6} width={40} height={44} rx={8} fill={PAPER.sheet} stroke={PAPER.edge} />
+          <g transform={`translate(${front.x + front.w / 2 - 14} ${front.y + front.h / 2 - 16})`} style={{ filter: "drop-shadow(0 4px 10px rgb(15 23 42 / 0.14))" }}>
+            <rect x={-6} y={-6} width={40} height={44} rx={10} fill={PAPER.sheet} stroke={PAPER.edge} />
             <path d="M8 13 v-5 a6 6 0 0 1 12 0 v5" fill="none" stroke={PAPER.ink} stroke-width={2.5} />
-            <rect x={4} y={13} width={20} height={16} rx={2.5} fill={PAPER.ink} />
+            <rect x={4} y={13} width={20} height={16} rx={3} fill={PAPER.ink} />
           </g>
         )}
         {options.delivery.type === "delayed" && (
-          <g transform={`translate(${front.x + front.w / 2} ${front.y + front.h / 2})`}>
+          <g transform={`translate(${front.x + front.w / 2} ${front.y + front.h / 2})`} style={{ filter: "drop-shadow(0 4px 10px rgb(15 23 42 / 0.14))" }}>
             <circle r={20} fill={PAPER.sheet} stroke={PAPER.ink} stroke-width={2.5} />
             <path d="M0 -11 V0 L8 6" fill="none" stroke={PAPER.ink} stroke-width={2.5} stroke-linecap="round" />
           </g>
         )}
 
         {options.copies > 1 && (
-          <g transform={`translate(${front.x + front.w - 4} ${front.y + front.h - 4})`}>
+          <g transform={`translate(${front.x + front.w - 4} ${front.y + front.h - 4})`} style={{ filter: "drop-shadow(0 2px 6px rgb(15 23 42 / 0.2))" }}>
             <rect x={-6} y={-14} width={options.copies > 99 ? 50 : options.copies > 9 ? 42 : 34} height={26} rx={13} fill={PAPER.ink} />
-            <text x={options.copies > 99 ? 19 : options.copies > 9 ? 15 : 11} y={4.5} text-anchor="middle" font-size={14} font-weight={700} fill="#ffffff" class="tabular">
+            <text x={options.copies > 99 ? 19 : options.copies > 9 ? 15 : 11} y={4.5} text-anchor="middle" font-size={13} font-weight={700} fill="#ffffff" class="tabular">
               ×{options.delivery.type === "sample" ? 1 : options.copies}
             </text>
           </g>

@@ -1,8 +1,9 @@
 /**
- * Print settings. Everyday choices are always visible; collate, paper type and the
- * special job types live under "More settings".
+ * Print settings. Everyday choices are always visible in a compact 2-column rhythm;
+ * collate, paper type and the special job types live under "More settings".
  */
 
+import type { ComponentChildren } from "preact";
 import type { TFunction } from "i18next";
 import { useT } from "../../i18n";
 import { LIMITS, type OptionsValidationError } from "../../printer/options";
@@ -40,6 +41,78 @@ function trayOptions(t: TFunction, trays: Tray[]) {
   ];
 }
 
+function FieldBlock(props: { label: string; htmlFor?: string; as?: "fieldset" | "div"; children: ComponentChildren }) {
+  const labelClass = "mb-2 block text-xs font-semibold tracking-wide text-ink-soft";
+  if (props.as === "fieldset") {
+    return (
+      <fieldset class="m-0 min-w-0 border-0 p-0">
+        <legend class={labelClass}>{props.label}</legend>
+        {props.children}
+      </fieldset>
+    );
+  }
+  return (
+    <div class="min-w-0">
+      <label class={labelClass} for={props.htmlFor}>
+        {props.label}
+      </label>
+      {props.children}
+    </div>
+  );
+}
+
+function DuplexIcon({ mode }: { mode: PrintOptions["duplex"] }) {
+  if (mode === "none") {
+    return (
+      <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="3.5" y="2" width="9" height="12" rx="1.2" />
+      </svg>
+    );
+  }
+  if (mode === "long-edge") {
+    return (
+      <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="3" y="2" width="8.5" height="11" rx="1.2" />
+        <path d="M5.5 14h6.2a1 1 0 0 0 1-1V4.5" />
+        <path d="M1.5 5h1.5M1.5 8h1.5M1.5 11h1.5" stroke-linecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="3" y="3" width="8.5" height="10.5" rx="1.2" />
+      <path d="M5.5 14.5h6.2a1 1 0 0 0 1-1V5.5" />
+      <path d="M5.2 1.5v1.5M7.3 1.5v1.5M9.4 1.5v1.5" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+function ColorSwatch({ mode }: { mode: PrintOptions["color"] }) {
+  if (mode === "bw") {
+    return (
+      <span
+        class="inline-block h-3 w-3 shrink-0 rounded-full ring-1 ring-black/20 dark:ring-white/25"
+        style={{ background: "linear-gradient(135deg, #1f242b 50%, #d4d8df 50%)" }}
+        aria-hidden="true"
+      />
+    );
+  }
+  if (mode === "color") {
+    return (
+      <span
+        class="inline-block h-3 w-3 shrink-0 rounded-full ring-1 ring-black/15 dark:ring-white/20"
+        style={{ background: "conic-gradient(var(--color-process-c) 0 120deg, var(--color-process-m) 120deg 240deg, var(--color-process-y) 240deg 360deg)" }}
+        aria-hidden="true"
+      />
+    );
+  }
+  return (
+    <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <circle cx="8" cy="8" r="5.5" stroke-dasharray="2.5 2" />
+    </svg>
+  );
+}
+
 export function OptionsForm(props: {
   options: PrintOptions;
   onChange: (options: PrintOptions) => void;
@@ -64,7 +137,9 @@ export function OptionsForm(props: {
 
   return (
     <div class="flex flex-col gap-5">
-      <Row as="fieldset" label={t("options.presets.label")}>
+      {/* Quick presets strip */}
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-paper/70 px-3.5 py-2.5 ring-1 ring-inset ring-rule/70">
+        <span class="text-xs font-semibold text-ink-soft">{t("options.presets.label")}</span>
         <Segmented<Preset>
           name="preset"
           value={preset}
@@ -78,62 +153,91 @@ export function OptionsForm(props: {
             if (p === "simplexColor") onChange({ ...o, duplex: "none", color: "color" });
           }}
         />
-      </Row>
+      </div>
 
-      <hr class="m-0 border-0 border-t border-rule" />
+      {/* Primary settings in a clean 2-column studio grid */}
+      <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+        <FieldBlock as="fieldset" label={t("options.duplex.label")}>
+          <Segmented
+            name="duplex"
+            value={o.duplex}
+            options={(["none", "long-edge", "short-edge"] as const).map((v) => ({
+              value: v,
+              label: (
+                <span class="inline-flex items-center gap-1.5">
+                  <DuplexIcon mode={v} />
+                  {t(`options.duplex.${v}`)}
+                </span>
+              ),
+            }))}
+            onChange={(v) => set("duplex", v)}
+          />
+        </FieldBlock>
 
-      <Row label={t("options.copies")} htmlFor={ids.copies}>
-        <Stepper
-          id={ids.copies}
-          value={o.copies}
-          min={LIMITS.copiesMin}
-          max={LIMITS.copiesMax}
-          onChange={(n) => set("copies", n)}
-          decreaseLabel={t("options.copiesDecrease")}
-          increaseLabel={t("options.copiesIncrease")}
-        />
-        {err("copiesOutOfRange") && <p class="m-0 mt-1 text-sm text-error">{t("options.errors.copiesOutOfRange")}</p>}
-      </Row>
+        <FieldBlock as="fieldset" label={t("options.color.label")}>
+          <Segmented
+            name="color"
+            value={o.color}
+            options={(["bw", "color", "auto"] as const).map((v) => ({
+              value: v,
+              label: (
+                <span class="inline-flex items-center gap-1.5">
+                  <ColorSwatch mode={v} />
+                  {t(`options.color.${v}`)}
+                </span>
+              ),
+            }))}
+            onChange={(v) => set("color", v)}
+          />
+        </FieldBlock>
 
-      <Row as="fieldset" label={t("options.duplex.label")}>
-        <Segmented
-          name="duplex"
-          value={o.duplex}
-          options={(["none", "long-edge", "short-edge"] as const).map((v) => ({ value: v, label: t(`options.duplex.${v}`) }))}
-          onChange={(v) => set("duplex", v)}
-        />
-      </Row>
+        <FieldBlock label={t("options.copies")} htmlFor={ids.copies}>
+          <Stepper
+            id={ids.copies}
+            value={o.copies}
+            min={LIMITS.copiesMin}
+            max={LIMITS.copiesMax}
+            onChange={(n) => set("copies", n)}
+            decreaseLabel={t("options.copiesDecrease")}
+            increaseLabel={t("options.copiesIncrease")}
+          />
+          {err("copiesOutOfRange") && <p class="m-0 mt-1.5 text-xs font-medium text-error">{t("options.errors.copiesOutOfRange")}</p>}
+        </FieldBlock>
 
-      <Row as="fieldset" label={t("options.color.label")}>
-        <Segmented
-          name="color"
-          value={o.color}
-          options={(["bw", "color", "auto"] as const).map((v) => ({ value: v, label: t(`options.color.${v}`) }))}
-          onChange={(v) => set("color", v)}
-        />
-      </Row>
+        <FieldBlock label={t("options.paperSize.label")} htmlFor={ids.size}>
+          <Select
+            id={ids.size}
+            value={o.paperSize}
+            options={[{ value: "default" as const, label: t("options.paperSize.default") }, ...PAPER_SIZES.map((s) => ({ value: s, label: t(`paperSize.${s}`) }))]}
+            onChange={(v) => set("paperSize", v)}
+          />
+        </FieldBlock>
 
-      <Row label={t("options.paperSize.label")} htmlFor={ids.size}>
-        <Select
-          id={ids.size}
-          value={o.paperSize}
-          options={[{ value: "default" as const, label: t("options.paperSize.default") }, ...PAPER_SIZES.map((s) => ({ value: s, label: t(`paperSize.${s}`) }))]}
-          onChange={(v) => set("paperSize", v)}
-        />
-      </Row>
+        <div class="sm:col-span-2">
+          <FieldBlock label={t("options.tray.label")} htmlFor={ids.tray}>
+            <Select id={ids.tray} value={o.tray} options={trayOptions(t, props.trays)} onChange={(v) => set("tray", v)} />
+          </FieldBlock>
+        </div>
+      </div>
 
-      <Row label={t("options.tray.label")} htmlFor={ids.tray}>
-        <Select id={ids.tray} value={o.tray} options={trayOptions(t, props.trays)} onChange={(v) => set("tray", v)} />
-      </Row>
-
-      <details class="group" open={o.delivery.type !== "normal" || o.collate !== "default" || o.media !== "default" || undefined}>
-        <summary class="cursor-pointer list-none text-sm font-semibold text-accent-ink [&::-webkit-details-marker]:hidden">
-          <span class="inline-block transition-transform group-open:rotate-90" aria-hidden="true">
-            ▸
-          </span>{" "}
+      {/* Advanced settings */}
+      <details class="group border-t border-rule/80 pt-4" open={o.delivery.type !== "normal" || o.collate !== "default" || o.media !== "default" || undefined}>
+        <summary class="inline-flex cursor-pointer list-none items-center gap-2 rounded-xl bg-well/70 px-3.5 py-2 text-xs font-semibold text-ink-soft transition-colors hover:bg-well hover:text-ink [&::-webkit-details-marker]:hidden">
+          <svg
+            class="h-3.5 w-3.5 text-ink-faint transition-transform duration-150 group-open:rotate-90"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 4.5 10 8l-4 3.5" />
+          </svg>
           {t("options.advanced")}
         </summary>
-        <div class="mt-5 flex flex-col gap-5">
+        <div class="mt-4 flex flex-col gap-5 rounded-xl border border-rule/80 bg-paper/55 p-4 sm:p-5">
           <Row as="fieldset" label={t("options.collate.label")}>
             <Segmented
               name="collate"
@@ -154,14 +258,14 @@ export function OptionsForm(props: {
 
           <Row as="fieldset" label={t("options.delivery.label")}>
             <DeliveryChooser delivery={o.delivery} onChange={(d) => set("delivery", d)} hintId={ids.deliveryHint} />
-            <p id={ids.deliveryHint} class="m-0 mt-2 max-w-prose text-sm text-ink-soft">
+            <p id={ids.deliveryHint} class="m-0 mt-2.5 max-w-prose rounded-xl bg-well/70 px-3.5 py-2.5 text-xs leading-relaxed text-ink-soft">
               {t(`options.delivery.${o.delivery.type}Hint`)}
             </p>
 
             {(o.delivery.type === "secure" || o.delivery.type === "sample") && (
-              <div class="mt-3 flex flex-col gap-3">
+              <div class="mt-3.5 flex flex-col gap-3.5">
                 <div>
-                  <label class="mb-1 block text-sm" for={ids.userId}>
+                  <label class="mb-1.5 block text-xs font-semibold text-ink-soft" for={ids.userId}>
                     {t("options.delivery.userId")}
                   </label>
                   <TextInput
@@ -172,11 +276,11 @@ export function OptionsForm(props: {
                     invalid={err("userIdRequired") || err("userIdTooLong")}
                     onInput={(v) => set("delivery", { ...o.delivery, userId: v } as Delivery)}
                   />
-                  {err("userIdRequired") && <p class="m-0 mt-1 text-sm text-error">{t("options.errors.userIdRequired")}</p>}
+                  {err("userIdRequired") && <p class="m-0 mt-1.5 text-xs font-medium text-error">{t("options.errors.userIdRequired")}</p>}
                 </div>
                 {o.delivery.type === "secure" && (
                   <div>
-                    <label class="mb-1 block text-sm" for={ids.pin}>
+                    <label class="mb-1.5 block text-xs font-semibold text-ink-soft" for={ids.pin}>
                       {t("options.delivery.pin")}
                     </label>
                     <TextInput
@@ -189,29 +293,29 @@ export function OptionsForm(props: {
                       invalid={err("pinInvalid")}
                       onInput={(v) => set("delivery", { ...o.delivery, pin: v.replace(/\D/g, "") } as Delivery)}
                     />
-                    <p class="m-0 mt-1 text-xs text-ink-faint">{t("options.delivery.pinNote")}</p>
-                    {err("pinInvalid") && <p class="m-0 mt-1 text-sm text-error">{t("options.errors.pinInvalid")}</p>}
+                    <p class="m-0 mt-1.5 text-xs text-ink-faint">{t("options.delivery.pinNote")}</p>
+                    {err("pinInvalid") && <p class="m-0 mt-1.5 text-xs font-medium text-error">{t("options.errors.pinInvalid")}</p>}
                   </div>
                 )}
               </div>
             )}
 
             {o.delivery.type === "delayed" && (
-              <div class="mt-3">
-                <label class="mb-1 block text-sm" for={ids.hour}>
+              <div class="mt-3.5">
+                <label class="mb-1.5 block text-xs font-semibold text-ink-soft" for={ids.hour}>
                   {t("options.delivery.time")}
                 </label>
                 <input
                   id={ids.hour}
                   type="time"
-                  class="rounded-lg border border-rule bg-sheet px-3 py-1.5 text-sm text-ink"
+                  class="h-10 rounded-xl border border-rule bg-sheet px-3.5 text-sm text-ink shadow-[0_1px_2px_rgb(15_23_42/0.03)] transition-colors hover:border-rule-strong focus-visible:border-accent"
                   value={`${String(o.delivery.hour).padStart(2, "0")}:${String(o.delivery.minute).padStart(2, "0")}`}
                   onInput={(e) => {
                     const [h, m] = (e.currentTarget as HTMLInputElement).value.split(":").map(Number);
                     if (Number.isFinite(h) && Number.isFinite(m)) set("delivery", { type: "delayed", hour: h!, minute: m! });
                   }}
                 />
-                {err("timeInvalid") && <p class="m-0 mt-1 text-sm text-error">{t("options.errors.timeInvalid")}</p>}
+                {err("timeInvalid") && <p class="m-0 mt-1.5 text-xs font-medium text-error">{t("options.errors.timeInvalid")}</p>}
               </div>
             )}
           </Row>

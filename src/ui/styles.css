@@ -5,33 +5,38 @@
 
 /*
  * Design tokens.
- * Base: cool copy-paper white and ink. Accent: process cyan, the printer's own vernacular.
- * Toner swatches use the actual process colours (Japan Color approximations).
+ * Studio-neutral paper canvas with layered white cards and crisp process-cyan accent.
+ * Toner swatches use the actual CMYK process colours (Japan Color approximations).
  */
 @theme {
-  --font-sans: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --font-sans: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "Meiryo", system-ui, -apple-system, sans-serif;
 
-  --color-paper: #f3f4f2;
+  --color-paper: #f5f6f8;
   --color-sheet: #ffffff;
-  --color-ink: #1e2226;
-  --color-ink-soft: #535b63;
-  --color-ink-faint: #8a929a;
-  --color-rule: #dcdfdc;
-  --color-accent: #0077b6;
-  --color-accent-ink: #005b8c;
+  --color-well: #eceff3;
+  --color-ink: #14181f;
+  --color-ink-soft: #4e5866;
+  --color-ink-faint: #7e8794;
+  --color-rule: #e2e6ec;
+  --color-rule-strong: #cdd4de;
+
+  --color-accent: #0284c7;
+  --color-accent-hover: #0369a1;
+  --color-accent-ink: #0369a1;
   --color-on-accent: #ffffff;
-  --color-accent-wash: #e3f2fa;
+  --color-accent-wash: #e0f2fe;
 
   --color-process-c: #00a0e9;
   --color-process-m: #e4007f;
-  --color-process-y: #ffe100;
+  --color-process-y: #f5cf00;
   --color-process-k: #231815;
 
-  --color-ok: #2f7d4f;
-  --color-warn: #a76200;
-  --color-warn-wash: #fdf1dc;
-  --color-error: #c0392b;
-  --color-error-wash: #fbe6e3;
+  --color-ok: #15803d;
+  --color-ok-wash: #dcfce7;
+  --color-warn: #b45309;
+  --color-warn-wash: #fef3c7;
+  --color-error: #dc2626;
+  --color-error-wash: #fee2e2;
 }
 
 @layer base {
@@ -41,25 +46,35 @@
     font-family: var(--font-sans);
     font-feature-settings: "palt" 0;
     -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .dark {
-    --color-paper: #171a1d;
-    --color-sheet: #22262a;
-    --color-ink: #e7e9eb;
-    --color-ink-soft: #b2b9c0;
-    --color-ink-faint: #7f8891;
-    --color-rule: #343a40;
-    --color-accent: #3cb2ec;
-    --color-accent-ink: #7ccbf2;
-    --color-on-accent: #08202c;
-    --color-accent-wash: #16303d;
+    --color-paper: #0f1216;
+    --color-sheet: #171b22;
+    --color-well: #212731;
+    --color-ink: #f1f5f9;
+    --color-ink-soft: #9aa5b5;
+    --color-ink-faint: #6b7687;
+    --color-rule: #29313d;
+    --color-rule-strong: #394353;
+
+    --color-accent: #38bdf8;
+    --color-accent-hover: #7dd3fc;
+    --color-accent-ink: #7dd3fc;
+    --color-on-accent: #072030;
+    --color-accent-wash: #0c2e45;
+
+    --color-process-y: #ffe100;
     --color-process-k: #d8d4d2;
-    --color-ok: #5fbf86;
-    --color-warn: #e0a447;
-    --color-warn-wash: #3a2d16;
-    --color-error: #f0806f;
-    --color-error-wash: #3d2220;
+
+    --color-ok: #4ade80;
+    --color-ok-wash: #113020;
+    --color-warn: #fbbf24;
+    --color-warn-wash: #34250d;
+    --color-error: #f87171;
+    --color-error-wash: #381818;
     color-scheme: dark;
   }
 
@@ -85,5 +100,22 @@
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
     }
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--color-sheet);
+    border: 1px solid var(--color-rule);
+    border-radius: 1rem;
+    box-shadow:
+      0 1px 2px rgb(15 23 42 / 0.04),
+      0 6px 20px -6px rgb(15 23 42 / 0.05);
+  }
+
+  .dark .card {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.25),
+      0 8px 24px -8px rgb(0 0 0 / 0.38);
   }
 }

@@ -30,6 +30,14 @@ const SEVERITY_DOT: Record<Severity, string> = {
   unknown: "bg-ink-faint",
 };
 
+const SEVERITY_BADGE: Record<Severity, string> = {
+  ok: "bg-ok-wash text-ok",
+  info: "bg-well text-ink-soft",
+  warning: "bg-warn-wash text-warn",
+  error: "bg-error-wash text-error",
+  unknown: "bg-well text-ink-soft",
+};
+
 export function severityTextClass(s: Severity): string {
   return SEVERITY_TEXT[s];
 }
@@ -48,9 +56,18 @@ export function DeviceBadge(props: { state: DeviceState | { raw: string }; sever
   const text = isUnmapped(props.state) ? props.state.raw : t(`device.state.${props.state}`);
   const sleeping = props.state === "sleep";
   return (
-    <span class="inline-flex items-center gap-2 text-sm font-semibold" title={sleeping ? t("device.sleepHint") : undefined}>
-      <span class={cx("h-2.5 w-2.5 rounded-full", sleeping ? "bg-ink-faint" : SEVERITY_DOT[props.severity], props.state === "printing" && "animate-pulse")} aria-hidden="true" />
-      <span class={sleeping ? "text-ink-soft" : SEVERITY_TEXT[props.severity]}>{text}</span>
+    <span
+      class={cx(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+        sleeping ? "bg-well text-ink-soft" : SEVERITY_BADGE[props.severity],
+      )}
+      title={sleeping ? t("device.sleepHint") : undefined}
+    >
+      <span
+        class={cx("h-1.5 w-1.5 rounded-full", sleeping ? "bg-ink-faint" : SEVERITY_DOT[props.severity], props.state === "printing" && "animate-pulse")}
+        aria-hidden="true"
+      />
+      <span>{text}</span>
     </span>
   );
 }
@@ -75,37 +92,41 @@ function levelText(t: ReturnType<typeof useT>["t"], s: Supply): string {
   return s.level.min === s.level.max ? `${s.level.max}%` : t("supplies.range", { min: s.level.min, max: s.level.max });
 }
 
-export function SupplyList(props: { supplies: Supply[]; kind: "toner" | "drum"; showState?: boolean }) {
+export function SupplyList(props: { supplies: Supply[]; kind: "toner" | "drum"; showState?: boolean; compact?: boolean }) {
   const { t } = useT();
   const list = sortByColor(props.supplies.filter((s) => s.kind === props.kind));
   const approximate = list.some((s) => s.level && s.level.min !== s.level.max);
   return (
     <>
-    <ul class="m-0 flex list-none flex-col gap-3 p-0">
-      {list.map((s) => {
-        const colorName = s.color ? t(`supplies.color.${s.color}`) : s.name;
-        const flagged = s.severity === "warning" || s.severity === "error";
-        return (
-          <li key={s.name} class="flex flex-col gap-1">
-            <div class="flex items-baseline justify-between gap-3 text-sm">
-              <span class="flex items-center gap-2">
-                <span class="h-3 w-3 rounded-sm border border-rule" style={{ background: s.color ? PROCESS_COLOR[s.color] : "var(--color-ink-faint)" }} aria-hidden="true" />
-                <span class="font-semibold">{colorName}</span>
-              </span>
-              <span class="tabular text-ink-soft">{levelText(t, s)}</span>
-            </div>
-            <Meter
-              percent={s.level?.max ?? null}
-              min={s.level?.min ?? null}
-              color={s.color ? PROCESS_COLOR[s.color] : "var(--color-ink-faint)"}
-              label={`${colorName} ${levelText(t, s)}`}
-            />
-            {(flagged || props.showState) && <p class={cx("m-0 text-xs", SEVERITY_TEXT[s.severity])}>{supplyStateText(t, s)}</p>}
-          </li>
-        );
-      })}
-    </ul>
-    {approximate && <p class="m-0 mt-3 text-xs leading-relaxed text-ink-faint">{t("supplies.rangeNote")}</p>}
+      <ul class={cx("m-0 list-none p-0", props.compact ? "grid grid-cols-2 gap-3" : "flex flex-col gap-3.5")}>
+        {list.map((s) => {
+          const colorName = s.color ? t(`supplies.color.${s.color}`) : s.name;
+          const flagged = s.severity === "warning" || s.severity === "error";
+          return (
+            <li key={s.name} class={cx("flex flex-col gap-1.5", props.compact && "rounded-xl bg-well/45 px-3 py-2.5")}>
+              <div class="flex items-baseline justify-between gap-2 text-xs sm:text-sm">
+                <span class="flex min-w-0 items-center gap-1.5">
+                  <span
+                    class="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/15 dark:ring-white/20"
+                    style={{ background: s.color ? PROCESS_COLOR[s.color] : "var(--color-ink-faint)" }}
+                    aria-hidden="true"
+                  />
+                  <span class={cx("truncate font-medium text-ink", props.compact && "text-xs")}>{colorName}</span>
+                </span>
+                <span class={cx("tabular shrink-0 text-xs font-semibold", flagged ? SEVERITY_TEXT[s.severity] : "text-ink-soft")}>{levelText(t, s)}</span>
+              </div>
+              <Meter
+                percent={s.level?.max ?? null}
+                min={s.level?.min ?? null}
+                color={s.color ? PROCESS_COLOR[s.color] : "var(--color-ink-faint)"}
+                label={`${colorName} ${levelText(t, s)}`}
+              />
+              {(flagged || props.showState) && <p class={cx("m-0 text-[11px] leading-snug", SEVERITY_TEXT[s.severity])}>{supplyStateText(t, s)}</p>}
+            </li>
+          );
+        })}
+      </ul>
+      {approximate && <p class="m-0 mt-3 text-[11px] leading-relaxed text-ink-faint">{t("supplies.rangeNote")}</p>}
     </>
   );
 }
@@ -115,10 +136,10 @@ export function WasteToner(props: { supplies: Supply[] }) {
   const s = props.supplies.find((x) => x.kind === "wasteToner");
   if (!s) return null;
   return (
-    <p class="m-0 flex items-baseline justify-between gap-3 text-sm">
-      <span class="font-semibold">{t("supplies.wasteToner")}</span>
-      <span class={SEVERITY_TEXT[s.severity]}>{supplyStateText(t, s)}</span>
-    </p>
+    <div class="flex items-center justify-between gap-3 rounded-xl bg-well/60 px-3.5 py-2.5 text-sm">
+      <span class="font-medium text-ink">{t("supplies.wasteToner")}</span>
+      <span class={cx("text-xs font-semibold", SEVERITY_TEXT[s.severity])}>{supplyStateText(t, s)}</span>
+    </div>
   );
 }
 
@@ -135,17 +156,28 @@ export function trayPaper(t: ReturnType<typeof useT>["t"], tray: Tray): string {
 export function TrayList(props: { trays: Tray[] }) {
   const { t } = useT();
   return (
-    <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+    <ul class="m-0 flex list-none flex-col gap-2 p-0">
       {props.trays.map((tray) => {
         const name = trayName(t, tray);
         const problem = tray.state !== "ok";
         return (
-          <li key={name} class="grid grid-cols-[6.5rem_1fr_auto] items-center gap-x-3 text-sm">
-            <span class="font-semibold">{name}</span>
-            <span class="truncate text-ink-soft">{trayPaper(t, tray) || "—"}</span>
-            <span class={cx("tabular text-right", problem ? "font-semibold text-error" : "text-ink-soft")}>
-              {problem ? t(`trayState.${tray.state}`) : tray.levelPercent !== null ? `${tray.levelPercent}%` : ""}
-            </span>
+          <li key={name} class="flex items-center justify-between gap-3 rounded-xl bg-well/45 px-3 py-2 text-sm">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-baseline gap-2">
+                <span class="shrink-0 text-xs font-semibold text-ink sm:text-sm">{name}</span>
+                <span class="truncate text-xs text-ink-soft">{trayPaper(t, tray) || "—"}</span>
+              </div>
+            </div>
+            {problem ? (
+              <span class="shrink-0 rounded-full bg-error-wash px-2 py-0.5 text-[11px] font-semibold text-error">{t(`trayState.${tray.state}`)}</span>
+            ) : tray.levelPercent !== null ? (
+              <div class="flex shrink-0 items-center gap-2">
+                <span class="hidden h-1.5 w-10 overflow-hidden rounded-full bg-rule sm:block" aria-hidden="true">
+                  <span class="block h-full rounded-full bg-ink-soft/60" style={{ width: `${Math.max(0, Math.min(100, tray.levelPercent))}%` }} />
+                </span>
+                <span class="tabular w-9 text-right text-xs font-semibold text-ink-soft">{tray.levelPercent}%</span>
+              </div>
+            ) : null}
           </li>
         );
       })}
@@ -153,7 +185,7 @@ export function TrayList(props: { trays: Tray[] }) {
   );
 }
 
-/** Section heading used inside panels. Sentence case, no decoration. */
+/** Section heading used inside panels. */
 export function PanelHeading(props: { children: string }) {
-  return <h2 class="m-0 mb-3 text-sm font-bold text-ink">{props.children}</h2>;
+  return <h2 class="m-0 mb-3 text-sm font-bold tracking-tight text-ink">{props.children}</h2>;
 }

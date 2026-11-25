@@ -48,6 +48,65 @@ function useTheme(): [Theme, (t: Theme) => void] {
   ];
 }
 
+function BrandMark() {
+  return (
+    <span class="grid h-7 w-7 shrink-0 grid-cols-2 gap-1 rounded-lg bg-well p-1.5 ring-1 ring-inset ring-rule" aria-hidden="true">
+      <span class="rounded-[2px]" style={{ background: "var(--color-process-c)" }} />
+      <span class="rounded-[2px]" style={{ background: "var(--color-process-m)" }} />
+      <span class="rounded-[2px]" style={{ background: "var(--color-process-y)" }} />
+      <span class="rounded-[2px]" style={{ background: "var(--color-process-k)" }} />
+    </span>
+  );
+}
+
+function NavIcon({ view }: { view: View }) {
+  if (view === "print") {
+    return (
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 7V3.5h10V7" />
+        <rect x="3" y="7" width="14" height="7" rx="2" />
+        <path d="M6 12h8v4.5H6V12Z" />
+      </svg>
+    );
+  }
+  if (view === "jobs") {
+    return (
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 5.5h12M4 10h12M4 14.5h8" />
+      </svg>
+    );
+  }
+  return (
+    <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 10h3l2.2-5 3.6 10 2.2-5H17" />
+    </svg>
+  );
+}
+
+function ThemeIcon({ mode }: { mode: Theme }) {
+  if (mode === "light") {
+    return (
+      <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="3" />
+        <path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.58 3.58l1.06 1.06M11.36 11.36l1.06 1.06M12.42 3.58l-1.06 1.06M4.64 11.36l-1.06 1.06" />
+      </svg>
+    );
+  }
+  if (mode === "dark") {
+    return (
+      <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M13.2 9.8A5.5 5.5 0 0 1 6.2 2.8a5.5 5.5 0 1 0 7 7Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2" y="2.75" width="12" height="8.5" rx="1.5" />
+      <path d="M5.5 13.5h5M8 11.25v2.25" />
+    </svg>
+  );
+}
+
 function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const { t, lang } = useT();
   const { status, queue } = usePrinter();
@@ -59,67 +118,126 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const listFormat = new Intl.ListFormat(lang, { style: "short", type: "conjunction" });
 
   return (
-    <header class="border-b border-rule bg-sheet">
-      <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
-        <div class="flex min-w-0 items-baseline gap-3">
-          <h1 class="m-0 text-lg font-bold tracking-tight">{t("app.name")}</h1>
-          {status.data?.device.model && <span class="hidden text-sm text-ink-faint md:inline">{status.data.device.model}</span>}
+    <header class="sticky top-0 z-20 border-b border-rule/80 bg-sheet/88 backdrop-blur-md">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 py-2.5 sm:px-6">
+        {/* Left: Brand & Device */}
+        <div class="flex min-w-0 items-center gap-2.5">
+          <BrandMark />
+          <div class="flex min-w-0 flex-col">
+            <div class="flex items-center gap-2">
+              <h1 class="m-0 text-[15px] leading-tight font-bold tracking-tight text-ink sm:text-base">{t("app.name")}</h1>
+              <DeviceBadge state={state} severity={severity} />
+            </div>
+            {status.data?.device.model && (
+              <span class="hidden truncate text-[11px] leading-tight text-ink-faint sm:block">{status.data.device.model}</span>
+            )}
+          </div>
         </div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <DeviceBadge state={state} severity={severity} />
-          {low.length > 0 && (
-            <button type="button" class="text-sm text-warn underline decoration-dotted underline-offset-4" onClick={() => onView("status")}>
-              {t("supplies.lowSummary", { colors: listFormat.format(low.map((s) => t(`supplies.color.${s.color ?? "black"}`))) })}
-            </button>
-          )}
-        </div>
-        <div class="ml-auto flex items-center gap-2">
-          <label class="sr-only" for="pp-lang">
-            {t("app.language")}
-          </label>
-          <select
-            id="pp-lang"
-            class="rounded-lg border border-rule bg-sheet px-2 py-1 text-sm text-ink"
-            value={lang}
-            onChange={(e) => setLanguage((e.currentTarget as HTMLSelectElement).value as (typeof LANGUAGES)[number]["code"])}
+
+        {/* Center: Primary Navigation */}
+        <nav class="order-last flex w-full gap-1 overflow-x-auto rounded-xl bg-well/80 p-1 md:order-none md:w-auto" aria-label={t("app.name")}>
+          {VIEWS.map((v) => {
+            const active = view === v;
+            return (
+              <a
+                key={v}
+                href={`#/${v}`}
+                aria-current={active ? "page" : undefined}
+                class={cx(
+                  "relative inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm no-underline transition-all md:flex-initial",
+                  active
+                    ? "bg-sheet font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
+                    : "font-medium text-ink-soft hover:text-ink",
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onView(v);
+                }}
+              >
+                <NavIcon view={v} />
+                {t(`nav.${v}`)}
+                {v === "status" && low.length > 0 && <span class="h-1.5 w-1.5 rounded-full bg-warn" aria-hidden="true" />}
+              </a>
+            );
+          })}
+        </nav>
+
+        {/* Right: Compact Icon Controls (Language + Theme) */}
+        <div class="flex items-center gap-2">
+          {/* Icon-first Language Picker backed by native <select> */}
+          <div
+            class="relative inline-flex h-8 items-center gap-1.5 rounded-lg border border-rule bg-sheet px-2.5 text-xs font-semibold text-ink-soft transition-colors focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25 hover:border-rule-strong hover:text-ink"
+            title={t("app.language")}
           >
-            {LANGUAGES.map((l) => (
-              <option key={l.code} value={l.code} lang={l.code}>
-                {l.label}
-              </option>
-            ))}
-          </select>
-          <label class="sr-only" for="pp-theme">
-            {t("app.theme.label")}
-          </label>
-          <select id="pp-theme" class="rounded-lg border border-rule bg-sheet px-2 py-1 text-sm text-ink" value={theme} onChange={(e) => setTheme((e.currentTarget as HTMLSelectElement).value as Theme)}>
-            {(["system", "light", "dark"] as const).map((v) => (
-              <option key={v} value={v}>
-                {t(`app.theme.${v}`)}
-              </option>
-            ))}
-          </select>
+            <svg class="h-3.5 w-3.5 shrink-0 text-ink-faint" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="8" cy="8" r="6" />
+              <path d="M2.2 8h11.6M8 2a9.2 9.2 0 0 1 2.4 6A9.2 9.2 0 0 1 8 14a9.2 9.2 0 0 1-2.4-6A9.2 9.2 0 0 1 8 2Z" />
+            </svg>
+            <span class="uppercase tracking-wide" aria-hidden="true">
+              {lang}
+            </span>
+            <label class="sr-only" for="pp-lang">
+              {t("app.language")}
+            </label>
+            <select
+              id="pp-lang"
+              class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              value={lang}
+              onChange={(e) => setLanguage((e.currentTarget as HTMLSelectElement).value as (typeof LANGUAGES)[number]["code"])}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code} lang={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 3-way Icon Theme Switcher */}
+          <div class="inline-flex items-center rounded-lg border border-rule/80 bg-well/80 p-0.5" role="group" aria-label={t("app.theme.label")}>
+            {(["system", "light", "dark"] as const).map((mode) => {
+              const active = theme === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={active}
+                  aria-label={t(`app.theme.${mode}`)}
+                  title={t(`app.theme.${mode}`)}
+                  class={cx(
+                    "grid h-7 w-7 cursor-pointer place-items-center rounded-md transition-all",
+                    active
+                      ? "bg-sheet text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
+                      : "text-ink-faint hover:text-ink",
+                  )}
+                  onClick={() => setTheme(mode)}
+                >
+                  <ThemeIcon mode={mode} />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
-      <nav class="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-2 sm:px-4" aria-label={t("app.name")}>
-        {VIEWS.map((v) => (
-          <a
-            key={v}
-            href={`#/${v}`}
-            aria-current={view === v ? "page" : undefined}
-            class={cx(
-              "-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm no-underline",
-              view === v ? "border-accent font-bold text-ink" : "border-transparent text-ink-soft hover:text-ink",
-            )}
-            onClick={(e) => {
-              e.preventDefault();
-              onView(v);
-            }}
-          >
-            {t(`nav.${v}`)}
-          </a>
-        ))}
-      </nav>
+
+      {/* Slim contextual alert strip when toner is low — keeps the header clean and balanced */}
+      {low.length > 0 && view !== "status" && (
+        <div class="border-t border-warn/20 bg-warn-wash/75">
+          <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5 text-xs sm:px-6">
+            <button
+              type="button"
+              class="inline-flex cursor-pointer items-center gap-1.5 text-left font-medium text-warn transition-opacity hover:opacity-80"
+              onClick={() => onView("status")}
+            >
+              <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M7.13 2.5a1 1 0 0 1 1.74 0l5.2 9.1A1 1 0 0 1 13.2 13H2.8a1 1 0 0 1-.87-1.4l5.2-9.1ZM8 5.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5.5Zm0 6a.85.85 0 1 0 0-1.7.85.85 0 0 0 0 1.7Z" />
+              </svg>
+              <span>{t("supplies.lowSummary", { colors: listFormat.format(low.map((s) => t(`supplies.color.${s.color ?? "black"}`))) })}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -130,16 +248,21 @@ function Shell() {
   return (
     <div class="flex min-h-screen flex-col">
       <Header view={view} onView={setView} />
-      <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-7">
         {view === "print" && <PrintPage />}
         {view === "jobs" && <JobsPage />}
         {view === "status" && <StatusPage />}
       </main>
-      <footer class="mx-auto w-full max-w-7xl px-4 pb-6 text-xs text-ink-faint sm:px-6">
-        <button type="button" class="rounded px-1 py-0.5 text-ink-soft underline underline-offset-4 hover:text-ink" title={t("app.classicUiHint")} onClick={() => location.reload()}>
+      <footer class="mx-auto flex w-full max-w-6xl items-center justify-between border-t border-rule/70 px-4 py-4 text-xs text-ink-faint sm:px-6">
+        <button
+          type="button"
+          class="cursor-pointer rounded-lg px-2 py-1 font-medium text-ink-soft transition-colors hover:bg-well hover:text-ink"
+          title={t("app.classicUiHint")}
+          onClick={() => location.reload()}
+        >
           {t("app.classicUi")}
         </button>
-        <span class="ml-3">v{__PORTAL_VERSION__}</span>
+        <span class="tabular rounded-md bg-well/70 px-2 py-0.5 font-medium text-ink-faint">v{__PORTAL_VERSION__}</span>
       </footer>
     </div>
   );

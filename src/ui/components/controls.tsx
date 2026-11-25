@@ -13,17 +13,17 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
 /** A labelled row in the settings form: label on the left on wide screens, stacked on narrow ones. */
 export function Row(props: { label: ComponentChildren; htmlFor?: string; children: ComponentChildren; as?: "fieldset" | "div" }) {
   const { label, htmlFor, children, as = "div" } = props;
-  const labelClass = "pt-2 text-sm font-semibold text-ink-soft sm:w-36 sm:shrink-0";
+  const labelClass = "text-sm font-medium text-ink-soft sm:w-36 sm:shrink-0 sm:pt-2";
   if (as === "fieldset") {
     return (
-      <fieldset class="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0 sm:flex-row sm:gap-4">
+      <fieldset class="m-0 flex min-w-0 flex-col gap-2 border-0 p-0 sm:flex-row sm:items-start sm:gap-4">
         <legend class={cx(labelClass, "float-left p-0")}>{label}</legend>
         <div class="min-w-0 flex-1">{children}</div>
       </fieldset>
     );
   }
   return (
-    <div class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:gap-4">
+    <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
       <label class={labelClass} for={htmlFor}>
         {label}
       </label>
@@ -45,26 +45,31 @@ export function Segmented<T extends string>(props: {
   onChange: (value: T) => void;
 }) {
   return (
-    <div class="inline-flex max-w-full flex-wrap rounded-lg border border-rule bg-sheet p-0.5">
-      {props.options.map((o) => (
-        <label
-          key={o.value}
-          class={cx(
-            "relative cursor-pointer rounded-md px-3.5 py-1.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
-            props.value === o.value ? "bg-ink font-semibold text-paper" : "text-ink hover:bg-paper",
-          )}
-        >
-          <input
-            type="radio"
-            class="sr-only"
-            name={props.name}
-            value={o.value}
-            checked={props.value === o.value}
-            onChange={() => props.onChange(o.value)}
-          />
-          {o.label}
-        </label>
-      ))}
+    <div class="inline-flex max-w-full flex-wrap gap-0.5 rounded-xl border border-rule/70 bg-well p-1">
+      {props.options.map((o) => {
+        const active = props.value === o.value;
+        return (
+          <label
+            key={o.value}
+            class={cx(
+              "relative cursor-pointer select-none rounded-lg px-3.5 py-1.5 text-sm transition-all has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
+              active
+                ? "bg-sheet font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10"
+                : "text-ink-soft hover:text-ink",
+            )}
+          >
+            <input
+              type="radio"
+              class="sr-only"
+              name={props.name}
+              value={o.value}
+              checked={active}
+              onChange={() => props.onChange(o.value)}
+            />
+            {o.label}
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -76,18 +81,32 @@ export function Select<T extends string>(props: {
   onChange: (value: T) => void;
 }) {
   return (
-    <select
-      id={props.id}
-      class="w-full max-w-xs rounded-lg border border-rule bg-sheet px-3 py-1.5 text-sm text-ink"
-      value={props.value}
-      onChange={(e) => props.onChange((e.currentTarget as HTMLSelectElement).value as T)}
-    >
-      {props.options.map((o) => (
-        <option key={o.value} value={o.value} disabled={o.disabled}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <div class="relative w-full max-w-xs">
+      <select
+        id={props.id}
+        class="h-10 w-full cursor-pointer appearance-none rounded-xl border border-rule bg-sheet py-1.5 pr-9 pl-3.5 text-sm text-ink shadow-[0_1px_2px_rgb(15_23_42/0.03)] transition-colors hover:border-rule-strong focus-visible:border-accent"
+        value={props.value}
+        onChange={(e) => props.onChange((e.currentTarget as HTMLSelectElement).value as T)}
+      >
+        {props.options.map((o) => (
+          <option key={o.value} value={o.value} disabled={o.disabled}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <svg
+        class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-ink-faint"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4.5 6.5 8 10l3.5-3.5" />
+      </svg>
+    </div>
   );
 }
 
@@ -101,11 +120,14 @@ export function Stepper(props: {
   increaseLabel: string;
 }) {
   const clamp = (n: number) => Math.min(props.max, Math.max(props.min, n));
-  const button = "grid h-9 w-9 place-items-center text-lg text-ink hover:bg-paper disabled:text-ink-faint disabled:hover:bg-transparent";
+  const button =
+    "grid h-10 w-10 cursor-pointer place-items-center text-ink-soft transition-colors hover:bg-well hover:text-ink active:bg-rule/60 disabled:cursor-not-allowed disabled:text-ink-faint/50 disabled:hover:bg-transparent";
   return (
-    <div class="inline-flex items-stretch overflow-hidden rounded-lg border border-rule bg-sheet">
+    <div class="inline-flex items-stretch overflow-hidden rounded-xl border border-rule bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.03)]">
       <button type="button" class={button} aria-label={props.decreaseLabel} disabled={props.value <= props.min} onClick={() => props.onChange(clamp(props.value - 1))}>
-        −
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M3.5 8h9" />
+        </svg>
       </button>
       <input
         id={props.id}
@@ -114,7 +136,7 @@ export function Stepper(props: {
         min={props.min}
         max={props.max}
         value={props.value}
-        class="tabular w-16 border-x border-rule bg-transparent text-center text-base font-semibold text-ink [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+        class="tabular w-16 border-x border-rule bg-transparent text-center text-sm font-semibold text-ink [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
         onInput={(e) => {
           const n = parseInt((e.currentTarget as HTMLInputElement).value, 10);
           if (Number.isFinite(n)) props.onChange(n);
@@ -125,7 +147,9 @@ export function Stepper(props: {
         }}
       />
       <button type="button" class={button} aria-label={props.increaseLabel} disabled={props.value >= props.max} onClick={() => props.onChange(clamp(props.value + 1))}>
-        +
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M8 3.5v9M3.5 8h9" />
+        </svg>
       </button>
     </div>
   );
@@ -154,8 +178,8 @@ export function TextInput(props: {
       aria-invalid={props.invalid || undefined}
       aria-describedby={props.describedBy}
       class={cx(
-        "w-full max-w-xs rounded-lg border bg-sheet px-3 py-1.5 text-sm text-ink",
-        props.invalid ? "border-error" : "border-rule",
+        "h-10 w-full max-w-xs rounded-xl border bg-sheet px-3.5 text-sm text-ink shadow-[0_1px_2px_rgb(15_23_42/0.03)] transition-colors",
+        props.invalid ? "border-error focus-visible:border-error" : "border-rule hover:border-rule-strong focus-visible:border-accent",
       )}
       onInput={(e) => props.onInput((e.currentTarget as HTMLInputElement).value)}
     />
@@ -176,15 +200,15 @@ export function Meter(props: { percent: number | null; min?: number | null; colo
   const min = props.min === null || props.min === undefined ? max : Math.min(max, clamp(props.min));
   return (
     <div
-      class="relative h-1.5 w-full overflow-hidden rounded-full bg-rule"
+      class="relative h-2 w-full overflow-hidden rounded-full bg-well ring-1 ring-inset ring-black/5 dark:ring-white/5"
       role="meter"
       aria-label={props.label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={props.percent === null ? undefined : min === max ? max : Math.round((min + max) / 2)}
     >
-      {max > min && <div class="absolute inset-y-0 left-0 rounded-full opacity-35" style={{ width: `${max}%`, background: props.color }} />}
-      <div class="absolute inset-y-0 left-0 rounded-full" style={{ width: `${min}%`, background: props.color }} />
+      {max > min && <div class="absolute inset-y-0 left-0 rounded-full opacity-35 transition-[width] duration-300" style={{ width: `${max}%`, background: props.color }} />}
+      <div class="absolute inset-y-0 left-0 rounded-full transition-[width] duration-300" style={{ width: `${min}%`, background: props.color }} />
     </div>
   );
 }

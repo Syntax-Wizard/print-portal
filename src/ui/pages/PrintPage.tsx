@@ -29,9 +29,9 @@ function Summary({ o }: { o: PrintOptions }) {
     extra = t("summary.delivery.delayed", { time: formatTime(at, lang) });
   }
   return (
-    <p class="m-0 text-[15px] leading-relaxed text-ink">
-      {sentence}
-      {extra && <span class="block font-semibold">{extra}</span>}
+    <p class="m-0 text-sm leading-relaxed text-ink-soft">
+      <span class="text-ink">{sentence}</span>
+      {extra && <span class="mt-1 block font-semibold text-accent-ink">{extra}</span>}
     </p>
   );
 }
@@ -68,57 +68,71 @@ export function PrintPage() {
 
   const buttonLabel = busy ? t("submit.busy") : readyCount > 0 ? t("submit.button", { count: readyCount }) : t("submit.buttonEmpty");
   const buttonClass = (enabled: boolean) =>
-    cx("w-full rounded-xl px-5 py-3.5 text-base font-bold transition-colors", enabled ? "bg-accent text-on-accent hover:brightness-110" : "cursor-not-allowed bg-rule text-ink-faint");
+    cx(
+      "inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold tracking-tight transition-all sm:text-[15px]",
+      enabled
+        ? "cursor-pointer bg-accent text-on-accent shadow-[0_2px_8px_rgb(2_132_199/0.3)] hover:bg-accent-hover active:scale-[0.99]"
+        : "cursor-not-allowed bg-well text-ink-faint",
+    );
   const canPrint = readyCount > 0 && !busy;
 
   return (
-    <div class={cx("grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]", (readyCount > 0 || busy) && "pb-24 lg:pb-0")}>
+    <div class={cx("grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] xl:grid-cols-[minmax(0,1fr)_22.5rem]", (readyCount > 0 || busy) && "pb-24 lg:pb-0")}>
       {(readyCount > 0 || busy) && (
         // On narrow screens the main button sits far below the settings; this bar keeps it in reach.
-        <div class="fixed inset-x-0 bottom-0 z-10 border-t border-rule bg-sheet/95 px-4 py-3 backdrop-blur lg:hidden">
+        <div class="fixed inset-x-0 bottom-0 z-10 border-t border-rule bg-sheet/92 px-4 py-3 shadow-[0_-4px_16px_rgb(15_23_42/0.08)] backdrop-blur-md lg:hidden">
           <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
             {buttonLabel}
           </button>
         </div>
       )}
-      <div class="flex min-w-0 flex-col gap-6">
+      <div class="flex min-w-0 flex-col gap-5">
         <DropZone onFiles={addFiles} compact={items.length > 0} />
         <FileList items={items} onRemove={remove} onRetry={onRetry} onClearDone={clearDone} tooMany={tooMany} />
-        <section aria-labelledby="settings-heading" class="rounded-xl border border-rule bg-sheet p-5 sm:p-6">
-          <h2 id="settings-heading" class="m-0 mb-5 text-base font-bold">
+        <section aria-labelledby="settings-heading" class="card p-5 sm:p-6">
+          <h2 id="settings-heading" class="m-0 mb-4 text-base font-bold tracking-tight text-ink">
             {t("options.title")}
           </h2>
           <OptionsForm options={options} onChange={setOptions} trays={trays} errors={showErrors ? errors : []} />
         </section>
       </div>
 
-      <aside class="flex flex-col gap-6 lg:sticky lg:top-6 lg:self-start">
-        <section class="flex flex-col gap-4">
-          <div class="mx-auto w-full max-w-64">
-            <SheetPreview options={options} label={t("summary.previewLabel")} />
-          </div>
+      <aside class="flex flex-col gap-5 lg:sticky lg:top-20 lg:self-start">
+        <section class="card flex flex-col gap-4 p-5">
+          <SheetPreview options={options} label={t("summary.previewLabel")} />
           <Summary o={options} />
           <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 7V3.5h10V7" />
+              <rect x="3" y="7" width="14" height="7" rx="2" />
+              <path d="M6 12h8v4.5H6V12Z" />
+            </svg>
             {buttonLabel}
           </button>
-          {readyCount === 0 && !busy && <p class="m-0 -mt-2 text-center text-sm text-ink-soft">{t("submit.noFiles")}</p>}
-          {showErrors && errors.length > 0 && <p class="m-0 -mt-2 text-center text-sm text-error">{t("submit.fixErrors")}</p>}
+          {readyCount === 0 && !busy && <p class="m-0 -mt-1.5 text-center text-xs text-ink-faint">{t("submit.noFiles")}</p>}
+          {showErrors && errors.length > 0 && <p class="m-0 -mt-1.5 text-center text-xs font-medium text-error">{t("submit.fixErrors")}</p>}
         </section>
 
         {status.data && (
-          <section class="flex flex-col gap-6 border-t border-rule pt-6">
+          <section class="card flex flex-col gap-5 p-5">
             <div>
               <PanelHeading>{t("supplies.title")}</PanelHeading>
-              <SupplyList supplies={status.data.supplies} kind="toner" />
+              <SupplyList supplies={status.data.supplies} kind="toner" compact />
             </div>
-            <div>
+            <div class="border-t border-rule/80 pt-4">
               <PanelHeading>{t("trays.title")}</PanelHeading>
               <TrayList trays={trays} />
             </div>
-            {status.updatedAt && <UpdatedAt at={status.updatedAt} onRefresh={status.refresh} />}
+            {status.updatedAt && (
+              <div class="border-t border-rule/70 pt-3">
+                <UpdatedAt at={status.updatedAt} onRefresh={status.refresh} />
+              </div>
+            )}
           </section>
         )}
-        {status.error !== undefined && !status.data && <p class="m-0 text-sm text-error">{t("errors.statusUnavailable")}</p>}
+        {status.error !== undefined && !status.data && (
+          <p class="card m-0 border-error/30 bg-error-wash/60 p-4 text-sm font-medium text-error">{t("errors.statusUnavailable")}</p>
+        )}
       </aside>
     </div>
   );
@@ -127,9 +141,17 @@ export function PrintPage() {
 export function UpdatedAt(props: { at: Date; onRefresh: () => void }) {
   const { t, lang } = useT();
   return (
-    <p class="m-0 flex items-center gap-2 text-xs text-ink-faint">
-      <span>{t("device.updatedAt", { time: formatTime(props.at, lang) })}</span>
-      <button type="button" class="rounded px-1.5 py-0.5 text-accent-ink hover:bg-accent-wash" onClick={props.onRefresh}>
+    <p class="m-0 flex items-center justify-between gap-2 text-xs text-ink-faint">
+      <span class="tabular">{t("device.updatedAt", { time: formatTime(props.at, lang) })}</span>
+      <button
+        type="button"
+        class="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 font-semibold text-accent-ink transition-colors hover:bg-accent-wash"
+        onClick={props.onRefresh}
+      >
+        <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13.5 8a5.5 5.5 0 1 1-1.4-3.7" />
+          <path d="M13.5 2.5v2.8h-2.8" />
+        </svg>
         {t("device.refresh")}
       </button>
     </p>

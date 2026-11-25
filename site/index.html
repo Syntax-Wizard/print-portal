@@ -7,56 +7,223 @@
 <meta name="robots" content="noindex">
 <style>
   :root {
-    --paper: #f3f4f2; --sheet: #fff; --ink: #1e2226; --ink-soft: #535b63; --rule: #dcdfdc;
-    --accent: #0086c9; --accent-ink: #00669a; --accent-wash: #e3f2fa;
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --surface-hover: #eef1f5;
+    --ink: #14181f;
+    --ink-soft: #4e5866;
+    --ink-faint: #7e8794;
+    --rule: #e5e8ee;
+    --rule-strong: #cfd6e0;
+    --accent: #0284c7;
+    --accent-hover: #0369a1;
+    --accent-wash: #e0f2fe;
+    --on-accent: #ffffff;
     color-scheme: light dark;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --paper: #171a1d; --sheet: #22262a; --ink: #e7e9eb; --ink-soft: #b2b9c0; --rule: #343a40; --accent: #3cb2ec; --accent-ink: #7ccbf2; --accent-wash: #16303d; }
+    :root {
+      --bg: #0f1216;
+      --surface: #171b22;
+      --surface-hover: #212731;
+      --ink: #f1f5f9;
+      --ink-soft: #9aa5b5;
+      --ink-faint: #6b7687;
+      --rule: #262e3a;
+      --rule-strong: #394353;
+      --accent: #38bdf8;
+      --accent-hover: #7dd3fc;
+      --accent-wash: #0c2e45;
+      --on-accent: #072030;
+    }
   }
   * { box-sizing: border-box; }
-  html { background: var(--paper); color: var(--ink); font-family: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, system-ui, sans-serif; line-height: 1.7; }
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body { margin: 0; }
-  main { max-width: 40rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  h1 { margin: 0; font-size: 1.75rem; letter-spacing: -0.01em; }
-  h2 { margin: 2.75rem 0 1rem; font-size: 1.15rem; }
+  main { max-width: 42rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+  .mark {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px;
+    width: 30px;
+    height: 30px;
+    padding: 6px;
+    border-radius: 9px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .mark i { display: block; border-radius: 2px; }
+  h1 { margin: 0; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; }
+  h2 { margin: 2.5rem 0 0.85rem; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
   p { margin: 0 0 1rem; }
-  .lead { margin-top: 1rem; font-size: 1.05rem; color: var(--ink-soft); }
-  ol { margin: 0; padding-left: 1.4rem; }
-  ol li { margin-bottom: 0.75rem; }
-  .hint, .note { font-size: 0.9rem; color: var(--ink-soft); }
-  .drag { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin: 1.25rem 0 0.5rem; padding: 1.5rem; border: 2px dashed var(--rule); border-radius: 14px; background: var(--sheet); }
-  .bookmarklet { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.2rem; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; text-decoration: none; cursor: grab; }
-  .bookmarklet:active { cursor: grabbing; }
-  .swatch { display: inline-grid; grid-template-columns: repeat(2, 7px); gap: 2px; }
-  .swatch i { width: 7px; height: 7px; border-radius: 1px; }
+  .lead { margin-top: 1.5rem; font-size: 1rem; color: var(--ink-soft); }
+  ol { margin: 0; padding-left: 1.35rem; color: var(--ink-soft); }
+  ol li { margin-bottom: 0.65rem; }
+  .hint, .note { font-size: 0.875rem; color: var(--ink-soft); }
+
+  /* Icon-first language selector backed by native <select> */
+  .lang-picker {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2.125rem;
+    padding: 0 0.7rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  }
+  .lang-picker:hover { border-color: var(--rule-strong); color: var(--ink); background: var(--surface); }
+  .lang-picker:focus-within { border-color: var(--accent); outline: 2px solid var(--accent-wash); outline-offset: 1px; }
+  .lang-picker svg { width: 14px; height: 14px; color: var(--ink-faint); flex-shrink: 0; }
+  .lang-code { text-transform: uppercase; letter-spacing: 0.04em; }
+  .lang-picker select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .drag {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.15rem 0 0.75rem;
+    padding: 1.5rem;
+    border: 1.5px dashed var(--rule-strong);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+  .bookmarklet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 11px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgb(2 132 199 / 0.28);
+    transition: background-color 0.15s, transform 0.12s;
+  }
+  .bookmarklet:hover { background: var(--accent-hover); }
+  .bookmarklet:active { cursor: grabbing; transform: scale(0.98); }
+  .swatch {
+    display: inline-grid;
+    grid-template-columns: repeat(2, 6px);
+    gap: 2px;
+    padding: 3px;
+    border-radius: 5px;
+    background: rgb(255 255 255 / 0.92);
+  }
+  .swatch i { width: 6px; height: 6px; border-radius: 1.5px; }
+
   dl { margin: 0; }
-  dt { font-weight: 700; margin-top: 1.25rem; }
-  dd { margin: 0.25rem 0 0; color: var(--ink-soft); }
-  textarea { width: 100%; height: 5.5rem; margin-top: 0.75rem; padding: 0.6rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+  .faq-item { padding: 1rem 0; border-bottom: 1px solid var(--rule); }
+  .faq-item:first-child { padding-top: 0.25rem; }
+  .faq-item:last-child { border-bottom: 0; }
+  dt { font-weight: 700; font-size: 0.9375rem; color: var(--ink); }
+  dd { margin: 0.3rem 0 0; font-size: 0.9rem; color: var(--ink-soft); }
+
+  textarea {
+    width: 100%;
+    height: 5.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+    resize: vertical;
+  }
   button { font: inherit; }
-  .copy { margin-top: 0.5rem; padding: 0.35rem 0.9rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); cursor: pointer; }
-  select { font: inherit; padding: 0.25rem 0.5rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); }
-  footer { margin-top: 3rem; font-size: 0.8rem; color: var(--ink-soft); }
+  .copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.6rem;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .copy:hover { background: var(--surface); border-color: var(--accent); }
+  .copy svg { width: 14px; height: 14px; color: var(--ink-soft); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+  }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1 data-i18n="title"></h1>
-    <select id="lang" aria-label="Language / 表示言語">
-      <option value="ja" lang="ja">日本語</option>
-      <option value="en" lang="en">English</option>
-    </select>
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <i style="background:#00a0e9"></i>
+        <i style="background:#e4007f"></i>
+        <i style="background:#f5cf00"></i>
+        <i style="background:#231815"></i>
+      </span>
+      <h1 data-i18n="title"></h1>
+    </div>
+    <div class="lang-picker" title="Language / 表示言語">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="6" />
+        <path d="M2.2 8h11.6M8 2a9.2 9.2 0 0 1 2.4 6A9.2 9.2 0 0 1 8 14a9.2 9.2 0 0 1-2.4-6A9.2 9.2 0 0 1 8 2Z" />
+      </svg>
+      <span class="lang-code" id="lang-code" aria-hidden="true">JA</span>
+      <select id="lang" aria-label="Language / 表示言語">
+        <option value="ja" lang="ja">日本語</option>
+        <option value="en" lang="en">English</option>
+      </select>
+    </div>
   </header>
   <p class="lead" data-i18n="lead"></p>
 
   <h2 data-i18n="setupTitle"></h2>
   <p data-i18n="step1"></p>
   <div class="drag">
-    <a class="bookmarklet" id="bookmarklet" href="__BOOKMARKLET__"><span class="swatch" aria-hidden="true"><i style="background:#00a0e9"></i><i style="background:#e4007f"></i><i style="background:#ffe100"></i><i style="background:#231815"></i></span><span data-i18n="button"></span></a>
+    <a class="bookmarklet" id="bookmarklet" href="__BOOKMARKLET__"><span class="swatch" aria-hidden="true"><i style="background:#00a0e9"></i><i style="background:#e4007f"></i><i style="background:#f5cf00"></i><i style="background:#231815"></i></span><span data-i18n="button"></span></a>
     <span class="note" data-i18n="buttonNote"></span>
   </div>
   <p class="hint" data-i18n="step1Hint"></p>
@@ -70,7 +237,13 @@
   <h2 data-i18n="faqTitle"></h2>
   <dl id="faq"></dl>
   <textarea id="code" readonly aria-label="Bookmarklet code">__BOOKMARKLET__</textarea>
-  <button type="button" class="copy" id="copy" data-i18n="copy"></button>
+  <button type="button" class="copy" id="copy">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" />
+      <path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" />
+    </svg>
+    <span id="copy-label" data-i18n="copy"></span>
+  </button>
 
   <footer id="version"></footer>
 </main>
@@ -89,13 +262,16 @@
     var d = I18N[lang];
     document.documentElement.lang = lang;
     document.getElementById("lang").value = lang;
+    document.getElementById("lang-code").textContent = lang.toUpperCase();
     document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = d[el.getAttribute("data-i18n")]; });
     var faq = document.getElementById("faq");
     faq.textContent = "";
     d.faq.forEach(function (qa) {
+      var item = document.createElement("div"); item.className = "faq-item";
       var dt = document.createElement("dt"); dt.textContent = qa[0];
       var dd = document.createElement("dd"); dd.textContent = qa[1];
-      faq.appendChild(dt); faq.appendChild(dd);
+      item.appendChild(dt); item.appendChild(dd);
+      faq.appendChild(item);
     });
     document.getElementById("version").textContent = d.version.replace("{{version}}", VERSION);
   }
@@ -107,10 +283,10 @@
     apply(current);
   });
   document.getElementById("copy").addEventListener("click", function () {
-    var btn = this;
+    var label = document.getElementById("copy-label");
     navigator.clipboard.writeText(document.getElementById("code").value).then(function () {
-      btn.textContent = I18N[current].copied;
-      setTimeout(function () { btn.textContent = I18N[current].copy; }, 2000);
+      label.textContent = I18N[current].copied;
+      setTimeout(function () { label.textContent = I18N[current].copy; }, 2000);
     });
   });
 </script>
