@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFName, concatTransformationMatrix, drawObject, popGraphicsState, pushGraphicsState } from "pdf-lib";
 
 const bookmarklet = readFileSync(fileURLToPath(new URL("../dist/bookmarklet.txt", import.meta.url)), "utf-8").trim();
 // The bookmarklet may be built for the real GitHub Pages URL (as in CI, before deployment).
@@ -263,4 +263,30 @@ test("an outdated pdf-tools.js from the browser cache is refused, never used", a
   await page.getByRole("button", { name: "1 ファイルを印刷" }).first().click();
   await expect(page.locator("li", { hasText: "stale.pdf" }).getByText("印刷できませんでした")).toBeVisible();
   expect(await (await request.get("/__mock/last-upload")).json()).toEqual(before);
+});
+
+test("printing a few pages of a large PDF uploads only those pages", async ({ page, request }) => {
+  // 20 pages of ~300 KB images, all listed in one shared Resources dict (common in real files).
+  const doc = await PDFDocument.create();
+  const xobjects = doc.context.obj({});
+  for (let i = 0; i < 20; i++) {
+    const raw = new Uint8Array(300_000).map((_, k) => (k * 31 + i * 17) % 251);
+    xobjects.set(PDFName.of(`Im${i}`), doc.context.register(doc.context.stream(raw, { Type: "XObject", Subtype: "Image", Width: 100, Height: 1000, ColorSpace: "DeviceRGB", BitsPerComponent: 8 })));
+    const p = doc.addPage([595, 842]);
+    p.pushOperators(pushGraphicsState(), concatTransformationMatrix(300, 0, 0, 300, 100, 300), drawObject(`Im${i}`), popGraphicsState());
+    p.node.delete(PDFName.of("Resources"));
+  }
+  doc.catalog.Pages().set(PDFName.of("Resources"), doc.context.obj({ XObject: xobjects }));
+  const big = Buffer.from(await doc.save({ useObjectStreams: false }));
+
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "large.pdf", mimeType: "application/pdf", buffer: big });
+  await expect(page.getByText("全 20 ページ")).toBeVisible();
+  await page.getByLabel("印刷するページ").fill("3");
+  await page.getByRole("button", { name: "1 ファイルを印刷" }).first().click();
+  await expect(page.locator("li", { hasText: "large.pdf" }).getByText(/プリンターに送信しました|プリンターで待機中|印刷中|印刷しました/)).toBeVisible({ timeout: 15_000 });
+  const upload = await (await request.get("/__mock/last-upload")).json();
+  expect(upload.name).toBe("large.pdf");
+  expect(upload.pages).toBe(1);
+  expect(upload.size).toBeLessThan(big.length / 10);
 });

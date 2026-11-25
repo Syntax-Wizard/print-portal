@@ -5,6 +5,7 @@
 
 import { PDFDocument, degrees } from "pdf-lib";
 import { type PagesPerSheet, type Size, chooseLayout, placePage } from "./layout";
+import { prunePageResources } from "./prune";
 
 export class PdfToolError extends Error {
   constructor(readonly code: "encrypted" | "unreadable") {
@@ -50,6 +51,9 @@ export async function preparePdf(data: ArrayBuffer | Uint8Array, options: Prepar
   const src = await load(data, true);
   const indices = options.pages ?? src.getPageIndices();
   const out = await PDFDocument.create();
+  // Only carry over the images and fonts each page uses (see prune.ts): keeps a few pages
+  // taken from a large document small, so they upload quickly.
+  for (const i of new Set(indices)) prunePageResources(src.getPage(i));
 
   if (options.pagesPerSheet === 1) {
     const copied = await out.copyPages(src, indices);
