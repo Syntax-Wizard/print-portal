@@ -245,7 +245,7 @@
       "sensorFailure": "センサー故障",
       "failure": "故障",
       "checkRequired": "確認が必要です",
-      "almostEmpty": "残り約 {{percent}}%。まもなく交換が必要です。交換用をすぐに用意してください"
+      "almostEmpty": "残り約 {{percent}}%。まもなく交換が必要です"
     },
     "level": "残り約 {{percent}}%",
     "range": "{{min}}〜{{max}}%",

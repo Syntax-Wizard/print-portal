@@ -251,7 +251,7 @@
       "sensorFailure": "Sensor failure",
       "failure": "Failure",
       "checkRequired": "Needs checking",
-      "almostEmpty": "About {{percent}}% left. It will need replacing very soon: get a replacement now"
+      "almostEmpty": "About {{percent}}% left. Needs replacing very soon"
     },
     "level": "About {{percent}}% left",
     "range": "{{min}}–{{max}}%",
