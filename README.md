@@ -5,8 +5,6 @@ ApeosPort-V C4476. It needs **no server**: a bookmarklet loads the app into the
 printer's own web page, so every request is same-origin and goes straight to the printer.
 The printer's original screen keeps working; reloading the page brings it back.
 
-Design document (Chinese): [docs/DESIGN.md](docs/DESIGN.md)
-
 ## How it works
 
 1. A user opens the printer's web page and clicks the **Print Portal** bookmark.

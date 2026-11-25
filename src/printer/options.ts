@@ -1,6 +1,6 @@
 /**
  * Translation between the semantic PrintOptions used by the UI and the form fields
- * expected by the printer's /UPLPRT.cmd endpoint (see docs/DESIGN.md §3.3).
+ * expected by the printer's /UPLPRT.cmd endpoint (as sent by the printer's own print page).
  */
 
 import { MEDIA_FIELD, PAPER_SIZE_FIELD, TRAY_FIELD } from "./mappings";

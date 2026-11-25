@@ -1,6 +1,7 @@
 /**
  * Mailboxes ("ボックス"): scanned documents stored on the printer behind a per-box password.
- * See docs/DESIGN.md §15 for the protocol, which was verified on the real device.
+ * The protocol below (box list, password page, document list, retrieve links, delete) was
+ * verified against the real device; the parsers' tests use pages captured from it.
  *
  * Security: the token returned after a correct password is always the same for a given
  * password, so it is as secret as the password itself. Neither is ever persisted here.
