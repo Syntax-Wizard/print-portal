@@ -1,6 +1,6 @@
 {
   "name": "print-portal",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "A modern, multilingual print UI that runs inside the FUJI XEROX ApeosPort web interface via a bookmarklet.",
   "type": "module",

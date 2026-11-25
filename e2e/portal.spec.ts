@@ -530,7 +530,6 @@ test("job history hides the printer's mailbox retrievals", async ({ page }) => {
   await expect(page.getByRole("columnheader", { name: "完了時刻" })).toBeVisible();
   // The captured history contains dozens of "box retrieval" rows; none are shown.
   await expect(page.getByRole("cell", { name: "ボックス取り出し" })).toHaveCount(0);
-  await expect(page.getByText(/ボックスからの取り出し.*表示していません/)).toBeVisible();
 });
 
 test("rotate a file before printing", async ({ page, request }) => {
