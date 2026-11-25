@@ -1,0 +1,466 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>Components</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+var info = [];
+var StsConvTbTnr = [0,3,1,2,1,3,3,0,2];
+var StsConvTbTnrBtl = [0,1,2,3,3];
+var StsConvTbDrm = [0,3,3,1,2,3,3,1,3,1];
+var StsConvTbDeoFil = [0,1,3];
+var StsConvTbStpl = [0,3,2,3,1];
+var StsConvTbOther = [0,3,1,2,2,1,3];
+var StsConvTbDust = [0,2,1,2];
+var StsConvTbPUDust = [0,2,1,2,2];
+var StsConvTbICPDust = [0,3,1,2];
+var StsConvTbTrmDust = [0,3,2];
+var StsConvTbFeedRoll = [0,3,1,1];
+var StsConvTbHCFFNRRoll = [0,1,1,1,3];
+var StsConvTbBklet = [0,1,2,3,3];
+var StsIcon = ["ok.gif","warning.gif","fault.gif","fault.gif"];
+var LifeIcon = ["green_100.gif","green_75.gif","green_50.gif","green_25.gif","yellow_15.gif","red_0.gif"];
+var lTop=['消耗品'];
+var hdr=['コンポーネント','状態'];
+var hdrlife=['コンポーネント','状態','状態'];
+var hdrdlv='配送予定日'; 
+var lRm2='%';
+var dispRemain=[0,0,1,1]; 
+var stsother = ['良好','使用不可','予備を用意','要交換','品質寿命','交換時期','未装着または装着不良(要再セット)'];
+var tnrReadystr='良好';
+var stsTnr=['良好','他商品のカートリッジ','交換時期','要交換','セットアップ中','未装着または装着不良(要再セット)','故障','良好(予備を用意)','要確認'];
+info=info.concat([['トナー',[['ブラックトナー(K)',7,50,'----/--/--'],['シアントナー(C)',0,50,'----/--/--'],['マゼンタトナー(M)',7,25,'----/--/--'],['イエロートナー(Y)',7,25,'----/--/--']],3]]);
+stsTnr[0] = tnrReadystr;
+var stsTnrBtl=['良好','予備を用意','要交換','センサー故障','未装着'];
+info=info.concat([['トナー回収ボトル',0,2,'----/--/--']]);
+var drmReadystr='良好';
+info=info.concat([['ドラム',[['ブラックドラムカートリッジ',0,58,'----/--/--'],['シアンドラムカートリッジ',0,28,'----/--/--'],['マゼンタドラムカートリッジ',0,28,'----/--/--'],['イエロードラムカートリッジ',0,27,'----/--/--']],1]]);
+var stsDrm=['良好','IDエラー','他商品のカートリッジ','予備を用意','要交換','未装着または装着不良(要再セット)','未装着','品質寿命','故障','交換時期'];
+stsDrm[0] = drmReadystr;
+var lRef='表示更新';
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function wrBtRef(s) {
+document.writeln('<P align="center"><SMALL>');
+document.writeln('<INPUT type="button" onClick="self.window.location=\'', s, '.htm\';" VALUE="', lRef, '">');
+document.writeln('</SMALL></P>');
+}
+function wrHd(i) {document.writeln('<P><FONT size="+2" color="#000000"><B>', lTop[i], '</B></FONT></P>');}
+function wrTd(s) {
+document.write('<TD nowrap width = "50%"><SMALL>', s, '</SMALL></TD>');
+}
+function wrTd2(s) {
+document.write('<TD nowrap width = "25%"><SMALL>', s, '</SMALL></TD>');
+}
+function wrTdB2(s) {
+document.write('<TD nowrap width = "25%"><SMALL><B>', s, '</B></SMALL></TD>');
+}
+function wrTdB(s) {wrTd('<B>'+s+'</B>');}
+function wrTdBlife(s) {
+document.write('<TD nowrap align="right"><SMALL><B>', s, '</B></SMALL></TD>');
+}
+function wrTdR2(s) {
+document.write('<TD nowrap width = "25%" align="right"><SMALL>', s, '</SMALL></TD>');
+}
+function wrTdRB2(s) {wrTdR2('<B>'+s+'</B>');}
+function wrIcon(s,v){
+document.write('<TD nowrap align="left" width="50%">');
+document.write('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="0">');
+document.write('<TR><TD nowrap width="20">');
+document.write('<IMG src="I/', s, '" alt="" border = "0">');
+document.write('</TD><TD nowrap>');
+document.write('<SMALL>', v, '</SMALL>');
+document.writeln('</TD></TR></TABLE>');
+document.write('</TD>');
+}
+function wrLifeIcon(s,v){
+document.write('<TD nowrap align="right">');
+document.write('<TABLE height="100%" border="0" bgcolor="#E3E7F1" cellspacing="0" cellpadding="0">');
+document.write('<TR><TD nowrap align="right">');
+document.write('<SMALL>', v,lRm2,'</SMALL>');
+document.write('</TD><TD nowrap align="right" width="5">&nbsp');
+document.write('</TD><TD nowrap align="right">');
+document.write('<IMG src="I/', s, '" alt="" border = "0">');
+document.writeln('</TD></TR></TABLE>');
+document.write('</TD>');
+}
+function wrNullLifeIcon(){
+document.write('<TD nowrap align="right">');
+document.write('</TD>');
+}
+function wrTdIcon(v,s){
+wrIcon(StsIcon[s],v);
+}
+function wrTdLifeIcon(v,s){
+if(v >= 0 && v <= 100) {
+wrLifeIcon(LifeIcon[s],v);
+}
+else {
+wrNullLifeIcon();
+}
+}
+function wrSt(v) {
+var status;
+var icon;
+var Labeldisp = 1;
+var hline;
+bgnTblItem();
+wrTHd(info[v][0]);
+endTblItem();
+bgnTblCntnt();
+if(info[v][2] == 1 || info[v][2] == 3 || info[v][2] == 7 || info[v][2] == 12 || info[v][2] == 13) {
+Labeldisp = LifeRemainningcheck(v);
+}
+if ((info[v][2] == 1 && dispRemain[0] == 1 && Labeldisp == 1) ||
+(info[v][2] == 3 && Labeldisp == 1) ||
+(info[v][2] == 7 && dispRemain[1] == 1 && Labeldisp == 1) ||
+(info[v][2] == 12 && dispRemain[2] == 1 && Labeldisp == 1) ||
+(info[v][2] == 13 && dispRemain[3] == 1 && Labeldisp == 1)) {
+wrTdB(hdrlife[0]);
+wrTdB2(hdrlife[1]);
+wrTdBlife(hdrlife[2]);
+hline = hdrlife.length;
+}
+else{
+for (var i=0; i<hdr.length; i++) {wrTdB(hdr[i]);}
+hline = hdr.length;
+}
+if( ((info[v][2] > 0) && (info[v][2] < 4)) || ((info[v][2] == 0) && (info[v].length > 3)) || info[v][2] == 7 || info[v][2] == 12 ){ wrTdRB2(hdrdlv); hline++; }
+wrTre();
+wrTr(); document.writeln('<TD colspan="', hline, '"><HR size="2"></TD>');
+wrTre();
+switch (info[v][2]) {
+case 1:
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1],StsConvTbDrm);
+icon = IconConvertDrm(info[v][1][i][1],info[v][1][i][2]);
+wrTr();wrTdIcon(info[v][1][i][0],status);
+if (dispRemain[0] == 1 && Labeldisp == 1) {
+wrTd2(stsDrm[info[v][1][i][1]]);
+wrTdLifeIcon(info[v][1][i][2],icon);
+}
+else {
+wrTd(stsDrm[info[v][1][i][1]]);
+}
+wrTdR2(info[v][1][i][3]);
+wrTre();
+wrBr();
+}
+break;
+case 3: 
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1],StsConvTbTnr);
+icon = IconConvertTnr(info[v][1][i][1],info[v][1][i][2]);
+wrTr();wrTdIcon(info[v][1][i][0],status);
+if (Labeldisp == 1) {
+wrTd2(stsTnr[info[v][1][i][1]]);
+wrTdLifeIcon(info[v][1][i][2],icon);
+}
+else {
+wrTd(stsTnr[info[v][1][i][1]]);
+}
+wrTdR2(info[v][1][i][3]);
+wrTre();
+wrBr();//改行追加
+}
+break;
+case 2:
+status = StsConvert(info[v][1],StsConvTbTnrBtl);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsTnrBtl[info[v][1]]);
+wrTdR2(info[v][3]);
+wrTre();
+wrBr();
+break;
+case 4: 
+status = StsConvert(info[v][1],StsConvTbStpl);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsStpl[info[v][1]]); wrTre();
+wrBr();
+break;
+case 5:
+status = StsConvert(info[v][1],StsConvTbDeoFil);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsDeoFil[info[v][1]]); wrTre();
+wrBr();
+break;
+case 6: 
+status = StsConvert(info[v][1],StsConvTbDust);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsDust[info[v][1]]); wrTre(); 
+wrBr();
+break;
+case 7: 
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1],StsConvTbOther);
+icon = IconConvertFuserWeb(info[v][1][i][1],info[v][1][i][2]);
+wrTr();
+wrTdIcon(info[v][1][i][0],status);
+if (dispRemain[1] == 1 && Labeldisp == 1) {
+wrTd2(stsother[info[v][1][i][1]]);
+wrTdLifeIcon(info[v][1][i][2],icon);
+}
+else {
+wrTd(stsother[info[v][1][i][1]]);
+}
+wrTdR2(info[v][1][i][3]);
+wrTre();
+wrBr();
+}
+break;
+case 8: 
+status = StsConvert(info[v][1],StsConvTbPUDust);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsPudust[info[v][1]]); wrTre(); 
+wrBr();
+break;
+case 9: 
+status = StsConvert(info[v][1],StsConvTbICPDust);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsICPdust[info[v][1]]); wrTre(); 
+wrBr();
+break;
+case 10: 
+status = StsConvert(info[v][1],StsConvTbTrmDust);
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsTrmdust[info[v][1]]); wrTre(); 
+wrBr();
+break;
+case 11:
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1], StsConvTbFeedRoll);
+wrTr(); wrTdIcon(info[v][1][i][0], status); wrTd(stsFeed[info[v][1][i][1]]); wrTre();
+wrBr();
+}
+break;
+case 12: 
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1],StsConvTbOther);
+icon = IconConvertFuser(info[v][1][i][1],info[v][1][i][2]);
+wrTr();wrTdIcon(info[v][1][i][0],status);
+if (dispRemain[2] == 1 && Labeldisp == 1) {
+wrTd2(stsother[info[v][1][i][1]]);
+wrTdLifeIcon(info[v][1][i][2],icon);
+}
+else {
+wrTd(stsother[info[v][1][i][1]]);
+}
+wrTdR2(info[v][1][i][3]);
+wrTre();
+wrBr();
+}
+break;
+case 13:
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1],StsConvTbHCFFNRRoll);
+icon = IconConvertHCF(info[v][1][i][1],info[v][1][i][2]);
+wrTr();wrTdIcon(info[v][1][i][0],status);
+if (dispRemain[3] == 1 && Labeldisp == 1) {
+wrTd2(stsHCF[info[v][1][i][1]]);
+wrTdLifeIcon(info[v][1][i][2],icon);
+}
+else {
+wrTd(stsHCF[info[v][1][i][1]]);
+}
+wrTre();
+wrBr();
+}
+break;
+case 14: 
+for (var i=0; i<info[v][1].length; i++) {
+status = StsConvert(info[v][1][i][1], StsConvTbBklet);
+wrTr(); wrTdIcon(info[v][1][i][0], status); wrTd(stsBklet[info[v][1][i][1]]); wrTre();
+wrBr();
+}
+break;
+case 0:
+default:
+status = StsConvert(info[v][1],StsConvTbOther);
+//wrTr();wrTdIcon(info[v][0],status);wrTd(stsother[info[v][1]]);wrTre();
+wrTr();wrTdIcon(info[v][0],status);wrTd(stsother[info[v][1]]);
+if((info[v].length > 3)) wrTdR2(info[v][3]);
+wrTre();
+wrBr();
+break;
+}
+endTblCntnt();
+}
+function StsConvert(s,t){
+var status = 3;
+if(t.length > s){
+status = t[s];
+}
+return(status);
+}
+function IconConvertTnr(s,r){
+var icon;
+if(r <= 100 && r >= 76){
+icon = 0;
+}
+else if(r <= 75 && r >= 51 ){
+icon = 1;
+}
+else if(r <= 50 && r >= 26 ){
+icon = 2;
+}
+else if(r <= 25 && r >= 16 ){
+icon = 3;
+}
+else if(r <= 15 && r >= 1 ){
+icon = 4;
+}
+else{
+icon = 5;
+}
+return(icon);
+}
+function IconConvertDrm(s,r){
+var icon;
+if(r <= 100 && r >= 76){
+icon = 0;
+}
+else if(r <= 75 && r >= 51 ){
+icon = 1;
+}
+else if(r <= 50 && r >= 26 ){
+icon = 2;
+}
+else if(r <= 25 && r >= 1 ){
+icon = 4;
+}
+else{
+icon = 5;
+}
+return(icon);
+}
+function IconConvertFuserWeb(s,r){
+var icon;
+switch(s){
+case 0:
+case 1:
+case 2:
+case 4:
+case 5:
+if(r <= 100 && r >= 76){
+icon = 0;
+}
+else if(r <= 75 && r >= 51 ){
+icon = 1;
+}
+else if(r <= 50 && r >= 26 ){
+icon = 2;
+}
+else if(r <= 25 && r >= 1 ){
+icon = 4;
+}
+else{
+icon = 5;
+}
+break;
+default:
+icon = 5;
+break;
+}
+return(icon);
+}
+function IconConvertFuser(s,r){
+var icon;
+if(r <= 100 && r >= 76){
+icon = 0;
+}
+else if(r <= 75 && r >= 51 ){
+icon = 1;
+}
+else if(r <= 50 && r >= 26 ){
+icon = 2;
+}
+else if(r <= 25 && r >= 1 ){
+icon = 4;
+}
+else{
+icon = 5;
+}
+return(icon);
+}
+function IconConvertHCF(s,r){
+var icon;
+if(r <= 100 && r >= 76){
+icon = 0;
+}
+else if(r <= 75 && r >= 51 ){
+icon = 1;
+}
+else if(r <= 50 && r >= 26 ){
+icon = 2;
+}
+else if(r <= 25 && r >= 1 ){
+icon = 4;
+}
+else{
+icon = 5;
+}
+return(icon);
+}
+function LifeRemainningcheck(v){
+var res = 0;
+for (var i=0; i<info[v][1].length; i++) {
+if(info[v][1][i][2] >= 0 && info[v][1][i][2] <= 100){
+res = 1;
+break;
+}
+}
+return(res);
+}
+//--></SCRIPT>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="black" alink="black" vlink="black" onUnload="parent.undoRef();">
+<SCRIPT language="JavaScript1.2"><!--
+wrHd(0);
+for (var i=0;i<info.length; i++) {wrSt(i);}
+wrBtRef('stsply');
+parent.doRef();
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+//--></SCRIPT>
+</BODY>
+</HTML>

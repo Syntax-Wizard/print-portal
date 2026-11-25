@@ -1,0 +1,342 @@
+{
+  "app": {
+    "name": "Print Portal",
+    "classicUi": "元の画面に戻る",
+    "classicUiHint": "ページを再読み込みすると、プリンター本来の画面に戻ります",
+    "language": "表示言語",
+    "theme": {
+      "label": "テーマ",
+      "system": "システムに合わせる",
+      "light": "ライト",
+      "dark": "ダーク"
+    }
+  },
+  "nav": {
+    "print": "印刷",
+    "jobs": "ジョブ",
+    "status": "プリンター状態"
+  },
+  "device": {
+    "state": {
+      "ready": "印刷できます",
+      "printing": "印刷中",
+      "sleep": "節電中",
+      "warmingUp": "準備中",
+      "error": "エラー",
+      "warning": "注意",
+      "offline": "接続できません"
+    },
+    "sleepHint": "印刷を送ると自動的に復帰します",
+    "updatedAt": "{{time}} 更新",
+    "refresh": "更新"
+  },
+  "files": {
+    "dropTitle": "印刷するファイルをここにドロップ",
+    "dropAction": "またはファイルを選択",
+    "dropHint": "PDF と JPEG を直接印刷できます（1ファイル最大 {{max}} MB）",
+    "dropActive": "ここで離すと追加します",
+    "remove": "{{name}} を外す",
+    "clearDone": "印刷済みを一覧から消す",
+    "unsupported": "この形式は直接印刷できません。PDF に書き出してから追加してください。",
+    "tooLarge": "{{max}} MB を超えるファイルは印刷できません。",
+    "empty": "空のファイルは印刷できません。",
+    "tooMany": "一度に追加できるのは {{max}} ファイルまでです。"
+  },
+  "item": {
+    "ready": "印刷待ち",
+    "queued": "順番待ち",
+    "uploading": "送信中 {{percent}}%",
+    "sent": "プリンターに送信しました",
+    "waiting": "プリンターで待機中",
+    "printing": "印刷中",
+    "done": "印刷しました",
+    "held": "プリンターで保留中です。操作パネルで操作してください",
+    "failed": "印刷できませんでした",
+    "retry": "もう一度送る"
+  },
+  "options": {
+    "title": "設定",
+    "presets": {
+      "label": "よく使う設定",
+      "duplexBw": "両面・白黒",
+      "simplexColor": "片面・カラー",
+      "custom": "カスタム"
+    },
+    "copies": "部数",
+    "copiesDecrease": "部数を減らす",
+    "copiesIncrease": "部数を増やす",
+    "duplex": {
+      "label": "両面",
+      "none": "片面",
+      "long-edge": "長辺とじ",
+      "short-edge": "短辺とじ"
+    },
+    "color": {
+      "label": "カラー",
+      "bw": "白黒",
+      "color": "カラー",
+      "auto": "自動"
+    },
+    "paperSize": {
+      "label": "用紙サイズ",
+      "default": "原稿に合わせる"
+    },
+    "tray": {
+      "label": "用紙トレイ",
+      "auto": "自動",
+      "loaded": "{{tray}}（{{paper}}）"
+    },
+    "advanced": "詳細設定",
+    "collate": {
+      "label": "ソート（1部ごと）",
+      "default": "指定なし",
+      "on": "ソートする",
+      "off": "ソートしない"
+    },
+    "media": {
+      "label": "用紙種類",
+      "default": "指定なし"
+    },
+    "delivery": {
+      "label": "プリント種類",
+      "normal": "通常プリント",
+      "secure": "セキュリティープリント",
+      "sample": "サンプルプリント",
+      "delayed": "時刻指定プリント",
+      "normalHint": "送信するとすぐに印刷されます。",
+      "secureHint": "プリンターの操作パネルでユーザーIDと暗証番号を入力するまで印刷されません。人に見られたくない書類に。",
+      "sampleHint": "まず1部だけ印刷します。確認後、操作パネルで残りを印刷します。",
+      "delayedHint": "指定した時刻に印刷します。",
+      "userId": "ユーザーID",
+      "pin": "暗証番号（数字 12 桁まで）",
+      "pinNote": "暗証番号はこのブラウザに保存されません。",
+      "time": "印刷する時刻"
+    },
+    "errors": {
+      "copiesOutOfRange": "部数は 1〜999 で指定してください。",
+      "userIdRequired": "ユーザーIDを入力してください。",
+      "userIdTooLong": "ユーザーIDは 24 文字以内にしてください。",
+      "pinInvalid": "暗証番号は数字 1〜12 桁で入力してください。",
+      "timeInvalid": "時刻を正しく入力してください。"
+    }
+  },
+  "paperSize": {
+    "A3": "A3",
+    "B4": "B4",
+    "A4": "A4",
+    "B5": "B5",
+    "A5": "A5",
+    "letter": "レター",
+    "folio": "8.5×13\"",
+    "legal": "リーガル",
+    "11x15": "11×15\"",
+    "ledger": "11×17\""
+  },
+  "media": {
+    "plain": "普通紙",
+    "bond": "上質紙",
+    "recycled": "再生紙",
+    "user1": "ユーザー用紙1",
+    "user2": "ユーザー用紙2",
+    "user3": "ユーザー用紙3",
+    "user4": "ユーザー用紙4",
+    "user5": "ユーザー用紙5"
+  },
+  "tray": {
+    "T1": "トレイ1",
+    "T2": "トレイ2",
+    "T3": "トレイ3",
+    "T4": "トレイ4",
+    "bypass": "手差しトレイ"
+  },
+  "trayState": {
+    "ok": "",
+    "empty": "用紙切れ",
+    "unknown": "状態不明",
+    "unavailable": "使用できません"
+  },
+  "summary": {
+    "sentence": "{{paper}}に{{color}}で{{sides}}、{{copies_phrase}}印刷します。",
+    "copies_other": "各ファイル{{count}}部ずつ",
+    "paperDefault": "原稿と同じサイズの用紙",
+    "color": {
+      "bw": "白黒",
+      "color": "カラー",
+      "auto": "カラー自動判別"
+    },
+    "sides": {
+      "none": "片面",
+      "long-edge": "両面（長辺とじ）",
+      "short-edge": "両面（短辺とじ）"
+    },
+    "delivery": {
+      "secure": "セキュリティープリントとして送ります。",
+      "sample": "まず1部だけ印刷します。",
+      "delayed": "{{time}} に印刷します。"
+    },
+    "previewLabel": "仕上がりのイメージ"
+  },
+  "submit": {
+    "button_other": "{{count}} ファイルを印刷",
+    "buttonEmpty": "印刷",
+    "noFiles": "ファイルを追加すると印刷できます。",
+    "busy": "送信中…",
+    "fixErrors": "設定を確認してください。"
+  },
+  "errors": {
+    "PRINTER_UNREACHABLE": "プリンターに接続できません。同じネットワークにいるか確認してください。",
+    "FILE_REJECTED": "プリンターがこのファイルを受け付けませんでした。PDF に書き出し直して試してください。",
+    "OPTION_REJECTED": "プリンターが設定を受け付けませんでした（{{fields}}）。",
+    "PRINTER_ERROR": "プリンターがエラーを返しました。",
+    "UNEXPECTED_RESPONSE": "プリンターから想定外の応答がありました（HTTP {{status}}）。",
+    "ABORTED": "送信を取り消しました。",
+    "statusUnavailable": "プリンターの状態を取得できません。"
+  },
+  "supplies": {
+    "title": "トナー",
+    "drums": "ドラムカートリッジ",
+    "wasteToner": "トナー回収ボトル",
+    "color": {
+      "black": "ブラック",
+      "cyan": "シアン",
+      "magenta": "マゼンタ",
+      "yellow": "イエロー"
+    },
+    "state": {
+      "ok": "良好",
+      "orderSpare": "残りわずか。予備を用意してください",
+      "replaceSoon": "まもなく交換",
+      "replaceNow": "交換してください",
+      "nonGenuine": "純正品ではありません",
+      "idError": "認識できません",
+      "settingUp": "セットアップ中",
+      "notInstalled": "未装着または装着不良",
+      "qualityEnd": "品質寿命",
+      "sensorFailure": "センサー故障",
+      "failure": "故障",
+      "checkRequired": "確認が必要です"
+    },
+    "level": "残り約 {{percent}}%",
+    "range": "{{min}}〜{{max}}%",
+    "rangeNote": "トナー残量はプリンターから 25% 刻みでしか取得できないため、範囲で表示しています。",
+    "lowSummary": "{{colors}}のトナーが残りわずかです"
+  },
+  "trays": {
+    "title": "用紙トレイ",
+    "level": "残り {{percent}}%",
+    "noLevel": "残量不明"
+  },
+  "alerts": {
+    "title": "プリンターからのお知らせ",
+    "none": "お知らせはありません"
+  },
+  "jobs": {
+    "queueTitle": "印刷中・待機中のジョブ",
+    "queueEmpty": "待機中のジョブはありません。",
+    "historyTitle": "最近のジョブ",
+    "onlyMine": "自分のジョブだけ表示",
+    "mine": "自分",
+    "mineUnknown": "このブラウザから一度印刷すると、自分のジョブを見分けられるようになります。",
+    "historyEmpty": "表示するジョブはありません。",
+    "columns": {
+      "owner": "送信者",
+      "state": "状態",
+      "type": "種類",
+      "pages": "ページ",
+      "copies": "部数",
+      "time": "完了時刻",
+      "result": "結果",
+      "via": "経路"
+    },
+    "state": {
+      "waiting": "待機中",
+      "printing": "実行中",
+      "paused": "一時停止中",
+      "held": "保留中",
+      "completed": "終了"
+    },
+    "type": {
+      "print": "プリント",
+      "copy": "コピー",
+      "scan": "スキャン",
+      "mailboxRetrieval": "ボックス取り出し",
+      "fax": "ファクス",
+      "report": "レポート",
+      "unknown": "その他"
+    },
+    "result": {
+      "completed": "正常終了",
+      "warning": "警告あり",
+      "aborted": "中止",
+      "shutdown": "電源切断",
+      "failed": "異常終了",
+      "incomingCall": "着信",
+      "remoteCheck": "相手先確認",
+      "unknown": "不明"
+    },
+    "via": {
+      "HTTP": "ブラウザー",
+      "LPD": "ドライバー"
+    },
+    "showMore": "さらに表示"
+  },
+  "errorLog": {
+    "title": "エラー履歴",
+    "empty": "エラー履歴はありません。",
+    "category": {
+      "005": "原稿送り装置",
+      "010": "定着部",
+      "016": "印刷データの処理・ネットワーク",
+      "033": "ファクス",
+      "071": "トレイ1の給紙",
+      "072": "トレイ2の給紙",
+      "073": "トレイ3の給紙",
+      "074": "トレイ4の給紙",
+      "075": "手差しトレイの給紙",
+      "077": "用紙搬送（紙づまり）",
+      "09x": "トナー・作像部",
+      "other": "その他"
+    }
+  },
+  "time": {
+    "justNow": "たった今"
+  },
+  "install": {
+    "title": "Print Portal",
+    "lead": "研究室プリンターの新しい印刷画面です。ファイルをドロップして、設定を確かめて印刷できます。プリンター本来の画面もこれまでどおり使えます。",
+    "setupTitle": "はじめに一度だけ",
+    "step1": "下のボタンを、ブラウザーのブックマークバーにドラッグします。",
+    "step1Hint": "ブックマークバーが見えないとき：Chrome・Edge・Firefox は Ctrl+Shift+B（Mac は ⌘+Shift+B）、Safari は「表示」メニューの「お気に入りバーを表示」。",
+    "button": "Print Portal",
+    "buttonNote": "このページでボタンをクリックしても動きません。ドラッグしてください。",
+    "useTitle": "印刷するとき",
+    "use1": "いつもどおりプリンターのページを開きます（アドレスは研究室で案内しているものです）。",
+    "use2": "ブックマークバーの「Print Portal」をクリックすると、新しい画面に切り替わります。",
+    "faqTitle": "よくある質問",
+    "faq": [
+      [
+        "ページを再読み込みしたら元の画面に戻りました。",
+        "再読み込みするとプリンター本来の画面に戻ります。もう一度「Print Portal」をクリックしてください。"
+      ],
+      [
+        "クリックしても何も起きません。",
+        "プリンターのページを開いた状態でクリックしてください。それ以外のページでは案内が表示されます。"
+      ],
+      [
+        "ドラッグできません。",
+        "下のコードをコピーし、新しいブックマークを作って URL 欄に貼り付けてください。名前は「Print Portal」にします。"
+      ],
+      [
+        "元の画面に戻したい。",
+        "新しい画面の下にある「元の画面に戻る」を押すか、ページを再読み込みしてください。"
+      ],
+      [
+        "何か送信されていませんか？",
+        "印刷するファイルと設定はプリンターに直接送られます。ほかのサーバーには送信しません。設定はこのブラウザーの中にだけ保存されます。"
+      ]
+    ],
+    "copy": "コードをコピー",
+    "copied": "コピーしました",
+    "version": "バージョン {{version}}"
+  }
+}

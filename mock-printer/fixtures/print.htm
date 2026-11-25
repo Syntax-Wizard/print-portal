@@ -1,0 +1,355 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>
+Internet Services
+</TITLE>
+<SCRIPT LANGUAGE="JavaScript1.2"><!--
+var nvTree=[];
+var cap='プリント';
+var minus='閉じる';
+var plus='開く';
+var chSet='UTF-8';
+var prd='ApeosPort-V C4476';
+var ico='devtiny';
+var rInt=120;
+nvTree[nvTree.length]=['d','プリント指示','psprsubm'];
+var rFrm=4;
+var loc='psprsubm';
+var hdrname='hdprint.htm';
+var rTmr=null;
+var rSec;
+var isNN=false;
+var isIE=false;
+var jtPath = '/jt/cgi-bin/';
+var sHtml = location.href.substr(location.href.lastIndexOf('/')+1);
+var isScan = sHtml.indexOf('scan.htm')?0:1;
+var isProp = sHtml.indexOf('prop.htm')?0:1;
+if (document.all) isIE=true; else if (navigator.appName=="Netscape"&&navigator.userAgent.indexOf("Opera", 0)==-1) isNN=true;
+function disp() {
+reset_cgi();
+if (loc.indexOf('.cgi') < 0){
+frames[rFrm].window.location.href=loc+'.htm';
+if (isScan && isJt)
+frames[2].window.location.href='blank.htm';
+}
+else{
+if (isScan){
+frames[2].window.location.href=jtPath + loc;
+}
+else{
+frames[rFrm].window.location.href=jtPath + loc;
+}
+}
+if (isProp) clr_all();
+}
+function refIE() {clearTimeout(rTmr); if (--rSec>0) rTmr=setTimeout('refIE()', 1000); else {rTmr=null; disp();}}
+function refNN() {if (rTmr!=null && --rSec<=0) {clearInterval(rTmr); rTmr=null; disp();}}
+function doRef() {
+if (rInt<=0) return;
+if (rTmr!=null) if (isNN) clearInterval(rTmr); else clearTimeout(rTmr);
+rSec=rInt;
+rTmr=(isNN)? setInterval('refNN()', 1000): setTimeout('refIE()', 1000);
+}
+function undoRef() {
+if (!rInt || rTmr==null) return;
+if (isNN) clearInterval(rTmr); else clearTimeout(rTmr);
+rTmr=null;
+}
+function redrawBlankpage() {drawBlankpage(2);}
+function drawBlankpage(f) {
+frames[f].window.document.open();
+frames[f].window.document.writeln('<HTML><HEAD><META http-equiv="Content-Type" content="text/html; charset=', chSet, '"></HEAD>');
+frames[f].window.document.writeln('<BODY rightmargin="0" bgcolor="#D1D8E8">');
+frames[f].window.document.writeln('</BODY></HTML>');
+frames[f].window.document.close();
+}
+function zeros(n) {var z=new Array(n); for (var i=0; i<n; i++) z[i]=0; return z;}
+function fflip(i, j) {
+if (j>=0 && j<nvTree[i][2].length) {if(nvFol[i][j]!=0) nvFol[i][j]=0; else nvFol[i][j]=1;}
+else nvFol[i]=nvFol[i]?0:1;}
+var nvSel=[0,0,0];
+var nvFol=zeros(nvTree.length);
+function dclick(i, j, k) {
+if (nvTree[i][0]!='f') {loc=nvTree[i][2];}
+else if (j>=nvTree[i][2].length) return;
+else if (nvTree[i][2][j][0]!='f') {loc=nvTree[i][2][j][2];}
+else if (k>=nvTree[i][2][j][2].length) return;
+else {loc=nvTree[i][2][j][2][k][2];}
+reset_cgi();
+nvSel=[i, j, k];
+if (loc.indexOf('.cgi') < 0){
+frames[rFrm].window.location.href=loc+'.htm';
+if (isScan && isJt)
+frames[2].window.location.href='blank.htm';
+}
+else{
+if (isScan){
+frames[2].window.location.href=jtPath + loc;
+}
+else{
+frames[rFrm].window.location.href=jtPath + loc;
+}
+}
+}
+function redrawTree() {drawTree(1);}
+function drawTree(f) {
+var sp=(isIE)? frames[f].window.document.body.scrollTop: frames[f].pageYOffset;
+frames[f].window.document.open();
+frames[f].window.document.writeln('<HTML><HEAD><META http-equiv="Content-Type" content="text/html; charset=', chSet, '"></HEAD>');
+frames[f].window.document.writeln('<BODY rightmargin="0" bgcolor="#D1D8E8" link="#333333" alink="#333333" vlink="#333333">');
+frames[f].window.document.writeln('<TABLE bgcolor="black" border="0" cellspacing="0" cellpadding="0" width="233" vspace="6" hspace="0">');
+frames[f].window.document.writeln('<TR><TD><TABLE border="0" width="100%" cellspacing="1" cellpadding="0" ><TR bgcolor="#646A8C" align="left">');
+frames[f].window.document.writeln('<TD style="text-indent : 1em"><B><FONT size="-1" color="white">', cap, '</FONT></B></TD></TR></TABLE><TR><TD>');
+wrTree(f);
+frames[f].window.document.writeln('</TABLE></TD></TR></TABLE>')
+frames[f].window.document.writeln('</BODY></HTML>');
+frames[f].window.document.close();
+if (sp) frames[f].window.scrollTo(0, sp);
+}
+function wrRs(f) {
+frames[f].window.document.writeln('<TR><TD><TABLE border="0" cellspacing="0" cellpadding="0"><TR>');
+}
+function wrRe(f) {
+frames[f].window.document.writeln('</TR></TABLE></TD></TR>');
+}
+function wrIco(f, g) {
+frames[f].window.document.writeln('<TD><IMG src="I/', g, '.png" border="0" width="18" height="20" alt=""></TD>');
+}
+function wrAIco(f, g, a) {
+frames[f].window.document.writeln('<TD>', a, '<IMG src="I/', g, '.png" border="0" width="18" height="20" alt=""></A></TD>');
+}
+function wrAIco2(f, g, m, a) {
+frames[f].window.document.writeln('<TD>', a, '<IMG src="I/', g, '.png" border="0" width="18" height="20" alt="', m, '"></A></TD>');
+}
+function wrPath(f, b) {wrIco(f, b?'jncline':'crnline');}
+function wrPrd(f) {
+frames[f].window.document.writeln('<TD nowrap><FONT face="Verdana" size="2">', prd, '</FONT></TD>');
+}
+function wrLbl(f, s) {
+frames[f].window.document.writeln('<TD nowrap><FONT size="2">', s, '</FONT></TD>');
+}
+function wrAlbl(f, s, a) {
+frames[f].window.document.writeln('<TD nowrap>', a, '<FONT size="2">', s, '</FONT></A></TD>');
+}
+function wrBlbl(f, s) {
+frames[f].window.document.writeln('<TD nowrap bgcolor="#07253C"><FONT size="2" color="white">', s, '</FONT></TD>');
+}
+function wrPad(f) {
+frames[f].window.document.writeln('<TD><IMG src="I/pad.png" border="0" width="18" height="20" alt=""></TD>');
+}
+function wrItm(f, itm, b, i, j, k) {
+var g=(itm[0]=='d')?'doc':'pgset';
+if (b) {wrAIco(f, g, '<A href="JavaScript:parent.disp();" onMouseOver="self.status=\'\';return true;">'); wrBlbl(f, itm[1]);}
+else {var a='<A href="JavaScript:parent.dclick('+i+','+j+','+k+');parent.redrawTree();" onMouseOver="self.status=\'\';return true;">';
+wrAIco(f, g, a); wrAlbl(f, itm[1], a);}}
+function wrFol(f, i, j) {
+var a;
+var g='plus'; var m=plus; if (j==-1) {if (nvFol[i]) {g='minus'; m=minus;}} else {if (nvFol[i][j]) {g='minus'; m=minus;}}
+if (j==-1) {
+a = '<A href="JavaScript:parent.fflip('+i+');parent.redrawTree();" onMouseOver="self.status=\'\';return true;">';
+if (i==nvFol.length-1) g='c'+g;}
+else {
+a='<A href="JavaScript:parent.fflip('+i+','+j+');parent.redrawTree();" onMouseOver="self.status=\'\';return true;">';
+if (j == nvTree[i][2].length-1) g='c'+g;}
+wrAIco2(f, g, m, a); wrAIco(f, m==minus?'ofoldr':'cfoldr', a);}
+function bgnTblTree(f) {
+frames[f].window.document.writeln('<TABLE border="0" cellspacing="0" cellpadding="0" bgcolor="#646A8C" width="100%"><TR><TD>');
+frames[f].window.document.writeln('<TABLE border="0" cellspacing="1" cellpadding="0" width="100%"><TR><TD>');
+frames[f].window.document.writeln('<TABLE border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF" width="100%"><TR><TD>');}
+function endTblTree(f){frames[f].window.document.writeln('</TD></TR></TABLE></TD></TR></TABLE></TD></TR></TABLE>');}
+function wrTree(f) {
+bgnTblTree(f);
+frames[f].window.document.writeln('<TD><IMG src="I/', ico, '.png" border="0" width="19" height="20" alt=""></TD>');
+wrPrd(f);
+frames[f].window.document.writeln('</TD></TR></TABLE>');
+frames[f].window.document.writeln('<TABLE border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF" width="100%"><TR><TD>');
+for (var i = 0; i < nvTree.length; i++) {
+if (nvTree[i][0]!='f') {wrRs(f); wrPath(f, i<nvTree.length-1); wrItm(f, nvTree[i], i==nvSel[0], i, 0, 0); wrRe(f);}
+else {
+if (nvFol[i]) {wrRs(f); wrFol(f, i, -1); wrLbl(f, nvTree[i][1]); wrRe(f);
+for (var j=0; j<nvTree[i][2].length; j++) {
+if(nvTree[i][2][j][0]!='f') {
+wrRs(f);
+if (i<nvTree.length-1) wrIco(f, 'vrtline');
+else wrPad(f);
+wrPath(f, j<nvTree[i][2].length-1);
+wrItm(f, nvTree[i][2][j], i==nvSel[0] && j==nvSel[1], i, j, 0);wrRe(f);}
+else {
+if (nvFol[i].length!=nvTree[i][2].length) {
+nvFol[i]=zeros(nvTree[i][2].length);
+}
+wrRs(f);
+if (i<nvTree.length-1) wrIco(f, 'vrtline');
+else wrPad(f)
+wrFol(f, i, j); wrLbl(f, nvTree[i][2][j][1]); wrRe(f);
+if (nvFol[i][j]) {
+for (var k=0; k<nvTree[i][2][j][2].length; k++) {
+wrRs(f);
+if (i<nvTree.length-1) wrIco(f, 'vrtline'); else wrPad(f);
+if (j<nvTree[i][2].length-1) wrIco(f, 'vrtline'); else wrPad(f);
+wrPath(f, k<nvTree[i][2][j][2].length-1);
+wrItm(f, nvTree[i][2][j][2][k], i==nvSel[0] && j==nvSel[1] && k==nvSel[2], i, j, k);
+wrRe(f);
+}}}}}
+else {wrRs(f); wrFol(f, i, -1);
+if (i==nvSel[0]) wrBlbl(f, nvTree[i][1]); else wrLbl(f, nvTree[i][1]);
+wrRe(f);}}}
+endTblTree(f);
+}
+var cgiArray = 10;
+var saved_params = null;
+var saved_cgi_params = new Array(cgiArray);
+for (var i=0; i<cgiArray; i++) {saved_cgi_params[i] = null;}
+function saved_key(obj, form) {
+for (var key = 0; key < form.length; key++) {
+var type_str = form.elements[key].type;
+var name_str = form.elements[key].name;
+if (type_str == "text" || type_str == "textarea" || type_str == "hidden" || type_str == "password") {
+if (name_str) {
+obj[name_str] = form.elements[name_str].value;
+}
+else {
+obj[key] = form.elements[key].value;
+}
+}
+else if (type_str == "checkbox") {
+if (name_str) {
+obj[name_str] = (form.elements[key].checked)? 1: 0;
+}
+else {
+obj[key] = (form.elements[key].checked)? 1: 0;
+}
+}
+else if (type_str == "radio") {
+if (form.elements[key].checked) {obj[name_str] = key;}
+}
+else if (type_str == "select-one") {
+obj[name_str] = form.elements[key].selectedIndex;
+}
+else if (type_str == "select-multiple") {
+var sel = new Array();
+for (var i = 0; i < form.elements[key].options.length; i++) {
+if (form.elements[key].options[i].selected)
+sel[sel.length] = i;
+}
+obj[name_str] = sel;
+}
+else if (!type_str && form.elements[key].length) {
+var type_str_0 = form.elements[key][0].type;
+if (type_str_0 == "checkbox") {
+var chk = new Array();
+for (var i = 0; i < form.elements[key].length; i++ ) {
+if (form.elements[key][i].checked)
+chk[chk.length] = i;
+}
+obj[name_str] = chk;
+}
+else if (type_str_0 == "radio") {
+for (var i = 0; i < form.elements[key].length; i++) {
+if (form.elements[key][i].checked) {
+obj[name_str] = i;
+break;
+}
+}
+}
+}
+}
+}
+function apply_changes(form, key_html) {
+var obj = new Object;
+obj.time_stamp = (new Date()).getTime();
+obj.source_html = key_html;
+saved_key(obj, form);
+top.saved_params = obj;
+}
+function apply_cgi_params(form, key_html) {
+var i;
+var obj = new Object;
+obj.source_html = key_html;
+obj.cgi_action = form.action;
+saved_key(obj, form);
+for (i = 0; i < cgiArray; i++) {
+if (top.saved_cgi_params[i] == null) {break;}
+if (top.saved_cgi_params[i].cgi_action == obj.cgi_action) {
+break;
+}
+}
+top.saved_cgi_params[i] = obj;
+}
+function chkBrowserVersion(s) {
+var browser = navigator.appVersion;
+var index = browser.indexOf(s, 0);
+if (index >= 0) return browser.substring(index + s.length, index + s.length +4);
+return -1;
+}
+function Sleep(t) {
+var t1 = new Date().getTime();
+var t2 = new Date().getTime();
+while (t2 < t1+t) {t2 = new Date().getTime();}
+}
+function restore_saved_params(form, key_html) {
+if (isIE) {
+var version = parseInt(chkBrowserVersion("MSIE"));
+if (version > 0 && version < 6) Sleep(100);
+}
+if (top.saved_params != null && top.saved_params.source_html == key_html) {
+if ((new Date()).getTime() - top.saved_params.time_stamp < 180000) {
+for (var i = 0; i < form.length; i++) {
+var fname=form.elements[i].name;
+var ftype=form.elements[i].type;
+if ((top.saved_params[i] == null && top.saved_params[fname] == null) || ftype == "button" || ftype == "reset") {
+continue;
+}
+if (ftype == "checkbox") {
+if (fname) form.elements[i].checked = (top.saved_params[fname])?true:false;
+else form.elements[i].checked = (top.saved_params[i])?true:false;
+}
+else if (ftype == "select-one") {
+form.elements[i].selectedIndex = top.saved_params[fname];
+}
+else if (ftype == "password") {
+if (form.elements[i].defaultValue != top.saved_params[fname]) {
+form.elements[i].value = '';
+}
+}
+else if (ftype == "radio") {
+if (fname && top.saved_params[fname] != null && (top.saved_params[fname] == i)) {
+form.elements[i].checked = true;
+}
+}
+else {
+if (fname) form.elements[i].value = top.saved_params[fname];
+else form.elements[i].value = top.saved_params[i];
+}
+}
+}
+top.saved_params = null;
+}
+}
+function reset_cgi() {
+saved_params = null;
+for (var i = 0; i < cgiArray; i++) {
+if (top.saved_cgi_params[i] == null) {break;}
+top.saved_cgi_params[i] = null;
+}
+}
+//--></SCRIPT>
+</HEAD>
+<FRAMESET frameborder="0" border="0" rows="89,*">
+<FRAME name="TF" scrolling="no" noresize src="hdprint.htm">
+<FRAMESET frameborder="0" border="0" cols="263,*">
+<FRAME name="SF" scrolling="auto" noresize src="condition.htm">
+<FRAMESET frameborder="0" border="0" rows="*,125">
+<FRAME name="RF" scrolling="auto" src="psprsubm.htm">
+<FRAME name="BF" scrolling="no" noresize src="brand.htm">
+</FRAMESET>
+</FRAMESET>
+<NOFRAMES>
+<BODY bgcolor="write">
+フレームの表示出来るブラウザでご覧ください
+</BODY>
+</NOFRAMES>
+</FRAMESET>
+</HTML>

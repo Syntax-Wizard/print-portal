@@ -1,0 +1,306 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>一般</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+function crNotice() {
+window.open("copyrt.htm", "popup", "width=520,height=320,resizable=yes,scrollbars=yes");
+}
+var artIcon = ["mib_check.gif","mib_optional.gif","mib_required.gif"];
+var lTop='一般';
+var ico='dev4t';
+var lbls=['名前','IPアドレス','ファクス番号','設置場所','状態'];
+var spcs=['ApeosPort-V C4476',[['','192.0.2.10'],[]],'','','節電中','i'];
+var lRef='表示更新';
+var lRbt='再起動';
+var lPwOff='電源を切る';
+var cfmRbt='再起動してよろしいですか？';
+var cfmPwOff='電源を切ってよろしいですか？';
+var crNote='&copy;Fuji Xerox Co., Ltd. 2015';
+var artinfo=[];
+var ArtHdr=['通知情報','種別','コード','内容','対応レベル'];
+var ArtSkill=['一般ユーザー','一般ユーザー(難度高)','カストマーエンジニア','機械管理者','その他'];
+var ArtNoMsg='情報はありません';
+var colon=':';
+var adrslbl=['ネットワークの名称','IPv4','IPv6(手動設定)','IPv6(自動設定1)','IPv6(自動設定2)','IPv6(自動設定3)','IPv6(自動設定1:ステートフル)','IPv6(自動設定2:ステートフル)','IPv6(自動設定3:ステートフル)','IPv6(リンクローカル)'];
+var mifFlag = 0;
+var lPsdat='節電/稼働状況の確認';
+var llen=lbls.length;
+var slen=spcs.length;
+function wrShDmy(s) {document.write('<TD nowrap align="right"></TD>');
+}
+function wrShDmy2(s) {document.write('<TD nowrap'); document.write(' colspan="2"');
+document.writeln('></TD>');
+}
+function wrSh(s) {document.write('<TD nowrap align="right"><B>', s.small());
+if(s.length) document.write(colon);
+document.write('</B></TD>');
+}
+function wrSd(s, c) {document.write('<TD nowrap');  document.write(' colspan="2"');
+document.writeln('>', s.fontcolor(c).small(), '</TD>');
+}
+function wrSd2(s,t,i) {
+if (i == 0){
+document.write('<TD nowrap'); 
+document.write(' colspan="2"');
+}
+else{
+document.write('<TD nowrap'); 
+}
+document.write('><B>', s.small());
+if(s.length) document.write(colon);
+document.write('</B>');
+if(i != 0){
+document.write('</TD>');
+document.write('<TD nowrap align="left">');
+}
+document.write(t.small())
+document.write('</TD>');
+}
+function wrSdI(s, c, i) {document.writeln('<TD><IMG src="I/', i, '.png" height="16" width="16" border="0"></TD><TD nowrap>', s.fontcolor(c).small(), '</TD></TR>');
+}
+function wrSpcs() {
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD>');
+document.writeln('<P align="center"><IMG src="I/', ico, '.png" width="225" height="160">');
+document.write('<TABLE border="0" align="center" cellspacing="0" cellpadding="0">');
+if(spcs.length){
+wrTr();wrSh(lbls[0]); wrSd(spcs[0], 'black');wrTre();
+wrTr();wrSh(lbls[1]);wrTre();
+for (var i=0; i<spcs[1].length; i++)  {
+if (spcs[1][i].length){
+wrTr();wrShDmy();wrSd2(adrslbl[i],spcs[1][i],i);wrTre();
+}
+}
+for (var i = 2; i < llen-1; i++) if (spcs[i].length) {wrTr();wrSh(lbls[i],'black'); wrSd(spcs[i], 'black');wrTre();}
+wrTr();wrSh(lbls[llen-1]); 
+if (slen > llen) {
+if (spcs[llen] == 'w') wrSd(spcs[llen-1], 'black');
+else if (spcs[llen] == 'i') wrSd(spcs[llen-1], 'black');
+else if (spcs[llen] == 'f') wrSd(spcs[llen-1], 'red');
+else wrSd(spcs[llen-1]+spcs[llen], 'red');
+}
+else wrSd(spcs[llen-1], 'black');
+wrTre();
+}
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE></TD></TR></TABLE><BR clear="all">');
+}
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function defaultImg() {
+document.getElementById("ICO").src="I/devsample.png";
+}
+function wrSpcs1() {
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD>');
+document.writeln('<P align="center"><IMG id="ICO" src="I/', ico, '.png" width="225" height="160" onerror="defaultImg()">');
+document.write('<TABLE border="0" align="center" cellspacing="0" cellpadding="0">');
+if(spcs.length){
+wrTr();wrSh(lbls[0]); wrSd(spcs[0], 'black');wrTre();
+if (spcs[1].length){
+wrTr();wrSh(lbls[1]);wrTre();
+for (var e=0; e < spcs[1].length; e++) {
+for (var i=0; i<spcs[1][e].length; i++)  {
+if (spcs[1][e][i].length){
+wrTr();wrShDmy();wrSd2(adrslbl[i],spcs[1][e][i],i);wrTre();
+}
+}
+if (mifFlag) { wrTr(); wrTr();wrSh(""); wrSd("&nbsp;", 'black');wrTre(); }
+}
+}
+for (var i = 2; i < llen-1; i++) if (spcs[i].length) {wrTr();wrSh(lbls[i],'black'); wrSd(spcs[i], 'black');wrTre();}
+wrTr();wrSh(lbls[llen-1]); 
+if (slen > llen) {
+if (spcs[llen] == 'w') wrSd(spcs[llen-1], 'black');
+else if (spcs[llen] == 'i') wrSd(spcs[llen-1], 'black');
+else if (spcs[llen] == 'f') wrSd(spcs[llen-1], 'red');
+else wrSd(spcs[llen-1]+spcs[llen], 'red');
+}
+else wrSd(spcs[llen-1], 'black');
+wrTre();
+}
+document.writeln('<TR><TD colspan="4" align="center"><SMALL><INPUT type="button" value="', lPsdat, '" onClick="self.window.location=\'stpartssave.htm\';"></SMALL></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrHd() {
+document.writeln('<P><FONT size="+2" color="#000000"><B>', lTop, '</B></FONT></P>');
+}
+function wrBt() {
+document.write('<P align="center">');
+document.writeln('<INPUT type="button" value="', lRef, '" onClick="self.window.location=\'stgen.htm\';">');
+document.writeln('&nbsp');
+document.writeln('<INPUT type="button" value="', lRbt, '" onClick="reboot();">');
+document.writeln('&nbsp');
+document.writeln('<INPUT type="button" value="', lPwOff, '" onClick="poweroff();">');
+document.writeln('</P>');
+}
+function reboot() {
+if (confirm(cfmRbt) == false) return;
+document.F.OPR.value = 'REBOOT';
+document.F.submit();
+}
+function poweroff() {
+if (confirm(cfmPwOff) == false) return;
+document.F.OPR.value = 'POWEROFF';
+document.F.submit();
+}
+function wrCpyrt() {
+document.writeln('<P align="center">');
+document.write('<A href="JavaScript:crNotice();" onMouseOver="self.status=\'\';return true;">');
+document.write('<FONT size="1" face="Arial,Helvetica">');
+document.writeln(crNote, '</FONT></A>');
+document.writeln('</P>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></font></TD><TD><BR></font></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></font></TD><TD><BR></font></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrThNTR(s) {
+document.write('<TH nowrap align="left"><SMALL>', s, '</SMALL></TH>');
+}
+function wrHr(n) {
+document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');
+}
+function wrTd(s) {
+document.write('<TD nowrap><SMALL>', s, '</SMALL></TD>');
+}
+function wrTrcl(n) {
+if(n % 2 == 0){
+document.write('<TR bgcolor="#ffffff">');
+} else {
+document.write('<TR>');
+}
+}
+function wrLstTh(s) {
+document.write('<TD nowrap align="left" width="10%"><SMALL>', s, '</SMALL></TD>');
+}
+function wrLstTh1(s) {
+document.write('<TD nowrap align="center" width="10%">');
+document.write('<IMG src="I/', s, '" alt="" border = "0">');
+document.write('</TD>');
+}
+function wrLstTh2(s) {
+document.write('<TD align="left" width="70%"><SMALL>', s, '</SMALL></TD>');
+}
+function wrLstTh3(s) {
+document.write('<TD nowrap align="left" width="10%"><SMALL>', ArtSkill[s], '</SMALL></TD>');
+}
+function wrMibAlert() {
+bgnTblItem();
+wrTHd(ArtHdr[0]);
+endTblItem();
+bgnTblCntnt();
+if (artinfo[0] == 1) {
+for (var i=1; i<ArtHdr.length; i++) {
+wrThNTR(ArtHdr[i]);
+}
+wrHr(4);
+for (var i=1; i<artinfo.length; i++) {
+wrTrcl(i+1);
+wrLstTh1(artIcon[artinfo[i][0]]);
+wrLstTh(artinfo[i][1]);
+wrLstTh2(artinfo[i][2]);
+wrLstTh3(artinfo[i][3]);
+wrTre();
+}
+} else {
+wrTd(ArtNoMsg);
+}
+endTblCntnt();
+}
+//--></SCRIPT>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="blue" alink="blue" vlink="blue" onUnload="parent.undoRef();">
+<SCRIPT language="JavaScript1.2"><!--
+wrHd();
+wrSpcs1();
+if (artinfo.length) {
+wrMibAlert();
+}
+wrBt();
+if (crNote.length) {wrCpyrt();}
+parent.doRef();
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+//--></SCRIPT>
+<FORM name="F" action="DEVCTRL.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="OPR" value="">
+</FORM>
+</BODY>
+</HTML>

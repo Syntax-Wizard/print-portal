@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>用紙トレイ</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+var lTop='トレイ';
+var lRef='表示更新';
+var lTbl=['用紙トレイ','排出トレイ'];
+var hdrIn=['トレイ','状態','用紙残量','サイズ','用紙の色','用紙種類','優先順位'];
+var stsIn=['良好','用紙切れ','不明','使用不可'];
+var hdrOut=['トレイ','状態'];
+var stsOut=['良好','排出先いっぱい','上昇中','使用不可'];
+var infoIn=[['トレイ1',0,100,'A4','白','普通紙 (60-65g/m&sup2;)',1,1],['トレイ2',0,75,'B5','白','普通紙 (60-65g/m&sup2;)',2,1],['トレイ3',0,50,'B4','白','普通紙 (60-65g/m&sup2;)',3,1],['トレイ4',0,50,'A3','白','普通紙 (60-65g/m&sup2;)',4,1],['トレイ5(手差し)',0,'-','-','-','普通紙 (60-65g/m&sup2;)','-',1]];
+var infoOut=[['センタートレイ',0]];
+var priomenu = ['自動トレイ切り替え対象外','1番目','2番目','3番目','4番目','5番目','6番目','7番目','8番目'];
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function wrHd() {
+document.writeln('<P><FONT size="+2" color="#000000"><B>', lTop, '</B></FONT></P>');
+}
+function wrBtRef(s) {
+document.writeln('<P align="center"><SMALL>');
+document.writeln('<INPUT type="button" onClick="self.window.location=\'', s, '.htm\';" VALUE="', lRef, '">');
+document.writeln('</SMALL></P>');
+}
+function wrSt2() {
+bgnTblItem();
+wrTHd(lTbl[1]);
+endTblItem();
+bgnTblCntnt();
+for (var i=0; i<hdrOut.length; i++) document.writeln('<TD nowrap width="50%">', hdrOut[i].small().bold(), '</TD>');  wrTre();
+wrTr(); document.writeln('<TD colspan="', hdrOut.length, '"><HR size="2"></TD>'); wrTre();
+for (var i=0; i<infoOut.length; i++) {
+wrTdS(infoOut[i][0]); wrTd(stsOut[infoOut[i][1]]); wrBr()
+}
+endTblCntnt();
+}
+function wrDt(s) {document.write('<TD><SMALL>', s, '</SMALL></TD>');}
+function wrQt(s, a) {
+document.write('<TD><IMG src="I/');
+if(s == 100) {document.write('full');}
+else {document.write(s);}
+document.write('.png" width="24" height="21" align="middle" alt=""><SMALL>');
+if(a == 1) { document.write(s, '%');}
+document.write('</SMALL></TD>');
+}
+function wrRow(r) {
+wrTr();
+wrDt(r[0]); 
+wrDt(stsIn[r[1]]);
+if(r[2] == '-') {wrDt('-');}
+else {wrQt(r[2], r[7]);}
+for (var i=3; i<6; i++) wrDt(r[i]);
+if(r[i] != '-'){
+var prio=0;
+for (var j=0; j<infoIn.length; j++) {
+if (infoIn[j][6] != '-') prio++;
+}
+if (r[i] == 9) {
+wrDt(priomenu[prio]);
+} else {
+wrDt(priomenu[r[i]]);
+}
+}
+else{
+wrDt(r[i]);
+}
+wrTre(); wrBr();
+}
+function wrTray() {
+bgnTblItem();
+wrTHd(lTbl[0]);
+endTblItem();
+bgnTblCntnt();
+for (var i=0; i<hdrIn.length; i++) document.writeln('<TD nowrap>', hdrIn[i].small().bold(), '</TD>'); wrTre();
+wrTr(); document.writeln('<TD colspan="', hdrIn.length, '"><HR></TD>'); wrTre();
+for (var i=0; i<infoIn.length; i++) {
+wrRow(infoIn[i]);
+}
+endTblCntnt();
+}
+function wrTdS(s) {
+document.write('<TR><TD nowrap width="50%"><SMALL>', s, '</SMALL></TD>');
+}
+function wrTd(s) {
+document.write('<TD nowrap width="50%"><SMALL>', s, '</SMALL></TD>');
+}
+//--></SCRIPT>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="black" alink="black" vlink="black" onUnload="parent.undoRef();">
+<SCRIPT language="JavaScript1.2"><!--
+wrHd(); wrTray(); wrSt2(); wrBtRef('sttray'); parent.doRef();
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+//--></SCRIPT>
+</BODY>
+</HTML>

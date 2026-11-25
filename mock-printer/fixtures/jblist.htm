@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<TITLE>ジョブ一覧</TITLE>
+<SCRIPT language="JavaScript1.2"><!--
+var lTop='ジョブ一覧';
+var opr=[['プロモート','doPROMOTE'],['削除','doCANCEL']];
+var stats=['実行待ち','実行中','一時停止中','待機中','終了'];
+var types=['-','プリンター','コピー','スキャナー','ボックス取出','ファクス','レポート']; 
+var info=[];
+var hdrs=['ジョブ名','所有者','状態','種別','部数'];
+var msgNoJobSel='ジョブが選択されていません';
+var msgNonDleSel='削除できないジョブが選択されています';
+var msgNonPrmSel='プロモートできないジョブが選択されています';
+var cfmPromote='ジョブをプロモートしてよろしいですか？';
+var cfmCancel='ジョブを削除してよろしいですか？';
+var lRef='表示更新';
+var msgNoJob='ジョブなし';
+var chks=parent.zeros(info.length);
+function wrTr() {document.write('<TR>');}
+function wrTre() {document.writeln('</TR>');}
+function wrHr(n) {document.writeln('<TR><TD colspan="', n, '"><HR size="2"></TD></TR>');}
+function bgnTbl() {
+document.writeln('<TABLE bgcolor="#F3F5F8" border="1" width="100%" cellspacing="0" cellpadding="0"><TR><TD><TABLE bgcolor="#F3F5F8" border="0" width="100%" cellspacing="8" cellpadding="0">');
+}
+function endTbl() {document.writeln('</TABLE></TD></TR></TABLE><P>');}
+function wrTh(s) {
+document.write('<TR><TH nowrap align="left" width="50%"><SMALL>', s);
+if(s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThN(s) {
+document.write('<TR><TH nowrap align="left"><SMALL>', s);
+if (s.length) document.write(colon);
+document.write('</SMALL></TH>');
+}
+function wrThW(s, w) {
+document.write('<TR><TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrThNTRW(s, w) {
+document.write('<TH nowrap align="left" width="', w, '%"><SMALL>', s, '</SMALL></TH>');
+}
+function wrTHd(s) {
+document.writeln('<TD><FONT color="white" size="2"><B>', s, '</B></FONT></TD></TR>');
+}
+function bgnTblItem() {
+document.writeln('<TABLE border="0" bgcolor="#000000" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="3" >');
+document.writeln('<TR bgcolor="#646A8C">');
+}
+function endTblItem() {
+document.writeln('</TABLE></TD></TR></TABLE>');
+}
+function bgnTblCntnt(){
+document.writeln('<TABLE border="0" bgcolor="#666666" width="100%" cellspacing="0" cellpadding="0">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE border="0" width="100%" cellspacing="1" cellpadding="0" height="100%">');
+document.writeln('<TR><TD>');
+document.writeln('<TABLE height="100%" border="0" bgcolor="#E3E7F1" width="100%" cellspacing="0" cellpadding="3">');
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function endTblCntnt(){
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+document.writeln('</TABLE></TD></TR></TABLE></TD></TR></TABLE>');
+}
+function wrBr() {
+document.writeln('<TR style="line-height: 1pt;"><TD><BR></TD></TR>');
+}
+function wrBtRef(s) {
+document.writeln('<P align="center"><SMALL>');
+document.writeln('<INPUT type="button" onClick="self.window.location=\'', s, '.htm\';" VALUE="', lRef, '">');
+document.writeln('</SMALL></P>');
+}
+function nullChkLst(a) {
+for (var i=0; i<chks.length; i++) if (chks[i]) return false;
+if (a) alert(msgNoJobSel);
+return true;}
+function flipChk(n) {
+chks[n]=1-chks[n];
+if (chks[n]) parent.undoRef(); else if (nullChkLst(false)) parent.doRef();}
+function wrHdr() {
+document.writeln('<TR><TD width="20"></TD>');
+for (var i=0; i<hdrs.length; i++) document.writeln('<TD nowrap>', hdrs[i].small().bold(), '</TD>'); wrTre(); wrBr();
+wrTr(); document.writeln('<TD></TD><TD colspan="6"><HR size="2"></TD>'); wrTre(); wrBr();}
+function wrTd(s) {document.write('<TD><SMALL>', s, '</SMALL></TD>');}
+function wrRow(n, row) {
+document.writeln('<TR><TD><INPUT type="checkbox" name="chk'+n+'" onClick="flipChk(', n, ');"></TD>');
+for (var i=1; i<3; i++) wrTd(row[i]);
+wrTd(stats[row[3]]); wrTd(types[row[4]]); wrTd(row[5]);
+wrTre(); wrBr();}
+function wrNoLst(){
+wrHdr();
+document.writeln('<TR><TD> </TD><TD align="left"><SMALL>', msgNoJob, '</SMALL></TD></TR>');
+}
+function wrLst() {
+bgnTblCntnt(); 
+if (!info.length){wrNoLst();}
+else {wrHdr(); for (var r=0; r<info.length; r++) wrRow(r, info[r]);}
+endTblCntnt();
+}
+function wrHdBtn(l,b) {
+document.writeln('<P><FONT size="+2" color="#000000"><B>', l, '</B></FONT>');
+if (b) {
+document.write('<TABLE border="0" cellspacing="0" cellpading="0" width="100%">');
+document.write('<TR><TD nowrap align="right">');
+for (var i=0; i<opr.length; i++) document.write('&nbsp <INPUT type="button" value="',  opr[i][0], '" onClick="JavaScript:', opr[i][1], '();">');
+document.write('</TD></TR>');
+document.writeln('</TABLE>');
+}
+else {
+document.writeln('<P>');
+}
+}
+function selJobs() {
+var jobs=new String();
+for (var i=0; i<chks.length; i++) if (chks[i]) jobs=jobs+info[i][0]+'/';
+return jobs;}
+function doPROMOTE() {
+if (nullChkLst(true)) return;
+for (var i=0; i<info.length; i++) if (chks[i] && info[i][3]!=0) {alert(msgNonPrmSel); return;}
+if (confirm(cfmPromote)==false) return;
+document.P.JOBS.value=selJobs();
+document.P.OPR.value='PROMOTE';
+document.P.submit();}
+function doCANCEL() {
+if (nullChkLst(true)) return;
+for (var i=0; i<info.length; i++) {if (chks[i] && info[i][3]>1) {alert(msgNonDleSel); return;}}
+if (confirm(cfmCancel)==false) return;
+document.P.JOBS.value=selJobs();
+document.P.OPR.value='CANCEL';
+document.P.submit();
+}
+//--></SCRIPT>
+</HEAD>
+<BODY bgcolor="#D1D8E8" link="black" alink="black" vlink="black">
+<FORM name="F" onSubmit="return false;" target="_self">
+<SCRIPT language="JavaScript1.2"><!--
+wrHdBtn(lTop, info.length); wrLst(); wrBtRef('jblist');
+parent.doRef();
+if (parent != self) parent.TF.window.location.href = parent.hdrname;
+//--></SCRIPT>
+</FORM>
+<FORM name="P" action="JOBCTRL.cmd" method="POST" target="_self">
+<INPUT type="hidden" name="JOBS" value="">
+<INPUT type="hidden" name="OPR" value="">
+</FORM>
+</BODY>
+</HTML>

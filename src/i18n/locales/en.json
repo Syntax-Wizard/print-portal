@@ -1,0 +1,344 @@
+{
+  "app": {
+    "name": "Print Portal",
+    "classicUi": "Back to the original screen",
+    "classicUiHint": "Reloading the page brings back the printer's own screen",
+    "language": "Language",
+    "theme": {
+      "label": "Theme",
+      "system": "Match system",
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "nav": {
+    "print": "Print",
+    "jobs": "Jobs",
+    "status": "Printer status"
+  },
+  "device": {
+    "state": {
+      "ready": "Ready to print",
+      "printing": "Printing",
+      "sleep": "Power saver",
+      "warmingUp": "Warming up",
+      "error": "Error",
+      "warning": "Needs attention",
+      "offline": "Can't connect"
+    },
+    "sleepHint": "Wakes up automatically when you send a job",
+    "updatedAt": "Updated {{time}}",
+    "refresh": "Refresh"
+  },
+  "files": {
+    "dropTitle": "Drop files to print here",
+    "dropAction": "or choose files",
+    "dropHint": "PDF and JPEG print directly (up to {{max}} MB per file)",
+    "dropActive": "Release to add",
+    "remove": "Remove {{name}}",
+    "clearDone": "Clear printed files",
+    "unsupported": "This file type can't be printed directly. Export it to PDF and add it again.",
+    "tooLarge": "Files over {{max}} MB can't be printed.",
+    "empty": "This file is empty.",
+    "tooMany": "You can add up to {{max}} files at a time."
+  },
+  "item": {
+    "ready": "Ready",
+    "queued": "Waiting its turn",
+    "uploading": "Sending {{percent}}%",
+    "sent": "Sent to the printer",
+    "waiting": "Waiting at the printer",
+    "printing": "Printing",
+    "done": "Printed",
+    "held": "Held at the printer. Release it on the control panel",
+    "failed": "Couldn't print",
+    "retry": "Send again"
+  },
+  "options": {
+    "title": "Settings",
+    "presets": {
+      "label": "Common settings",
+      "duplexBw": "2-sided, black & white",
+      "simplexColor": "1-sided, color",
+      "custom": "Custom"
+    },
+    "copies": "Copies",
+    "copiesDecrease": "Fewer copies",
+    "copiesIncrease": "More copies",
+    "duplex": {
+      "label": "Sides",
+      "none": "1-sided",
+      "long-edge": "Long edge",
+      "short-edge": "Short edge"
+    },
+    "color": {
+      "label": "Color",
+      "bw": "Black & white",
+      "color": "Color",
+      "auto": "Auto"
+    },
+    "paperSize": {
+      "label": "Paper size",
+      "default": "Match document"
+    },
+    "tray": {
+      "label": "Paper tray",
+      "auto": "Auto",
+      "loaded": "{{tray}} ({{paper}})"
+    },
+    "advanced": "More settings",
+    "collate": {
+      "label": "Collate",
+      "default": "Printer default",
+      "on": "Collated",
+      "off": "Uncollated"
+    },
+    "media": {
+      "label": "Paper type",
+      "default": "Printer default"
+    },
+    "delivery": {
+      "label": "Job type",
+      "normal": "Normal print",
+      "secure": "Secure Print",
+      "sample": "Sample Set",
+      "delayed": "Delayed Print",
+      "normalHint": "Prints as soon as it arrives.",
+      "secureHint": "Nothing prints until you enter your user ID and passcode on the printer's control panel. Use it for documents others shouldn't see.",
+      "sampleHint": "Prints one copy first. Release the rest on the control panel once it looks right.",
+      "delayedHint": "Prints at the time you choose.",
+      "userId": "User ID",
+      "pin": "Passcode (up to 12 digits)",
+      "pinNote": "The passcode is never saved in this browser.",
+      "time": "Print at"
+    },
+    "errors": {
+      "copiesOutOfRange": "Copies must be between 1 and 999.",
+      "userIdRequired": "Enter a user ID.",
+      "userIdTooLong": "User IDs can be up to 24 characters.",
+      "pinInvalid": "The passcode must be 1 to 12 digits.",
+      "timeInvalid": "Enter a valid time."
+    }
+  },
+  "paperSize": {
+    "A3": "A3",
+    "B4": "B4",
+    "A4": "A4",
+    "B5": "B5",
+    "A5": "A5",
+    "letter": "Letter",
+    "folio": "8.5×13\"",
+    "legal": "Legal",
+    "11x15": "11×15\"",
+    "ledger": "Tabloid"
+  },
+  "media": {
+    "plain": "Plain",
+    "bond": "Bond",
+    "recycled": "Recycled",
+    "user1": "Custom paper 1",
+    "user2": "Custom paper 2",
+    "user3": "Custom paper 3",
+    "user4": "Custom paper 4",
+    "user5": "Custom paper 5"
+  },
+  "tray": {
+    "T1": "Tray 1",
+    "T2": "Tray 2",
+    "T3": "Tray 3",
+    "T4": "Tray 4",
+    "bypass": "Bypass tray"
+  },
+  "trayState": {
+    "ok": "",
+    "empty": "Out of paper",
+    "unknown": "Unknown",
+    "unavailable": "Unavailable"
+  },
+  "summary": {
+    "sentence": "{{copies_phrase}}, {{sides}}, in {{color}} on {{paper}}.",
+    "copies_one": "{{count}} copy of each file",
+    "copies_other": "{{count}} copies of each file",
+    "paperDefault": "paper that matches the document",
+    "color": {
+      "bw": "black & white",
+      "color": "color",
+      "auto": "auto color"
+    },
+    "sides": {
+      "none": "1-sided",
+      "long-edge": "2-sided (long edge)",
+      "short-edge": "2-sided (short edge)"
+    },
+    "delivery": {
+      "secure": "Sent as Secure Print.",
+      "sample": "One copy prints first.",
+      "delayed": "Prints at {{time}}."
+    },
+    "previewLabel": "Preview of the result"
+  },
+  "submit": {
+    "button_one": "Print {{count}} file",
+    "button_other": "Print {{count}} files",
+    "buttonEmpty": "Print",
+    "noFiles": "Add a file to print.",
+    "busy": "Sending…",
+    "fixErrors": "Check the settings above."
+  },
+  "errors": {
+    "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",
+    "FILE_REJECTED": "The printer didn't accept this file. Export it to PDF again and retry.",
+    "OPTION_REJECTED": "The printer didn't accept these settings ({{fields}}).",
+    "PRINTER_ERROR": "The printer returned an error.",
+    "UNEXPECTED_RESPONSE": "The printer sent an unexpected response (HTTP {{status}}).",
+    "ABORTED": "Sending was canceled.",
+    "statusUnavailable": "Can't read the printer status."
+  },
+  "supplies": {
+    "title": "Toner",
+    "drums": "Drum cartridges",
+    "wasteToner": "Waste toner bottle",
+    "color": {
+      "black": "Black",
+      "cyan": "Cyan",
+      "magenta": "Magenta",
+      "yellow": "Yellow"
+    },
+    "state": {
+      "ok": "OK",
+      "orderSpare": "Running low. Have a spare ready",
+      "replaceSoon": "Replace soon",
+      "replaceNow": "Replace now",
+      "nonGenuine": "Not a genuine cartridge",
+      "idError": "Not recognized",
+      "settingUp": "Setting up",
+      "notInstalled": "Missing or not seated",
+      "qualityEnd": "End of quality life",
+      "sensorFailure": "Sensor failure",
+      "failure": "Failure",
+      "checkRequired": "Needs checking"
+    },
+    "level": "About {{percent}}% left",
+    "range": "{{min}}–{{max}}%",
+    "rangeNote": "The printer only reports toner in 25% steps, so levels are shown as ranges.",
+    "lowSummary": "{{colors}} toner running low"
+  },
+  "trays": {
+    "title": "Paper trays",
+    "level": "{{percent}}% full",
+    "noLevel": "Level unknown"
+  },
+  "alerts": {
+    "title": "Messages from the printer",
+    "none": "No messages"
+  },
+  "jobs": {
+    "queueTitle": "Printing and waiting",
+    "queueEmpty": "Nothing is waiting to print.",
+    "historyTitle": "Recent jobs",
+    "onlyMine": "Show only my jobs",
+    "mine": "You",
+    "mineUnknown": "Print once from this browser and your jobs will be marked here.",
+    "historyEmpty": "No jobs to show.",
+    "columns": {
+      "owner": "Sent by",
+      "state": "Status",
+      "type": "Type",
+      "pages": "Pages",
+      "copies": "Copies",
+      "time": "Finished",
+      "result": "Result",
+      "via": "Sent via"
+    },
+    "state": {
+      "waiting": "Waiting",
+      "printing": "Printing",
+      "paused": "Paused",
+      "held": "Held",
+      "completed": "Finished"
+    },
+    "type": {
+      "print": "Print",
+      "copy": "Copy",
+      "scan": "Scan",
+      "mailboxRetrieval": "Folder retrieval",
+      "fax": "Fax",
+      "report": "Report",
+      "unknown": "Other"
+    },
+    "result": {
+      "completed": "Completed",
+      "warning": "Completed with warning",
+      "aborted": "Canceled",
+      "shutdown": "Power off",
+      "failed": "Failed",
+      "incomingCall": "Incoming call",
+      "remoteCheck": "Remote check",
+      "unknown": "Unknown"
+    },
+    "via": {
+      "HTTP": "Browser",
+      "LPD": "Driver"
+    },
+    "showMore": "Show more"
+  },
+  "errorLog": {
+    "title": "Error history",
+    "empty": "No errors recorded.",
+    "category": {
+      "005": "Document feeder",
+      "010": "Fuser",
+      "016": "Print data or network processing",
+      "033": "Fax",
+      "071": "Tray 1 paper feed",
+      "072": "Tray 2 paper feed",
+      "073": "Tray 3 paper feed",
+      "074": "Tray 4 paper feed",
+      "075": "Bypass tray paper feed",
+      "077": "Paper path (jam)",
+      "09x": "Toner and imaging",
+      "other": "Other"
+    }
+  },
+  "time": {
+    "justNow": "just now"
+  },
+  "install": {
+    "title": "Print Portal",
+    "lead": "A new print screen for the lab printer. Drop in files, check the settings, and print. The printer's original screen keeps working as before.",
+    "setupTitle": "Set up once",
+    "step1": "Drag the button below onto your browser's bookmarks bar.",
+    "step1Hint": "Can't see the bookmarks bar? In Chrome, Edge and Firefox press Ctrl+Shift+B (⌘+Shift+B on a Mac). In Safari choose View, then Show Favorites Bar.",
+    "button": "Print Portal",
+    "buttonNote": "Clicking the button on this page does nothing. Drag it instead.",
+    "useTitle": "Each time you print",
+    "use1": "Open the printer's page as usual (use the address shared in the lab).",
+    "use2": "Click Print Portal in your bookmarks bar to switch to the new screen.",
+    "faqTitle": "Questions",
+    "faq": [
+      [
+        "I reloaded the page and the old screen came back.",
+        "Reloading always shows the printer's own screen. Click Print Portal again."
+      ],
+      [
+        "Nothing happens when I click it.",
+        "Click it while the printer's page is open. On any other page it shows a short reminder."
+      ],
+      [
+        "I can't drag the button.",
+        "Copy the code below, create a new bookmark, and paste it into the URL field. Name it Print Portal."
+      ],
+      [
+        "How do I get the old screen back?",
+        "Use Back to the original screen at the bottom of the new screen, or reload the page."
+      ],
+      [
+        "Does it send my files anywhere?",
+        "Files and settings go straight to the printer and nowhere else. Your preferences are stored only in this browser."
+      ]
+    ],
+    "copy": "Copy code",
+    "copied": "Copied",
+    "version": "Version {{version}}"
+  }
+}

@@ -1,0 +1,42 @@
+/**
+ * Build the bookmarklet and the install page into dist/.
+ *
+ * PORTAL_BASE_URL is where dist/ will be served (must end with "/"), e.g.
+ *   https://<github-user>.github.io/print-portal/
+ * It defaults to the mock printer's /__portal/ path for local testing.
+ */
+
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { transformSync } from "esbuild";
+
+const root = (p: string) => fileURLToPath(new URL(`../${p}`, import.meta.url));
+
+const baseUrl = process.env.PORTAL_BASE_URL ?? "http://localhost:8631/__portal/";
+if (!/^https?:\/\/.+\/$/.test(baseUrl)) {
+  throw new Error(`PORTAL_BASE_URL must be an http(s) URL ending with "/": ${baseUrl}`);
+}
+const version = JSON.parse(readFileSync(root("package.json"), "utf-8")).version as string;
+
+export function buildBookmarklet(source: string, base: string): string {
+  const code = transformSync(source.replaceAll("__PORTAL_BASE_URL__", base), { minify: true, target: "es2015" }).code.trim();
+  // Encode only what breaks a URL; keeps the bookmark readable if someone inspects it.
+  return `javascript:${encodeURIComponent(code).replace(/%20/g, " ").replace(/%2C/g, ",").replace(/%3B/g, ";").replace(/%3D/g, "=")}`;
+}
+
+const bookmarklet = buildBookmarklet(readFileSync(root("src/loader/bookmarklet.js"), "utf-8"), baseUrl);
+
+const locales = Object.fromEntries(
+  ["ja", "en"].map((lang) => [lang, JSON.parse(readFileSync(root(`src/i18n/locales/${lang}.json`), "utf-8")).install]),
+);
+
+const escapeAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const html = readFileSync(root("site/index.html"), "utf-8")
+  .replaceAll("__BOOKMARKLET__", escapeAttr(bookmarklet))
+  .replace("__I18N__", JSON.stringify(locales).replace(/</g, "\\u003c"))
+  .replace("__VERSION__", version);
+
+mkdirSync(root("dist"), { recursive: true });
+writeFileSync(root("dist/index.html"), html);
+writeFileSync(root("dist/bookmarklet.txt"), bookmarklet + "\n");
+console.log(`Install page and bookmarklet built for ${baseUrl} (${bookmarklet.length} chars)`);
