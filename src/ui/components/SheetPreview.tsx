@@ -1,23 +1,24 @@
 /**
- * A live drawing of the printed result: paper proportion, sides and binding edge,
+ * A live drawing of the printed result: paper size and proportion, sides and binding edge,
  * black & white versus colour, number of copies, and special job types.
  */
 
+import { useT } from "../../i18n";
 import type { PrintOptions } from "../../printer/types";
 
-/** Height / width for each paper size. "default" is drawn as A4. */
-const RATIO: Record<PrintOptions["paperSize"], number> = {
-  default: Math.SQRT2,
-  A3: Math.SQRT2,
-  A4: Math.SQRT2,
-  A5: Math.SQRT2,
-  B4: Math.SQRT2,
-  B5: Math.SQRT2,
-  letter: 11 / 8.5,
-  folio: 13 / 8.5,
-  legal: 14 / 8.5,
-  "11x15": 15 / 11,
-  ledger: 17 / 11,
+/** Physical portrait dimensions [widthMm, heightMm]. "default" is drawn as A4. */
+const PAPER_MM: Record<PrintOptions["paperSize"], readonly [number, number]> = {
+  default: [210, 297],
+  A3: [297, 420],
+  A4: [210, 297],
+  A5: [148, 210],
+  B4: [257, 364],
+  B5: [182, 257],
+  letter: [215.9, 279.4],
+  folio: [215.9, 330.2],
+  legal: [215.9, 355.6],
+  "11x15": [279.4, 381],
+  ledger: [279.4, 431.8],
 };
 
 /** Paper is white in real life, so the preview ignores the UI theme. */
@@ -34,8 +35,9 @@ const PAPER = {
 
 const VIEW_W = 220;
 const VIEW_H = 236;
-const MAX_SHEET_W = 128;
-const MAX_SHEET_H = 180;
+const REF_HEIGHT_MM = 420; // A3 portrait height
+const REF_HEIGHT_PX = 182;
+const MAX_LANDSCAPE_W = 180;
 
 interface SheetBox {
   x: number;
@@ -43,6 +45,10 @@ interface SheetBox {
   w: number;
   h: number;
 }
+
+/** Width and height of the reference page that Content is drawn in. */
+const DESIGN_W = 128;
+const DESIGN_H = 128 * Math.SQRT2;
 
 function Content({ box, colorMode, faded }: { box: SheetBox; colorMode: PrintOptions["color"]; faded?: boolean }) {
   const { x, y, w } = box;
@@ -103,13 +109,18 @@ function Sheet({ box, shadow, back }: { box: SheetBox; shadow?: boolean; back?: 
   );
 }
 
-/** Width of the full-size page the Content drawing is designed for. */
-const DESIGN_W = MAX_SHEET_W;
-const DESIGN_H = MAX_SHEET_W * Math.SQRT2;
-
-/** Page content, or several miniature pages when printing more than one page per sheet. */
+/** Page content, scaled cleanly to any sheet size, or several miniature pages for N-up. */
 function SheetContent({ box, colorMode, faded, perSheet }: { box: SheetBox; colorMode: PrintOptions["color"]; faded?: boolean; perSheet: PrintOptions["pagesPerSheet"] }) {
-  if (perSheet === 1) return <Content box={box} colorMode={colorMode} faded={faded} />;
+  if (perSheet === 1) {
+    const scale = Math.min(box.w / DESIGN_W, box.h / DESIGN_H);
+    const ox = box.x + (box.w - DESIGN_W * scale) / 2;
+    const oy = box.y + (box.h - DESIGN_H * scale) / 2;
+    return (
+      <g transform={`translate(${ox} ${oy}) scale(${scale})`}>
+        <Content box={{ x: 0, y: 0, w: DESIGN_W, h: DESIGN_H }} colorMode={colorMode} faded={faded} />
+      </g>
+    );
+  }
   const cols = 2;
   const rows = perSheet === 4 ? 2 : 1;
   const m = box.w * 0.05;
@@ -138,16 +149,22 @@ function SheetContent({ box, colorMode, faded, perSheet }: { box: SheetBox; colo
 }
 
 export function SheetPreview({ options, label }: { options: PrintOptions; label: string }) {
-  const ratio = RATIO[options.paperSize];
-  let w = MAX_SHEET_W;
-  let h = w * ratio;
-  if (h > MAX_SHEET_H) {
-    h = MAX_SHEET_H;
-    w = h / ratio;
-  }
+  const { t } = useT();
+  const [mmW, mmH] = PAPER_MM[options.paperSize];
+  const ratio = mmH / mmW;
+  // Perceptual relative scaling: A3 > B4 > A4 > B5 > A5 is clearly visible while A5 stays legible.
+  let h = REF_HEIGHT_PX * Math.pow(mmH / REF_HEIGHT_MM, 0.58);
+  let w = h / ratio;
   // Two portrait pages per sheet are printed side by side on a landscape sheet.
   const landscape = options.pagesPerSheet === 2;
-  if (landscape) [w, h] = [h, w];
+  if (landscape) {
+    [w, h] = [h, w];
+    if (w > MAX_LANDSCAPE_W) {
+      const k = MAX_LANDSCAPE_W / w;
+      w *= k;
+      h *= k;
+    }
+  }
   const duplex = options.duplex !== "none";
   const stack = options.delivery.type === "sample" ? 1 : Math.min(options.copies, 3);
   // Leave room for the stack and the back side peeking out.
@@ -160,9 +177,17 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
 
   return (
     <figure
-      class="m-0 rounded-xl bg-well/75 p-3 ring-1 ring-inset ring-rule/70"
+      class="relative m-0 rounded-xl bg-well/75 p-3 ring-1 ring-inset ring-rule/70"
       style={{ backgroundImage: "radial-gradient(var(--color-rule-strong) 0.75px, transparent 0.75px)", backgroundSize: "14px 14px" }}
     >
+      {options.paperSize !== "default" && (
+        <span
+          class="pointer-events-none absolute top-2.5 left-2.5 rounded-md bg-sheet/90 px-2 py-0.5 text-[11px] font-bold tracking-tight text-ink-soft ring-1 ring-rule/80"
+          aria-hidden="true"
+        >
+          {t(`paperSize.${options.paperSize}`)}
+        </span>
+      )}
       <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} class="mx-auto block h-auto w-full max-w-48" role="img" aria-label={label}>
         {/* Extra copies, drawn as a stack behind everything else. */}
         {Array.from({ length: stack - 1 }, (_, i) => {
