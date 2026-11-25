@@ -68,6 +68,18 @@ export function PrintPage() {
 
   useEffect(() => saveOptions(options), [options]);
 
+  // Reloading shows the printer's original screen and loses the file list, so ask first.
+  const pending = items.some((i) => ["ready", "queued", "preparing", "uploading"].includes(i.status));
+  useEffect(() => {
+    if (!pending) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ""; // Older browsers need this to show the prompt.
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [pending]);
+
   const errors = useMemo(() => validateOptions(options), [options]);
   const readyCount = items.filter((i) => i.status === "ready").length;
   // A page selection that doesn't parse would otherwise be silently ignored.

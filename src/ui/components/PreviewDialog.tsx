@@ -53,7 +53,14 @@ export function PreviewDialog(props: { item: PrintItem | null; options: PrintOpt
               {t("preview.title")}: {item.file.name}
             </h2>
             <p class="m-0 text-xs text-ink-soft">{t("preview.note")}</p>
+            <p class="m-0 text-xs text-ink-faint">{t("preview.notShowing")}</p>
           </div>
+          {url && (
+            // Fallback for browsers that cannot show a PDF inside the page.
+            <a href={url} target="_blank" rel="noopener" class="rounded-lg px-3 py-1.5 text-sm font-semibold text-accent-ink no-underline hover:bg-accent-wash">
+              {t("preview.openInTab")}
+            </a>
+          )}
           <button type="button" class="cursor-pointer rounded-lg border border-rule bg-sheet px-3 py-1.5 text-sm font-semibold hover:bg-well" onClick={() => dialog.current?.close()}>
             {t("preview.close")}
           </button>

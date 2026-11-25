@@ -429,6 +429,8 @@
     "note": "This is exactly what will be sent to the printer.",
     "loading": "Preparing…",
     "failed": "Couldn't create the preview.",
-    "close": "Close"
+    "close": "Close",
+    "openInTab": "Open in new tab",
+    "notShowing": "If the preview doesn't show, use “Open in new tab”."
   }
 }

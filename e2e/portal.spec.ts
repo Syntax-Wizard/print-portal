@@ -227,3 +227,20 @@ test("PDF: files that need no change are sent untouched", async ({ page, request
   expect(upload.name).toBe("plain.pdf");
   expect(upload.size).toBe(original.length);
 });
+
+test("asks before leaving while files are waiting, and offers the preview in a new tab", async ({ page }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "notes.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(4) });
+  await expect(page.getByText("全 4 ページ")).toBeVisible();
+
+  await page.getByLabel("印刷するページ").fill("4");
+  await page.getByRole("button", { name: "仕上がりを確認" }).click();
+  await expect(page.getByRole("link", { name: "新しいタブで開く" })).toHaveAttribute("href", /^blob:/);
+  await page.getByRole("button", { name: "閉じる" }).click();
+
+  const dialog = page.waitForEvent("dialog");
+  await page.close({ runBeforeUnload: true });
+  const d = await dialog;
+  expect(d.type()).toBe("beforeunload");
+  await d.dismiss();
+});
