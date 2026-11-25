@@ -3,10 +3,20 @@
  * (used for mailbox thumbnails). Registers itself on window like pdf-tools.js.
  */
 
-import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
+import { GlobalWorkerOptions, getDocument, version as pdfjsVersion } from "pdfjs-dist";
 import { PDF_VIEW_API } from "./api";
 
 let workerStarted = false;
+let wasmUrl: string | undefined;
+
+/**
+ * Where pdf.js finds its WebAssembly decoders (must be an absolute URL, ending with "/").
+ * Without them pdf.js silently skips CCITT and JBIG2 images, which is how the printer stores
+ * black & white scans: thumbnails came out blank. Verified on a real scan (0% -> 6.5% dark).
+ */
+function setWasmUrl(url: string): void {
+  wasmUrl = url;
+}
 
 /**
  * pdf.js renders in a Web Worker. Browsers refuse workers from another origin (the bundle
@@ -21,7 +31,7 @@ function useWorker(url: string): void {
 
 /** Render page 1 to a PNG data URL about `width` CSS pixels wide (sharp on high-DPI screens). */
 async function renderThumbnail(data: Uint8Array, width: number): Promise<string> {
-  const task = getDocument({ data });
+  const task = getDocument({ data, wasmUrl });
   try {
     const doc = await task.promise;
     const page = await doc.getPage(1);
@@ -38,7 +48,7 @@ async function renderThumbnail(data: Uint8Array, width: number): Promise<string>
   }
 }
 
-export const pdfView = { apiVersion: PDF_VIEW_API, buildId: __BUILD_ID__, useWorker, renderThumbnail };
+export const pdfView = { apiVersion: PDF_VIEW_API, buildId: __BUILD_ID__, pdfjsVersion, useWorker, setWasmUrl, renderThumbnail };
 export type PdfView = typeof pdfView;
 
 (window as unknown as { PrintPortalPdfView?: PdfView }).PrintPortalPdfView = pdfView;

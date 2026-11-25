@@ -6,7 +6,7 @@
  * cross-origin workers. Development: src/dev.tsx registers the bundle and worker directly.
  */
 
-import { bundleUrl, injectScript } from "../pdf/loader";
+import { bundleBase, bundleUrl, injectScript } from "../pdf/loader";
 import { PDF_VIEW_API } from "./api";
 import type { PdfView } from "./index";
 
@@ -32,6 +32,8 @@ async function load(): Promise<PdfView> {
     if (!res.ok) throw new Error("Could not load the PDF worker");
     const blob = new Blob([await res.text()], { type: "text/javascript" });
     view.useWorker(URL.createObjectURL(blob));
+    // Decoders live next to the bundle, in a folder named after the pdf.js version (see build-site.ts).
+    view.setWasmUrl(`${bundleBase()}pdfjs-wasm-${view.pdfjsVersion}/`);
     w.__printPortalPdfWorkerReady = true;
   }
   return view;

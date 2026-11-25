@@ -303,6 +303,21 @@ test("mailbox: thumbnails, preview and local display names", async ({ page }) =>
   const firstRow = page.locator("li").filter({ has: page.getByRole("button", { name: "表示" }) }).first();
   const thumb = firstRow.locator("img");
   await expect(thumb).toHaveAttribute("src", /^data:image\/png/, { timeout: 20_000 });
+  // The mock documents are CCITT G4 black & white scans like the printer's. pdf.js needs its
+  // WebAssembly decoders for those; without them the thumbnail is a blank white page.
+  const darkPercent = await thumb.evaluate(async (img: HTMLImageElement) => {
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(0, 0, c.width, c.height).data;
+    let dark = 0;
+    for (let i = 0; i < d.length; i += 4) if (0.299 * d[i]! + 0.587 * d[i + 1]! + 0.114 * d[i + 2]! < 160) dark++;
+    return (100 * dark) / (d.length / 4);
+  });
+  expect(darkPercent).toBeGreaterThan(3);
 
   // Clicking the thumbnail opens the whole document.
   await firstRow.getByRole("button", { name: /1 ページ目/ }).click();

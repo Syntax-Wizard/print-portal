@@ -124,6 +124,7 @@ const CONTENT_TYPES: Record<string, string> = {
   ".css": "text/css; charset=utf-8",
   ".map": "application/json",
   ".json": "application/json",
+  ".wasm": "application/wasm",
 };
 
 function send(res: ServerResponse, status: number, body: string | Buffer, type = "text/html"): void {

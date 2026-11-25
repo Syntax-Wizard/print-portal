@@ -13,6 +13,7 @@ import { pdfView } from "./pdfview/index";
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfView.useWorker(pdfWorkerUrl);
+pdfView.setWasmUrl(new URL("/node_modules/pdfjs-dist/wasm/", location.origin).href);
 (window as unknown as { __printPortalPdfWorkerReady?: boolean }).__printPortalPdfWorkerReady = true;
 
 void initI18n().then(() => render(<App />, document.getElementById("app")!));

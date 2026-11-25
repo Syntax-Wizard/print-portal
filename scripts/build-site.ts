@@ -6,7 +6,7 @@
  * It defaults to the mock printer's /__portal/ path for local testing.
  */
 
-import { copyFileSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { transformSync } from "esbuild";
 import { buildId } from "./build-id";
@@ -44,4 +44,13 @@ writeFileSync(root("dist/bookmarklet.txt"), bookmarklet + "\n");
 writeFileSync(root("dist/version.json"), JSON.stringify({ buildId: buildId(), version }) + "\n");
 // pdf.js worker for the mailbox thumbnails (started from a blob: URL by src/pdfview/loader.ts).
 copyFileSync(root("node_modules/pdfjs-dist/build/pdf.worker.min.mjs"), root("dist/pdf.worker.js"));
+// pdf.js WebAssembly decoders (CCITT/JBIG2 for black & white scans, JPEG 2000, colour management).
+// The folder carries the pdf.js version so an upgrade never meets cached decoders of another one.
+const pdfjsVersion = JSON.parse(readFileSync(root("node_modules/pdfjs-dist/package.json"), "utf-8")).version as string;
+const wasmDir = root(`dist/pdfjs-wasm-${pdfjsVersion}`);
+mkdirSync(wasmDir, { recursive: true });
+for (const file of readdirSync(root("node_modules/pdfjs-dist/wasm"))) {
+  // quickjs runs scripts embedded in PDFs, which thumbnails never need.
+  if (/\.(wasm|js)$/.test(file) && !file.startsWith("quickjs")) copyFileSync(root(`node_modules/pdfjs-dist/wasm/${file}`), `${wasmDir}/${file}`);
+}
 console.log(`Install page and bookmarklet built for ${baseUrl} (${bookmarklet.length} chars)`);
