@@ -17,8 +17,8 @@ import { checkRange, isPdf, selectedPageCount } from "../pdfJobs";
 import { sheetsNeeded } from "../../pdf/layout";
 
 /** Ask for confirmation before printing many copies or sheets, to prevent accidental bulk prints. */
-const LARGE_JOB_COPIES = 10;
-const LARGE_JOB_SHEETS = 50;
+const LARGE_JOB_COPIES = 50;
+const LARGE_JOB_SHEETS = 200;
 
 /** Sheets of paper for the files waiting to print, or null while page counts are unknown. */
 function estimateSheets(items: PrintItem[], o: PrintOptions, merge: boolean): number | null {
