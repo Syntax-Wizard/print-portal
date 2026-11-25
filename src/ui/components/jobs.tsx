@@ -123,14 +123,27 @@ export function JobHistory() {
                 ))}
               </tbody>
             </table>
-            {rows.length > limit && (
-              <button
-                type="button"
-                class="mt-4 cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-2 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
-                onClick={() => setLimit((l) => l + PAGE_SIZE)}
-              >
-                {t("jobs.showMore")}
-              </button>
+            {(rows.length > limit || limit > PAGE_SIZE) && (
+              <div class="mt-4 flex flex-wrap gap-2">
+                {rows.length > limit && (
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-2 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
+                    onClick={() => setLimit((l) => l + PAGE_SIZE)}
+                  >
+                    {t("jobs.showMore")}
+                  </button>
+                )}
+                {limit > PAGE_SIZE && (
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-2 text-xs font-semibold text-ink-soft shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well hover:text-ink"
+                    onClick={() => setLimit(PAGE_SIZE)}
+                  >
+                    {t("jobs.showLess")}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}

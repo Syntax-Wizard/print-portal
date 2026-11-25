@@ -334,6 +334,7 @@
       "LPD": "Driver"
     },
     "showMore": "Show more",
+    "showLess": "Show less",
     "retrievalsHidden": "Mailbox retrievals (the printer logs one for every thumbnail and download) are not shown."
   },
   "mailbox": {

@@ -144,15 +144,26 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
                 </tbody>
               </table>
             </div>
-            {errorLog.data.length > limit && (
-              <div>
-                <button
-                  type="button"
-                  class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-1.5 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
-                  onClick={() => setLimit((l) => l + ERROR_LOG_STEP)}
-                >
-                  {t("jobs.showMore")}
-                </button>
+            {(errorLog.data.length > limit || limit > ERROR_LOG_INITIAL) && (
+              <div class="flex flex-wrap gap-2">
+                {errorLog.data.length > limit && (
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-1.5 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
+                    onClick={() => setLimit((l) => l + ERROR_LOG_STEP)}
+                  >
+                    {t("jobs.showMore")}
+                  </button>
+                )}
+                {limit > ERROR_LOG_INITIAL && (
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-1.5 text-xs font-semibold text-ink-soft shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well hover:text-ink"
+                    onClick={() => setLimit(ERROR_LOG_INITIAL)}
+                  >
+                    {t("jobs.showLess")}
+                  </button>
+                )}
               </div>
             )}
           </div>
