@@ -3,7 +3,13 @@ import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
 
 const bookmarklet = readFileSync(fileURLToPath(new URL("../dist/bookmarklet.txt", import.meta.url)), "utf-8").trim();
-const bookmarkletCode = decodeURIComponent(bookmarklet.replace(/^javascript:/, ""));
+// The bookmarklet may be built for the real GitHub Pages URL (as in CI, before deployment).
+// Point it at the bundle just built and served by the mock printer, so tests always cover this build.
+const bookmarkletCode = decodeURIComponent(bookmarklet.replace(/^javascript:/, "")).replace(
+  /(["'])https?:\/\/[^"']*portal\.js\?h=\1/,
+  '"http://localhost:8631/__portal/portal.js?h="',
+);
+if (!bookmarkletCode.includes("http://localhost:8631/__portal/portal.js")) throw new Error("Could not retarget the bookmarklet");
 const samplePdf = Buffer.from(
   "%PDF-1.4\n1 0 obj<</Type /Catalog /Pages 2 0 R>>endobj\n2 0 obj<</Type /Pages /Kids [3 0 R] /Count 1>>endobj\n3 0 obj<</Type /Page /Parent 2 0 R /MediaBox [0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n",
 );
