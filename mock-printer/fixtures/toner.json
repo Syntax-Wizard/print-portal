@@ -3,13 +3,57 @@
   "model": "ApeosPort-V C4476",
   "measuredAt": "2026-11-25T06:28:53.297Z",
   "supplies": [
-    { "kind": "toner", "color": "black", "percent": 33 },
-    { "kind": "toner", "color": "yellow", "percent": 1 },
-    { "kind": "toner", "color": "magenta", "percent": 1 },
-    { "kind": "toner", "color": "cyan", "percent": 27 },
-    { "kind": "drum", "color": "black", "percent": 58 },
-    { "kind": "drum", "color": "yellow", "percent": 27 },
-    { "kind": "drum", "color": "magenta", "percent": 28 },
-    { "kind": "drum", "color": "cyan", "percent": 28 }
+    {
+      "kind": "toner",
+      "color": "black",
+      "percent": 33
+    },
+    {
+      "kind": "toner",
+      "color": "yellow",
+      "percent": 1
+    },
+    {
+      "kind": "toner",
+      "color": "magenta",
+      "percent": 1
+    },
+    {
+      "kind": "toner",
+      "color": "cyan",
+      "percent": 27
+    },
+    {
+      "kind": "drum",
+      "color": "black",
+      "percent": 58
+    },
+    {
+      "kind": "drum",
+      "color": "yellow",
+      "percent": 27
+    },
+    {
+      "kind": "drum",
+      "color": "magenta",
+      "percent": 28
+    },
+    {
+      "kind": "drum",
+      "color": "cyan",
+      "percent": 28
+    }
+  ],
+  "alerts": [
+    {
+      "code": "094-421",
+      "severity": "warning",
+      "message": "The Transfer Belt Cleaner has reached end of life. Call your System Administrator to replace the Transfer Belt Cleaner. Printing can continue."
+    },
+    {
+      "code": "093-407",
+      "severity": "warning",
+      "message": "The Yellow Toner [Y] Cartridge needs to be replaced soon. Order a new Yellow Toner [Y] Cartridge. Printing can continue."
+    }
   ]
 }

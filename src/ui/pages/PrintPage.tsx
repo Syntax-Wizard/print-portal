@@ -10,9 +10,28 @@ import { PanelHeading, SupplyList, TrayList } from "../components/status";
 import { cx } from "../components/controls";
 import { usePrinter } from "../PrinterContext";
 import { loadOptions, saveOptions } from "../settings";
-import { useSubmissions } from "../useSubmissions";
+import { type PrintItem, useSubmissions } from "../useSubmissions";
+import { PreviewDialog } from "../components/PreviewDialog";
+import { checkRange, isPdf, selectedPageCount } from "../pdfJobs";
+import { sheetsNeeded } from "../../pdf/layout";
 
-function Summary({ o }: { o: PrintOptions }) {
+/** Sheets of paper for the files waiting to print, or null while page counts are unknown. */
+function estimateSheets(items: PrintItem[], o: PrintOptions): number | null {
+  const ready = items.filter((i) => i.status === "ready");
+  if (ready.length === 0) return null;
+  const copies = o.delivery.type === "sample" ? 1 : o.copies;
+  let total = 0;
+  for (const item of ready) {
+    const pages = selectedPageCount(item);
+    if (pages === null) return null;
+    // Several pages per sheet only applies to PDFs that can be processed.
+    const perSheet = isPdf(item.file) && !item.pdfIssue ? o.pagesPerSheet : 1;
+    total += sheetsNeeded(pages, perSheet, o.duplex !== "none", copies);
+  }
+  return total;
+}
+
+function Summary({ o, sheets }: { o: PrintOptions; sheets: number | null }) {
   const { t, lang } = useT();
   const paper = o.paperSize === "default" ? t("summary.paperDefault") : t(`paperSize.${o.paperSize}`);
   const sentence = t("summary.sentence", {
@@ -32,6 +51,8 @@ function Summary({ o }: { o: PrintOptions }) {
   return (
     <p class="m-0 text-sm leading-relaxed text-ink-soft">
       <span class="text-ink">{sentence}</span>
+      {o.pagesPerSheet > 1 && <span class="text-ink"> {t("summary.pagesPerSheet", { count: o.pagesPerSheet })}</span>}
+      {sheets !== null && <span class="mt-1 block tabular">{t("summary.sheets", { count: sheets })}</span>}
       {extra && <span class="mt-1 block font-semibold text-accent-ink">{extra}</span>}
     </p>
   );
@@ -42,12 +63,16 @@ export function PrintPage() {
   const { status } = usePrinter();
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
   const [showErrors, setShowErrors] = useState(false);
-  const { items, busy, tooMany, addFiles, remove, clearDone, print } = useSubmissions();
+  const { items, busy, tooMany, addFiles, remove, clearDone, print, setPageRange } = useSubmissions();
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
 
   useEffect(() => saveOptions(options), [options]);
 
   const errors = useMemo(() => validateOptions(options), [options]);
   const readyCount = items.filter((i) => i.status === "ready").length;
+  // A page selection that doesn't parse would otherwise be silently ignored.
+  const rangeBlocked = items.some((i) => i.status === "ready" && checkRange(i)?.ok === false);
+  const sheets = useMemo(() => estimateSheets(items, options), [items, options]);
   const trays = status.data?.trays ?? [];
 
   const onPrint = () => {
@@ -75,7 +100,7 @@ export function PrintPage() {
         ? "cursor-pointer bg-accent text-on-accent shadow-[0_2px_8px_rgb(2_132_199/0.3)] hover:bg-accent-hover active:scale-[0.99]"
         : "cursor-not-allowed bg-well text-ink-faint",
     );
-  const canPrint = readyCount > 0 && !busy;
+  const canPrint = readyCount > 0 && !busy && !rangeBlocked;
 
   return (
     <div class={cx("grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] xl:grid-cols-[minmax(0,1fr)_22.5rem]", (readyCount > 0 || busy) && "pb-24 lg:pb-0")}>
@@ -89,7 +114,16 @@ export function PrintPage() {
       )}
       <div class="flex min-w-0 flex-col gap-5">
         <DropZone onFiles={addFiles} compact={items.length > 0} />
-        <FileList items={items} onRemove={remove} onRetry={onRetry} onClearDone={clearDone} tooMany={tooMany} />
+        <FileList
+          items={items}
+          onRemove={remove}
+          onRetry={onRetry}
+          onClearDone={clearDone}
+          onRangeChange={setPageRange}
+          onPreview={setPreviewKey}
+          tooMany={tooMany}
+        />
+        <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} />
         <section aria-labelledby="settings-heading" class="card p-5 sm:p-6">
           <h2 id="settings-heading" class="m-0 mb-4 text-base font-bold tracking-tight text-ink">
             {t("options.title")}
@@ -101,7 +135,7 @@ export function PrintPage() {
       <aside class="flex flex-col gap-5 lg:sticky lg:top-20 lg:self-start">
         <section class="card flex flex-col gap-4 p-5">
           <SheetPreview options={options} label={t("summary.previewLabel")} />
-          <Summary o={options} />
+          <Summary o={options} sheets={sheets} />
           <button type="button" class={buttonClass(canPrint)} disabled={!canPrint} onClick={onPrint}>
             <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M5 7V3.5h10V7" />
@@ -112,6 +146,7 @@ export function PrintPage() {
           </button>
           {readyCount === 0 && !busy && <p class="m-0 -mt-1.5 text-center text-xs text-ink-faint">{t("submit.noFiles")}</p>}
           {showErrors && errors.length > 0 && <p class="m-0 -mt-1.5 text-center text-xs font-medium text-error">{t("submit.fixErrors")}</p>}
+          {rangeBlocked && <p class="m-0 -mt-1.5 text-center text-xs font-medium text-error">{t("submit.fixRanges")}</p>}
         </section>
 
         <QueuePanel />

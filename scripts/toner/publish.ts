@@ -39,7 +39,12 @@ function loadLast(): SupplySnapshot | null {
 }
 
 function sameLevels(a: SupplySnapshot, b: SupplySnapshot): boolean {
-  const key = (s: SupplySnapshot) => JSON.stringify([s.model, [...s.supplies].sort((x, y) => `${x.kind}${x.color}`.localeCompare(`${y.kind}${y.color}`))]);
+  const key = (s: SupplySnapshot) =>
+    JSON.stringify([
+      s.model,
+      [...s.supplies].sort((x, y) => `${x.kind}${x.color}`.localeCompare(`${y.kind}${y.color}`)),
+      [...(s.alerts ?? [])].map((a) => `${a.severity}:${a.code}`).sort(),
+    ]);
   return key(a) === key(b);
 }
 
@@ -75,7 +80,9 @@ async function main(): Promise<void> {
     log(`Printer not reachable, nothing to do (${(err as Error).message})`);
     return;
   }
-  const summary = snapshot.supplies.filter((s) => s.kind === "toner").map((s) => `${s.color} ${s.percent}%`).join(", ");
+  const summary =
+    snapshot.supplies.filter((s) => s.kind === "toner").map((s) => `${s.color} ${s.percent}%`).join(", ") +
+    `; alerts: ${(snapshot.alerts ?? []).map((a) => a.code).join(" ") || "none"}`;
 
   const last = loadLast();
   const fresh = last && Date.now() - Date.parse(last.measuredAt) < REFRESH_MS;

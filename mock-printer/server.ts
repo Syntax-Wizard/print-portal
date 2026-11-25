@@ -19,6 +19,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { extname, join, normalize } from "node:path";
+import { PDFDocument } from "pdf-lib";
 
 const PORT = Number(process.env.MOCK_PORT ?? 8631);
 const SCENARIO = process.env.MOCK_SCENARIO ?? "default";
@@ -130,11 +131,26 @@ function send(res: ServerResponse, status: number, body: string | Buffer, type =
   res.end(body);
 }
 
-/** Rough page count for PDFs (counts page objects); 1 for anything else. */
+/** Page count for PDFs (1 for anything else, or when the file cannot be parsed). */
 async function estimatePages(file: File): Promise<number> {
   if (!file.name.toLowerCase().endsWith(".pdf")) return 1;
-  const text = new TextDecoder("latin1").decode(await file.arrayBuffer());
-  return Math.max(1, text.match(/\/Type\s*\/Page(?![a-zA-Z])/g)?.length ?? 1);
+  try {
+    return (await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true })).getPageCount();
+  } catch {
+    return 1;
+  }
+}
+
+/** What the last upload looked like, for end-to-end tests (GET /__mock/last-upload). */
+let lastUpload: { name: string; size: number; pages: number; firstPageSize: [number, number] | null; fields: Record<string, string> } | null = null;
+
+async function firstPageSize(file: File): Promise<[number, number] | null> {
+  try {
+    const page = (await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true })).getPage(0);
+    return [Math.round(page.getWidth()), Math.round(page.getHeight())];
+  } catch {
+    return null;
+  }
 }
 
 async function handleUpload(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -155,6 +171,7 @@ async function handleUpload(req: IncomingMessage, res: ServerResponse): Promise<
   }
   const job: MockJob = { id: (nextJobId++).toString(16), owner: clientAddress(req), state: 0, submittedAt: Date.now(), pages: await estimatePages(file) };
   queue.push(job);
+  lastUpload = { name: file.name, size: file.size, pages: job.pages, firstPageSize: await firstPageSize(file), fields };
   console.log(`[mock] accepted "${file.name}" (${file.size} bytes) as job ${job.id}`, fields);
   send(res, 200, fixture("upload-accepted.html"));
 }
@@ -284,6 +301,7 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify(snapshot));
     return;
   }
+  if (path === "/__mock/last-upload") return send(res, 200, JSON.stringify(lastUpload), "application/json");
   if (path.startsWith("/__portal/")) return serveDist(path, res);
   if (/^\/(PBDOCLST|PBPWD|PBDOCLNK|PBDOCRM)\.cmd$/.test(path) || path.startsWith("/box/") || path === "/__mock/scan") {
     handleMailbox(req, res, url)

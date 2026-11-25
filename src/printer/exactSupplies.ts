@@ -7,7 +7,7 @@
  * cartridge was probably replaced or the snapshot is stale, and the UI falls back to the range.
  */
 
-import type { Supply, SupplyColor } from "./types";
+import type { DeviceAlert, Supply, SupplyColor } from "./types";
 
 export const SNAPSHOT_SCHEMA = 1;
 
@@ -23,12 +23,22 @@ export interface SnapshotSupply {
   percent: number;
 }
 
+export interface SnapshotAlert {
+  /** Fault code such as "094-421". */
+  code: string;
+  severity: "warning" | "error";
+  /** Message as the printer reports it over SNMP (English on this model). */
+  message: string;
+}
+
 export interface SupplySnapshot {
   schema: typeof SNAPSHOT_SCHEMA;
   model: string;
   /** ISO 8601 time of the SNMP measurement. */
   measuredAt: string;
   supplies: SnapshotSupply[];
+  /** Printer alerts from the SNMP alert table; absent in older snapshots. */
+  alerts?: SnapshotAlert[];
 }
 
 const COLORS: readonly SupplyColor[] = ["black", "cyan", "magenta", "yellow"];
@@ -48,7 +58,35 @@ export function parseSnapshot(value: unknown): SupplySnapshot | null {
     const okPercent = typeof s.percent === "number" && Number.isFinite(s.percent) && s.percent >= 0 && s.percent <= 100;
     if (okKind && okColor && okPercent) supplies.push({ kind: s.kind as SnapshotSupply["kind"], color: s.color as SupplyColor, percent: s.percent as number });
   }
-  return { schema: SNAPSHOT_SCHEMA, model: v.model, measuredAt: v.measuredAt, supplies };
+  const alerts: SnapshotAlert[] = [];
+  for (const item of Array.isArray(v.alerts) ? v.alerts : []) {
+    if (typeof item !== "object" || item === null) continue;
+    const a = item as Record<string, unknown>;
+    if (typeof a.code === "string" && typeof a.message === "string" && (a.severity === "warning" || a.severity === "error")) {
+      alerts.push({ code: a.code.slice(0, 16), severity: a.severity, message: a.message.slice(0, 500) });
+    }
+  }
+  return { schema: SNAPSHOT_SCHEMA, model: v.model, measuredAt: v.measuredAt, supplies, alerts };
+}
+
+function usable(snapshot: SupplySnapshot | null, model: string, now: Date): snapshot is SupplySnapshot {
+  if (!snapshot || !sameModel(snapshot.model, model)) return false;
+  const age = now.getTime() - new Date(snapshot.measuredAt).getTime();
+  return age <= MAX_SNAPSHOT_AGE_MS && age >= -60 * 60 * 1000;
+}
+
+/**
+ * Add alerts that only SNMP reports (e.g. 094-421 "transfer belt cleaner end of life", which the
+ * web pages never show). Codes the web page already lists are not repeated.
+ */
+export function applySnapshotAlerts(alerts: DeviceAlert[], model: string, snapshot: SupplySnapshot | null, now: Date = new Date()): DeviceAlert[] {
+  if (!usable(snapshot, model, now) || !snapshot.alerts?.length) return alerts;
+  const known = new Set(alerts.map((a) => a.code));
+  const measuredAt = new Date(snapshot.measuredAt);
+  const extra = snapshot.alerts
+    .filter((a) => !known.has(a.code))
+    .map<DeviceAlert>((a) => ({ severity: a.severity, code: a.code, message: a.message, audience: "other", measuredAt }));
+  return [...alerts, ...extra];
 }
 
 function sameModel(a: string, b: string): boolean {
@@ -61,10 +99,8 @@ function sameModel(a: string, b: string): boolean {
  * Supplies are returned unchanged when the snapshot is missing, too old, or for another model.
  */
 export function applySnapshot(supplies: Supply[], model: string, snapshot: SupplySnapshot | null, now: Date = new Date()): Supply[] {
-  if (!snapshot || !sameModel(snapshot.model, model)) return supplies;
+  if (!usable(snapshot, model, now)) return supplies;
   const measuredAt = new Date(snapshot.measuredAt);
-  const age = now.getTime() - measuredAt.getTime();
-  if (age > MAX_SNAPSHOT_AGE_MS || age < -60 * 60 * 1000) return supplies;
 
   return supplies.map((s) => {
     if (s.kind !== "toner" || !s.color || !s.level) return s;

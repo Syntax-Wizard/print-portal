@@ -103,6 +103,40 @@ function Sheet({ box, shadow, back }: { box: SheetBox; shadow?: boolean; back?: 
   );
 }
 
+/** Width of the full-size page the Content drawing is designed for. */
+const DESIGN_W = MAX_SHEET_W;
+const DESIGN_H = MAX_SHEET_W * Math.SQRT2;
+
+/** Page content, or several miniature pages when printing more than one page per sheet. */
+function SheetContent({ box, colorMode, faded, perSheet }: { box: SheetBox; colorMode: PrintOptions["color"]; faded?: boolean; perSheet: PrintOptions["pagesPerSheet"] }) {
+  if (perSheet === 1) return <Content box={box} colorMode={colorMode} faded={faded} />;
+  const cols = 2;
+  const rows = perSheet === 4 ? 2 : 1;
+  const m = box.w * 0.05;
+  const cellW = (box.w - m * (cols + 1)) / cols;
+  const cellH = (box.h - m * (rows + 1)) / rows;
+  // Miniature portrait pages, scaled to fit their cell and centred in it.
+  const scale = Math.min(cellW / DESIGN_W, cellH / DESIGN_H);
+  const pw = DESIGN_W * scale;
+  const ph = DESIGN_H * scale;
+  return (
+    <g>
+      {Array.from({ length: perSheet }, (_, i) => {
+        const cx = box.x + m + (i % cols) * (cellW + m) + (cellW - pw) / 2;
+        const cy = box.y + m + Math.floor(i / cols) * (cellH + m) + (cellH - ph) / 2;
+        return (
+          <g key={i}>
+            <rect x={cx} y={cy} width={pw} height={ph} fill="none" stroke={PAPER.edge} stroke-width={0.75} />
+            <g transform={`translate(${cx} ${cy}) scale(${scale})`}>
+              <Content box={{ x: 0, y: 0, w: DESIGN_W, h: DESIGN_H }} colorMode={colorMode} faded={faded} />
+            </g>
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 export function SheetPreview({ options, label }: { options: PrintOptions; label: string }) {
   const ratio = RATIO[options.paperSize];
   let w = MAX_SHEET_W;
@@ -111,12 +145,17 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
     h = MAX_SHEET_H;
     w = h / ratio;
   }
+  // Two portrait pages per sheet are printed side by side on a landscape sheet.
+  const landscape = options.pagesPerSheet === 2;
+  if (landscape) [w, h] = [h, w];
   const duplex = options.duplex !== "none";
   const stack = options.delivery.type === "sample" ? 1 : Math.min(options.copies, 3);
   // Leave room for the stack and the back side peeking out.
   const front: SheetBox = { x: (VIEW_W - w) / 2 - 8, y: (VIEW_H - h) / 2 - 4, w, h };
   const back: SheetBox = { ...front, x: front.x + 14, y: front.y + 10 };
+  // On a landscape sheet the long edge is horizontal, so the binding marks move to the top.
   const bindingLong = options.duplex === "long-edge";
+  const bindLeft = landscape ? !bindingLong : bindingLong;
 
   return (
     <figure
@@ -134,20 +173,20 @@ export function SheetPreview({ options, label }: { options: PrintOptions; label:
           <g>
             <Sheet box={back} shadow back />
             {/* The back side reads mirrored and lighter, like seeing through the sheet. */}
-            <g transform={bindingLong ? `translate(${2 * back.x + back.w} 0) scale(-1 1)` : `translate(0 ${2 * back.y + back.h}) scale(1 -1)`}>
-              <Content box={back} colorMode={options.color} faded />
+            <g transform={bindLeft ? `translate(${2 * back.x + back.w} 0) scale(-1 1)` : `translate(0 ${2 * back.y + back.h}) scale(1 -1)`}>
+              <SheetContent box={back} colorMode={options.color} faded perSheet={options.pagesPerSheet} />
             </g>
           </g>
         )}
 
         <Sheet box={front} shadow />
-        <Content box={front} colorMode={options.color} />
+        <SheetContent box={front} colorMode={options.color} perSheet={options.pagesPerSheet} />
 
         {duplex && (
           // Binding edge: a row of ticks along the edge the pages turn on.
           <g stroke={PAPER.accent} stroke-width={2} stroke-linecap="round">
             {Array.from({ length: 7 }, (_, i) => {
-              if (bindingLong) {
+              if (bindLeft) {
                 const y = front.y + 14 + i * ((front.h - 28) / 6);
                 return <line key={i} x1={front.x + 4} y1={y} x2={front.x + 8} y2={y} />;
               }

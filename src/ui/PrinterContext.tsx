@@ -6,7 +6,7 @@
 import { createContext, type ComponentChildren } from "preact";
 import { useCallback, useContext, useMemo, useState } from "preact/hooks";
 import { PrinterClient } from "../printer/client";
-import { type SupplySnapshot, applySnapshot, parseSnapshot } from "../printer/exactSupplies";
+import { type SupplySnapshot, applySnapshot, applySnapshotAlerts, parseSnapshot } from "../printer/exactSupplies";
 import type { PrinterStatus, QueuedJob } from "../printer/types";
 import { loadOwner, saveOwner } from "./settings";
 import { type Polled, usePolling } from "./usePolling";
@@ -50,7 +50,14 @@ export function PrinterProvider(props: { client?: PrinterClient; children: Compo
   const status = useMemo<Polled<PrinterStatus>>(() => {
     const data = liveStatus.data;
     if (!data || !snapshot.data) return liveStatus;
-    return { ...liveStatus, data: { ...data, supplies: applySnapshot(data.supplies, data.device.model, snapshot.data) } };
+    return {
+      ...liveStatus,
+      data: {
+        ...data,
+        device: { ...data.device, alerts: applySnapshotAlerts(data.device.alerts, data.device.model, snapshot.data) },
+        supplies: applySnapshot(data.supplies, data.device.model, snapshot.data),
+      },
+    };
   }, [liveStatus, snapshot.data]);
   const [owner, setOwner] = useState(loadOwner);
   const rememberOwner = useCallback((o: string) => {

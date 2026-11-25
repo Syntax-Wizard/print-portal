@@ -39,7 +39,7 @@ export function loadOptions(): PrintOptions {
   const saved = read<Partial<PrintOptions>>(KEYS.options);
   if (!saved || typeof saved !== "object") return DEFAULT_OPTIONS;
   const merged: PrintOptions = { ...DEFAULT_OPTIONS };
-  for (const key of ["copies", "collate", "duplex", "color", "tray", "paperSize", "media"] as const) {
+  for (const key of ["copies", "collate", "duplex", "color", "tray", "paperSize", "media", "pagesPerSheet"] as const) {
     if (saved[key] !== undefined && typeof saved[key] === typeof DEFAULT_OPTIONS[key]) {
       (merged as unknown as Record<string, unknown>)[key] = saved[key];
     }

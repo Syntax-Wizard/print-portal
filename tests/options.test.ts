@@ -5,12 +5,12 @@ import type { PrintOptions } from "../src/printer/types";
 const fields = (o: PrintOptions) => Object.fromEntries(toFormFields(o));
 
 describe("toFormFields", () => {
-  it("encodes the lab defaults exactly like the verified test print", () => {
+  it("encodes the lab defaults", () => {
     expect(toFormFields(DEFAULT_OPTIONS)).toEqual([
       ["CPN", "1"],
       ["COLT", "NO"],
       ["DUP", "DP"],
-      ["CLR", "BW"],
+      ["CLR", "AUTO"],
       ["IT", "AUTO"],
       ["SIZ", "A4"],
       ["MED", "NUL"],
@@ -35,8 +35,13 @@ describe("toFormFields", () => {
       paperSize: "letter",
       media: "bond",
       delivery: { type: "normal" },
+      pagesPerSheet: 2,
     });
     expect(f).toMatchObject({ CPN: "12", COLT: "ON", DUP: "TB", CLR: "CLR", IT: "SMH", SIZ: "LT", MED: "HQ" });
+  });
+
+  it("never sends pages per sheet to the printer (it is applied in the browser)", () => {
+    expect(toFormFields({ ...DEFAULT_OPTIONS, pagesPerSheet: 4 })).toEqual(toFormFields(DEFAULT_OPTIONS));
   });
 
   it("encodes secure, sample and delayed delivery", () => {

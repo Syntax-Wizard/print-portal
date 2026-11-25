@@ -20,6 +20,8 @@ export interface DeviceAlert {
   message: string;
   /** Who is expected to resolve it. */
   audience: "user" | "userAdvanced" | "engineer" | "admin" | "other";
+  /** Set when the alert comes from a published SNMP snapshot rather than the live web page. */
+  measuredAt?: Date;
 }
 
 export interface DeviceInfo {
@@ -146,6 +148,8 @@ export interface PrintOptions {
   paperSize: "default" | PaperSize;
   media: "default" | MediaType;
   delivery: Delivery;
+  /** Pages printed on each sheet. Done in the browser for PDFs; the printer never sees it. */
+  pagesPerSheet: 1 | 2 | 4;
 }
 
 export type Delivery =

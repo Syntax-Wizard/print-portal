@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
+import { PDFDocument } from "pdf-lib";
 
 const bookmarklet = readFileSync(fileURLToPath(new URL("../dist/bookmarklet.txt", import.meta.url)), "utf-8").trim();
 // The bookmarklet may be built for the real GitHub Pages URL (as in CI, before deployment).
@@ -56,7 +57,7 @@ test("bookmarklet explains itself on a non-printer page", async ({ page }) => {
 
 test("prints a file with the lab defaults and follows the job to completion", async ({ page }) => {
   await openPortal(page);
-  await expect(page.getByText("A4に白黒で両面（長辺とじ）、各ファイル1部ずつ印刷します。")).toBeVisible();
+  await expect(page.getByText("A4にカラー自動判別で両面（長辺とじ）、各ファイル1部ずつ印刷します。")).toBeVisible();
 
   await page.locator('input[type="file"]').setInputFiles({ name: "report.pdf", mimeType: "application/pdf", buffer: samplePdf });
   await expect(page.getByText("report.pdf")).toBeVisible();
@@ -82,7 +83,7 @@ test("switches language instantly and remembers it", async ({ page }) => {
   await openPortal(page);
   await page.getByLabel("表示言語").selectOption("en");
   await expect(page.getByRole("link", { name: "Mailbox" })).toBeVisible();
-  await expect(page.getByText("1 copy of each file, 2-sided (long edge), in black & white on A4.")).toBeVisible();
+  await expect(page.getByText("1 copy of each file, 2-sided (long edge), in auto color on A4.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.lang)).toBe("en");
 
   await page.reload();
@@ -125,6 +126,9 @@ test("shows exact toner levels from the published snapshot", async ({ page }) =>
   // Yellow and magenta: 1% measured, inside the live 1–25% range.
   await expect(page.getByRole("meter", { name: "イエロー 1%" })).toBeVisible();
   await expect(page.getByRole("meter", { name: "マゼンタ 1%" })).toBeVisible();
+  // An alert only SNMP reports (the web page shows none), with a translated category.
+  await expect(page.getByText("094-421")).toBeVisible();
+  await expect(page.getByText("3 時間前に SNMP で取得した情報です。").first()).toBeVisible();
 });
 
 test("mailbox: unlock, save, see new scans, delete, remember my box", async ({ page, request }) => {
@@ -170,4 +174,55 @@ test("mailbox: unlock, save, see new scans, delete, remember my box", async ({ p
   await page.getByRole("link", { name: "ボックス" }).click();
   await expect(page.getByLabel("パスワード")).toBeVisible();
   await expect(page.getByRole("heading", { name: "test" })).toBeVisible();
+});
+
+async function multiPagePdf(pages: number): Promise<Buffer> {
+  const doc = await PDFDocument.create();
+  for (let i = 1; i <= pages; i++) doc.addPage([595, 842]).drawText(`Page ${i}`, { x: 50, y: 780, size: 32 });
+  return Buffer.from(await doc.save());
+}
+
+test("PDF: count pages, select pages, 2 per sheet, preview and send the processed file", async ({ page, request }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "thesis.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(5) });
+  await expect(page.getByText("全 5 ページ")).toBeVisible(); // loads pdf-tools.js on demand
+  // 5 pages, 2-sided: 3 sheets.
+  await expect(page.getByText("用紙は約 3 枚です。")).toBeVisible();
+
+  // An invalid selection blocks printing.
+  await page.getByLabel("印刷するページ").fill("2-9");
+  await expect(page.getByText("このファイルは 5 ページまでです。")).toBeVisible();
+  await expect(page.getByRole("button", { name: "1 ファイルを印刷" })).toBeDisabled();
+
+  // Pages 2-4, two per sheet: 2 sheet sides, 1 sheet of paper when 2-sided.
+  await page.getByLabel("印刷するページ").fill("2-4");
+  await page.getByText("2 ページ", { exact: true }).click();
+  await expect(page.getByText("用紙は約 1 枚です。")).toBeVisible();
+
+  // The preview shows the processed PDF in the browser's viewer.
+  await page.getByRole("button", { name: "仕上がりを確認" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("dialog").locator("iframe")).toHaveAttribute("src", /^blob:/);
+  await page.getByRole("button", { name: "閉じる" }).click();
+
+  await page.getByRole("button", { name: "1 ファイルを印刷" }).click();
+  // Wait on this file's own row (the queue panel may also say 印刷中 for other jobs).
+  await expect(page.locator("li", { hasText: "thesis.pdf" }).getByText(/プリンターに送信しました|プリンターで待機中|印刷中|印刷しました/)).toBeVisible({ timeout: 15_000 });
+  const upload = await (await request.get("/__mock/last-upload")).json();
+  expect(upload.name).toBe("thesis.pdf");
+  expect(upload.pages).toBe(2); // 3 selected pages, 2 per sheet
+  expect(upload.firstPageSize).toEqual([842, 595]); // landscape A4
+  expect(upload.fields.DUP).toBe("DP");
+});
+
+test("PDF: files that need no change are sent untouched", async ({ page, request }) => {
+  await openPortal(page);
+  const original = await multiPagePdf(3);
+  await page.locator('input[type="file"]').setInputFiles({ name: "plain.pdf", mimeType: "application/pdf", buffer: original });
+  await expect(page.getByText("全 3 ページ")).toBeVisible();
+  await page.getByRole("button", { name: "1 ファイルを印刷" }).click();
+  await expect(page.locator("li", { hasText: "plain.pdf" }).getByText(/プリンターに送信しました|プリンターで待機中|印刷中|印刷しました/)).toBeVisible({ timeout: 15_000 });
+  const upload = await (await request.get("/__mock/last-upload")).json();
+  expect(upload.name).toBe("plain.pdf");
+  expect(upload.size).toBe(original.length);
 });

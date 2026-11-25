@@ -16,14 +16,6 @@ const PAPER_SIZES: PaperSize[] = ["A4", "A3", "B4", "B5", "A5", "letter", "legal
 const MEDIA: MediaType[] = ["plain", "bond", "recycled", "user1", "user2", "user3", "user4", "user5"];
 const TRAY_IDS: TrayId[] = ["T1", "T2", "T3", "T4", "bypass"];
 
-type Preset = "duplexBw" | "simplexColor" | "custom";
-
-function presetOf(o: PrintOptions): Preset {
-  if (o.duplex === "long-edge" && o.color === "bw") return "duplexBw";
-  if (o.duplex === "none" && o.color === "color") return "simplexColor";
-  return "custom";
-}
-
 function trayOptions(t: TFunction, trays: Tray[]) {
   const known = new Map(trays.filter((tr) => !isUnmapped(tr.id)).map((tr) => [tr.id as TrayId, tr]));
   return [
@@ -132,29 +124,10 @@ export function OptionsForm(props: {
     hour: useFieldId("hour"),
     deliveryHint: useFieldId("dhint"),
   };
-  const preset = presetOf(o);
   const err = (code: OptionsValidationError) => props.errors.includes(code);
 
   return (
     <div class="flex flex-col gap-5">
-      {/* Quick presets strip */}
-      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-paper/70 px-3.5 py-2.5 ring-1 ring-inset ring-rule/70">
-        <span class="text-xs font-semibold text-ink-soft">{t("options.presets.label")}</span>
-        <Segmented<Preset>
-          name="preset"
-          value={preset}
-          options={[
-            { value: "duplexBw", label: t("options.presets.duplexBw") },
-            { value: "simplexColor", label: t("options.presets.simplexColor") },
-            ...(preset === "custom" ? [{ value: "custom" as const, label: t("options.presets.custom") }] : []),
-          ]}
-          onChange={(p) => {
-            if (p === "duplexBw") onChange({ ...o, duplex: "long-edge", color: "bw" });
-            if (p === "simplexColor") onChange({ ...o, duplex: "none", color: "color" });
-          }}
-        />
-      </div>
-
       {/* Primary settings in a clean 2-column studio grid */}
       <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
         <FieldBlock as="fieldset" label={t("options.duplex.label")}>
@@ -178,7 +151,7 @@ export function OptionsForm(props: {
           <Segmented
             name="color"
             value={o.color}
-            options={(["bw", "color", "auto"] as const).map((v) => ({
+            options={(["auto", "color", "bw"] as const).map((v) => ({
               value: v,
               label: (
                 <span class="inline-flex items-center gap-1.5">
@@ -213,11 +186,19 @@ export function OptionsForm(props: {
           />
         </FieldBlock>
 
-        <div class="sm:col-span-2">
-          <FieldBlock label={t("options.tray.label")} htmlFor={ids.tray}>
-            <Select id={ids.tray} value={o.tray} options={trayOptions(t, props.trays)} onChange={(v) => set("tray", v)} />
-          </FieldBlock>
-        </div>
+        <FieldBlock as="fieldset" label={t("options.pagesPerSheet.label")}>
+          <Segmented
+            name="pagesPerSheet"
+            value={String(o.pagesPerSheet) as "1" | "2" | "4"}
+            options={(["1", "2", "4"] as const).map((v) => ({ value: v, label: t(`options.pagesPerSheet.${v}`) }))}
+            onChange={(v) => set("pagesPerSheet", Number(v) as PrintOptions["pagesPerSheet"])}
+          />
+          {o.pagesPerSheet > 1 && <p class="m-0 mt-1.5 text-xs text-ink-faint">{t("options.pagesPerSheet.hint")}</p>}
+        </FieldBlock>
+
+        <FieldBlock label={t("options.tray.label")} htmlFor={ids.tray}>
+          <Select id={ids.tray} value={o.tray} options={trayOptions(t, props.trays)} onChange={(v) => set("tray", v)} />
+        </FieldBlock>
       </div>
 
       {/* Advanced settings */}

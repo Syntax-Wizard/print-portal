@@ -2,6 +2,7 @@
  * File intake: the drop zone and the list of files with their per-file progress.
  */
 
+import { checkRange, isPdf } from "../pdfJobs";
 import { useRef, useState } from "preact/hooks";
 import { useT } from "../../i18n";
 import { ACCEPT, MAX_FILE_MB, MAX_FILES, formatSize } from "../files";
@@ -115,7 +116,56 @@ function ItemStatusLine({ item }: { item: PrintItem }) {
   return <span class={tone[item.status] ?? "text-ink-soft"}>{t(`item.${item.status}`, { percent: Math.round(item.progress * 100) })}</span>;
 }
 
-export function FileList(props: { items: PrintItem[]; onRemove: (key: string) => void; onRetry: (key: string) => void; onClearDone: () => void; tooMany: boolean }) {
+/** Page count, page selection and preview for one PDF. */
+function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => void; onPreview: () => void }) {
+  const { t } = useT();
+  const { item } = props;
+  const id = `range-${item.key}`;
+  const range = checkRange(item);
+  const editable = item.status === "ready" || item.status === "failed";
+  if (item.pdfIssue) return <p class="m-0 mt-1.5 text-xs font-medium text-warn">{t(`files.pdfIssue.${item.pdfIssue}`)}</p>;
+  if (!editable || item.pageCount === null) return null;
+  const rangeError = range && !range.ok ? (range.error === "outOfRange" ? t("files.rangeOutOfRange", { count: item.pageCount }) : t("files.rangeInvalid")) : null;
+  return (
+    <div class="mt-2 flex flex-col gap-1">
+      <div class="flex flex-wrap items-center gap-2">
+        <label class="text-xs font-semibold text-ink-soft" for={id}>
+          {t("files.pageRange")}
+        </label>
+        <input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          class={cx("w-40 rounded-lg border bg-sheet px-2.5 py-1 text-xs text-ink", rangeError ? "border-error" : "border-rule")}
+          placeholder={t("files.pageRangePlaceholder")}
+          value={item.pageRange}
+          aria-invalid={rangeError ? true : undefined}
+          aria-describedby={rangeError ? `${id}-error` : undefined}
+          onInput={(e) => props.onRangeChange((e.currentTarget as HTMLInputElement).value)}
+        />
+        <button type="button" class="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold text-accent-ink transition-colors hover:bg-accent-wash disabled:cursor-not-allowed disabled:text-ink-faint" disabled={Boolean(rangeError)} onClick={props.onPreview}>
+          {t("files.preview")}
+        </button>
+      </div>
+      {rangeError && (
+        <p id={`${id}-error`} class="m-0 text-xs font-medium text-error">
+          {rangeError}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function FileList(props: {
+  items: PrintItem[];
+  onRemove: (key: string) => void;
+  onRetry: (key: string) => void;
+  onClearDone: () => void;
+  onRangeChange: (key: string, text: string) => void;
+  onPreview: (key: string) => void;
+  tooMany: boolean;
+}) {
   const { t, lang } = useT();
   if (props.items.length === 0 && !props.tooMany) return null;
   const anyDone = props.items.some((i) => i.status === "done");
@@ -136,11 +186,17 @@ export function FileList(props: { items: PrintItem[]; onRemove: (key: string) =>
                 </p>
                 <p class="m-0 mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
                   <span class="tabular text-ink-faint">{formatSize(item.file.size, lang)}</span>
+                  {isPdf(item.file) && !item.problem && !item.pdfIssue && (
+                    <span class="tabular text-ink-faint">{item.pageCount !== null ? t("files.pages", { count: item.pageCount }) : t("files.countingPages")}</span>
+                  )}
                   <span class="text-rule-strong" aria-hidden="true">
                     ·
                   </span>
                   <ItemStatusLine item={item} />
                 </p>
+                {isPdf(item.file) && !item.problem && (
+                  <PdfControls item={item} onRangeChange={(text) => props.onRangeChange(item.key, text)} onPreview={() => props.onPreview(item.key)} />
+                )}
               </div>
               {item.status === "failed" && !item.problem && (
                 <button

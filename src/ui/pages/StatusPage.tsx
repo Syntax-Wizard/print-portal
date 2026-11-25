@@ -1,5 +1,5 @@
 import { useCallback, useState } from "preact/hooks";
-import { formatDateTime, useT } from "../../i18n";
+import { formatDateTime, formatRelative, useT } from "../../i18n";
 import { errorCategory } from "../errorCodes";
 import { JobHistory } from "../components/jobs";
 import { PanelHeading, SupplyList, TrayList, WasteToner, severityTextClass } from "../components/status";
@@ -61,7 +61,18 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
             {s.device.alerts.map((a, i) => (
               <li key={i} class="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-rule bg-well/40 px-4 py-3 text-sm">
                 <span class={`tabular rounded-md bg-sheet px-2 py-0.5 text-xs font-bold ring-1 ring-rule ${severityTextClass(a.severity)}`}>{a.code}</span>
-                <span class="text-ink">{a.message}</span>
+                {a.measuredAt ? (
+                  // From the published SNMP snapshot: the printer's text is English, so lead with a translated category.
+                  <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span class="font-semibold text-ink">{t(`errorLog.category.${errorCategory(a.code)}`)}</span>
+                    <span class="text-xs text-ink-soft" lang="en">
+                      {a.message}
+                    </span>
+                    <span class="text-[11px] text-ink-faint">{t("alerts.fromSnapshot", { time: formatRelative(a.measuredAt, lang) })}</span>
+                  </span>
+                ) : (
+                  <span class="text-ink">{a.message}</span>
+                )}
               </li>
             ))}
           </ul>

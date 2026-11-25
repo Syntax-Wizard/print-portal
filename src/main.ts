@@ -4,5 +4,8 @@
 
 import css from "./ui/styles.css?inline";
 import { takeover } from "./bootstrap";
+import { rememberScriptBase } from "./pdf/loader";
 
+// Must run first, while document.currentScript still points at this script.
+rememberScriptBase();
 takeover(css);

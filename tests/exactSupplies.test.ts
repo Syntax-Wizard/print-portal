@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { fixture } from "./fixtures";
-import { MAX_SNAPSHOT_AGE_MS, applySnapshot, parseSnapshot } from "../src/printer/exactSupplies";
+import { MAX_SNAPSHOT_AGE_MS, applySnapshot, applySnapshotAlerts, parseSnapshot } from "../src/printer/exactSupplies";
 import { parseSupplies } from "../src/printer/parsers";
-import { modelFromSysDescr, toPercent } from "../scripts/toner/snapshot";
+import { alertsFromTable, modelFromSysDescr, parseAlertDescription, toPercent } from "../scripts/toner/snapshot";
 
 const snapshot = parseSnapshot(JSON.parse(fixture("toner.json")))!;
 const measuredAt = new Date(snapshot.measuredAt);
@@ -66,5 +66,41 @@ describe("snapshot helpers", () => {
     expect(toPercent(0, 15000)).toBe(0);
     expect(toPercent(-3, 45000)).toBeNull();
     expect(toPercent(5, 0)).toBeNull();
+  });
+});
+
+describe("SNMP alerts", () => {
+  it("parses alert descriptions", () => {
+    expect(parseAlertDescription("094-421 The Transfer Belt Cleaner has reached end of life.")).toEqual({
+      code: "094-421",
+      message: "The Transfer Belt Cleaner has reached end of life.",
+    });
+    expect(parseAlertDescription("no code here")).toBeNull();
+  });
+
+  it("keeps warnings and critical alerts, drops informational ones and duplicates", () => {
+    const rows = [
+      { 2: 5, 8: Buffer.from("094-421 Transfer belt cleaner end of life.") },
+      { 2: 1, 8: Buffer.from("016-424 The machine is in Low Power Mode.") },
+      { 2: 3, 8: Buffer.from("077-101 Paper jam.") },
+      { 2: 5, 8: Buffer.from("094-421 Transfer belt cleaner end of life.") },
+    ];
+    expect(alertsFromTable(rows).map((a) => [a.code, a.severity])).toEqual([
+      ["094-421", "warning"],
+      ["077-101", "error"],
+    ]);
+  });
+
+  it("adds only alerts the web page does not already show", () => {
+    const web = [{ severity: "warning" as const, code: "093-407", message: "web text", audience: "user" as const }];
+    const merged = applySnapshotAlerts(web, "ApeosPort-V C4476", snapshot, soon);
+    expect(merged.map((a) => a.code)).toEqual(["093-407", "094-421"]);
+    expect(merged[0]!.message).toBe("web text");
+    expect(merged[1]!.measuredAt).toEqual(measuredAt);
+  });
+
+  it("ignores alerts from stale snapshots", () => {
+    const late = new Date(measuredAt.getTime() + MAX_SNAPSHOT_AGE_MS + 1);
+    expect(applySnapshotAlerts([], "ApeosPort-V C4476", snapshot, late)).toEqual([]);
   });
 });

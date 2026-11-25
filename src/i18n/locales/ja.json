@@ -41,7 +41,19 @@
     "unsupported": "この形式は直接印刷できません。PDF に書き出してから追加してください。",
     "tooLarge": "{{max}} MB を超えるファイルは印刷できません。",
     "empty": "空のファイルは印刷できません。",
-    "tooMany": "一度に追加できるのは {{max}} ファイルまでです。"
+    "tooMany": "一度に追加できるのは {{max}} ファイルまでです。",
+    "pages_other": "全 {{count}} ページ",
+    "countingPages": "ページ数を確認中…",
+    "pageRange": "印刷するページ",
+    "pageRangePlaceholder": "すべて（例: 1-3, 5）",
+    "rangeInvalid": "「1-3, 5」のように、ページ番号と範囲をカンマで区切って入力してください。",
+    "rangeOutOfRange_other": "このファイルは {{count}} ページまでです。",
+    "preview": "仕上がりを確認",
+    "pdfIssue": {
+      "encrypted": "保護された PDF のため、ページ指定と 1 枚に複数ページの印刷は使えません。そのまま印刷はできます。",
+      "unreadable": "この PDF を読み取れないため、ページ指定と 1 枚に複数ページの印刷は使えません。そのまま印刷はできます。",
+      "toolsUnavailable": "PDF の処理機能を読み込めませんでした。インターネット接続を確認してください。"
+    }
   },
   "item": {
     "ready": "印刷待ち",
@@ -53,16 +65,11 @@
     "done": "印刷しました",
     "held": "プリンターで保留中です。操作パネルで操作してください",
     "failed": "印刷できませんでした",
-    "retry": "もう一度送る"
+    "retry": "もう一度送る",
+    "preparing": "印刷用に準備中…"
   },
   "options": {
     "title": "設定",
-    "presets": {
-      "label": "よく使う設定",
-      "duplexBw": "両面・白黒",
-      "simplexColor": "片面・カラー",
-      "custom": "カスタム"
-    },
     "copies": "部数",
     "copiesDecrease": "部数を減らす",
     "copiesIncrease": "部数を増やす",
@@ -119,6 +126,13 @@
       "userIdTooLong": "ユーザーIDは 24 文字以内にしてください。",
       "pinInvalid": "暗証番号は数字 1〜12 桁で入力してください。",
       "timeInvalid": "時刻を正しく入力してください。"
+    },
+    "pagesPerSheet": {
+      "label": "1 枚に印刷するページ数",
+      "1": "1 ページ",
+      "2": "2 ページ",
+      "4": "4 ページ",
+      "hint": "PDF ファイルに適用されます。"
     }
   },
   "paperSize": {
@@ -175,14 +189,17 @@
       "sample": "まず1部だけ印刷します。",
       "delayed": "{{time}} に印刷します。"
     },
-    "previewLabel": "仕上がりのイメージ"
+    "previewLabel": "仕上がりのイメージ",
+    "pagesPerSheet": "1 枚に {{count}} ページずつ並べます。",
+    "sheets_other": "用紙は約 {{count}} 枚です。"
   },
   "submit": {
     "button_other": "{{count}} ファイルを印刷",
     "buttonEmpty": "印刷",
     "noFiles": "ファイルを追加すると印刷できます。",
     "busy": "送信中…",
-    "fixErrors": "設定を確認してください。"
+    "fixErrors": "設定を確認してください。",
+    "fixRanges": "ページ指定を確認してください。"
   },
   "errors": {
     "PRINTER_UNREACHABLE": "プリンターに接続できません。同じネットワークにいるか確認してください。",
@@ -230,7 +247,8 @@
   },
   "alerts": {
     "title": "プリンターからのお知らせ",
-    "none": "お知らせはありません"
+    "none": "お知らせはありません",
+    "fromSnapshot": "{{time}}に SNMP で取得した情報です。"
   },
   "jobs": {
     "queueTitle": "印刷中・待機中のジョブ",
@@ -393,5 +411,12 @@
     "copy": "コードをコピー",
     "copied": "コピーしました",
     "version": "バージョン {{version}}"
+  },
+  "preview": {
+    "title": "仕上がりの確認",
+    "note": "このとおりにプリンターへ送られます。",
+    "loading": "準備しています…",
+    "failed": "プレビューを作成できませんでした。",
+    "close": "閉じる"
   }
 }

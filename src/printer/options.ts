@@ -6,16 +6,17 @@
 import { MEDIA_FIELD, PAPER_SIZE_FIELD, TRAY_FIELD } from "./mappings";
 import type { PrintOptions } from "./types";
 
-/** Lab defaults agreed in the design review: 2-sided (long edge), black & white, A4, 1 copy. */
+/** Lab defaults: 2-sided (long edge), automatic colour, A4, 1 copy. */
 export const DEFAULT_OPTIONS: PrintOptions = {
   copies: 1,
   collate: "default",
   duplex: "long-edge",
-  color: "bw",
+  color: "auto",
   tray: "auto",
   paperSize: "A4",
   media: "default",
   delivery: { type: "normal" },
+  pagesPerSheet: 1,
 };
 
 /** The firmware's own form sends this placeholder when no secure-print PIN is entered. */

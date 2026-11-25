@@ -5,12 +5,17 @@
 
 import snmp from "net-snmp";
 import { mapSupplyColor } from "../../src/printer/mappings";
-import { SNAPSHOT_SCHEMA, type SnapshotSupply, type SupplySnapshot } from "../../src/printer/exactSupplies";
+import { SNAPSHOT_SCHEMA, type SnapshotAlert, type SnapshotSupply, type SupplySnapshot } from "../../src/printer/exactSupplies";
 
 const OID = {
   sysDescr: "1.3.6.1.2.1.1.1.0",
   suppliesTable: "1.3.6.1.2.1.43.11.1.1",
+  alertTable: "1.3.6.1.2.1.43.18.1.1",
 } as const;
+
+/** prtAlertTable columns and prtAlertSeverityLevel values (RFC 3805). */
+const ALERT_COL = { severity: 2, description: 8 } as const;
+const ALERT_SEVERITY: Record<number, SnapshotAlert["severity"]> = { 3: "error", 4: "warning", 5: "warning" };
 
 /** prtMarkerSuppliesTable columns. */
 const COL = { type: 5, description: 6, maxCapacity: 8, level: 9 } as const;
@@ -61,19 +66,40 @@ export function toPercent(level: number, max: number): number | null {
   return Math.min(100, level > 0 ? Math.max(1, pct) : 0);
 }
 
+/** Group a walked table into rows keyed by index, with cells keyed by column number. */
+function toRows(base: string, varbinds: Varbind[]): Map<string, Partial<Record<number, unknown>>> {
+  const table = new Map<string, Partial<Record<number, unknown>>>();
+  for (const { oid, value } of varbinds) {
+    const parts = oid.slice(base.length + 1).split(".");
+    const column = Number(parts[0]);
+    const index = parts.slice(1).join(".");
+    table.set(index, { ...table.get(index), [column]: value });
+  }
+  return table;
+}
+
+/** "094-421 The Transfer Belt Cleaner has reached end of life. ..." -> code + message. */
+export function parseAlertDescription(text: string): { code: string; message: string } | null {
+  const m = /^\s*(\d{3}-\d{3})\s+(.+?)\s*$/s.exec(text);
+  return m ? { code: m[1]!, message: m[2]! } : null;
+}
+
+/** Warnings and critical alerts only: informational ones such as "Low Power Mode" are dropped. */
+export function alertsFromTable(rows: Iterable<Partial<Record<number, unknown>>>): SnapshotAlert[] {
+  const alerts: SnapshotAlert[] = [];
+  for (const row of rows) {
+    const severity = ALERT_SEVERITY[Number(row[ALERT_COL.severity])];
+    const parsed = parseAlertDescription(decodeText(row[ALERT_COL.description]));
+    if (severity && parsed && !alerts.some((a) => a.code === parsed.code)) alerts.push({ ...parsed, severity });
+  }
+  return alerts;
+}
+
 export async function takeSnapshot(host: string, community = "public", timeoutMs = 5000): Promise<SupplySnapshot> {
   const session = snmp.createSession(host, community, { version: snmp.Version2c, timeout: timeoutMs, retries: 1 });
   try {
     const model = modelFromSysDescr(decodeText(await get(session, OID.sysDescr)));
-    const rows = await walk(session, OID.suppliesTable);
-    // Group cells by row index (the last two OID parts, e.g. "1.3").
-    const table = new Map<string, Partial<Record<number, unknown>>>();
-    for (const { oid, value } of rows) {
-      const parts = oid.slice(OID.suppliesTable.length + 1).split(".");
-      const column = Number(parts[0]);
-      const index = parts.slice(1).join(".");
-      table.set(index, { ...table.get(index), [column]: value });
-    }
+    const table = toRows(OID.suppliesTable, await walk(session, OID.suppliesTable));
     const supplies: SnapshotSupply[] = [];
     for (const row of table.values()) {
       const type = Number(row[COL.type]);
@@ -83,7 +109,14 @@ export async function takeSnapshot(host: string, community = "public", timeoutMs
       if (kind && color && percent !== null) supplies.push({ kind, color, percent });
     }
     if (supplies.length === 0) throw new Error("No toner or drum levels found in the Printer MIB");
-    return { schema: SNAPSHOT_SCHEMA, model, measuredAt: new Date().toISOString(), supplies };
+    // Alerts are a bonus: a printer without an alert table still gets its levels published.
+    let alerts: SnapshotAlert[] = [];
+    try {
+      alerts = alertsFromTable(toRows(OID.alertTable, await walk(session, OID.alertTable)).values());
+    } catch {
+      alerts = [];
+    }
+    return { schema: SNAPSHOT_SCHEMA, model, measuredAt: new Date().toISOString(), supplies, alerts };
   } finally {
     session.close();
   }
