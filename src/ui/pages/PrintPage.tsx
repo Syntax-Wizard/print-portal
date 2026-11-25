@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { QueuePanel } from "../components/jobs";
 import { formatTime, useT } from "../../i18n";
 import { validateOptions } from "../../printer/options";
 import type { PrintOptions } from "../../printer/types";
@@ -112,6 +113,8 @@ export function PrintPage() {
           {readyCount === 0 && !busy && <p class="m-0 -mt-1.5 text-center text-xs text-ink-faint">{t("submit.noFiles")}</p>}
           {showErrors && errors.length > 0 && <p class="m-0 -mt-1.5 text-center text-xs font-medium text-error">{t("submit.fixErrors")}</p>}
         </section>
+
+        <QueuePanel />
 
         {status.data && (
           <section class="card flex flex-col gap-5 p-5">

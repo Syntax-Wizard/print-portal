@@ -13,7 +13,6 @@
   },
   "nav": {
     "print": "Print",
-    "jobs": "Jobs",
     "mailbox": "Mailbox",
     "status": "Printer status"
   },
@@ -299,7 +298,6 @@
     "open": "Open",
     "opening": "Opening…",
     "passwordNote": "The password is never saved. It is forgotten when you close this page or after 10 minutes without activity.",
-    "plainHttpNote": "Traffic to the printer isn't encrypted. Don't reuse a password from another service.",
     "close": "Close mailbox",
     "autoClosed": "The mailbox was closed after 10 minutes without activity.",
     "documents_one": "{{count}} document",

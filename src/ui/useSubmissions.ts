@@ -91,6 +91,8 @@ export function useSubmissions() {
         } catch {
           continue; // Transient network hiccup: keep trying until the timeout.
         }
+        // Share what we just read so the queue panel updates without a second request.
+        queue.push(list);
         const job = jobId ? list.find((j) => j.id === jobId) : findNewJob(before, list, ownerRef.current);
         if (!jobId && job) {
           jobId = job.id;
@@ -138,7 +140,9 @@ export function useSubmissions() {
           const since = new Date();
           let before = new Set<string>();
           try {
-            before = new Set((await client.getQueue()).map((j) => j.id));
+            const current = await client.getQueue();
+            queue.push(current);
+            before = new Set(current.map((j) => j.id));
           } catch {
             // Without a snapshot we can still upload; tracking just becomes less precise.
           }

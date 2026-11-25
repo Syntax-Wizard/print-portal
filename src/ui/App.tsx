@@ -4,19 +4,22 @@ import type { PrinterClient } from "../printer/client";
 import { PrinterUnreachableError } from "../printer/client";
 import { cx } from "./components/controls";
 import { DeviceBadge, effectiveState, lowToners } from "./components/status";
-import { JobsPage } from "./pages/JobsPage";
 import { MailboxPage } from "./pages/MailboxPage";
 import { PrintPage } from "./pages/PrintPage";
 import { StatusPage } from "./pages/StatusPage";
 import { PrinterProvider, usePrinter } from "./PrinterContext";
 import { type Theme, applyTheme, loadTheme, saveTheme } from "./settings";
 
-type View = "print" | "jobs" | "mailbox" | "status";
-const VIEWS: View[] = ["print", "jobs", "mailbox", "status"];
+type View = "print" | "mailbox" | "status";
+const VIEWS: View[] = ["print", "mailbox", "status"];
 
 /** Keep the current view in the URL hash so the back button works inside the app. */
+const hashName = () => location.hash.replace(/^#\/?/, "");
+
 function viewFromHash(): View {
-  const v = location.hash.replace(/^#\/?/, "");
+  const v = hashName();
+  // The jobs tab was folded into the status page; keep old links working.
+  if (v === "jobs") return "status";
   return (VIEWS as string[]).includes(v) ? (v as View) : "print";
 }
 
@@ -75,13 +78,6 @@ function NavIcon({ view }: { view: View }) {
       <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M3 11.5 5.2 4.5h9.6l2.2 7" />
         <path d="M3 11.5V16h14v-4.5h-4.2l-1 2h-3.6l-1-2H3Z" />
-      </svg>
-    );
-  }
-  if (view === "jobs") {
-    return (
-      <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M4 5.5h12M4 10h12M4 14.5h8" />
       </svg>
     );
   }
@@ -254,14 +250,14 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
 function Shell() {
   const { t } = useT();
   const [view, setView] = useView();
+  const jobsLink = hashName() === "jobs";
   return (
     <div class="flex min-h-screen flex-col">
       <Header view={view} onView={setView} />
       <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-7">
         {view === "print" && <PrintPage />}
-        {view === "jobs" && <JobsPage />}
         {view === "mailbox" && <MailboxPage />}
-        {view === "status" && <StatusPage />}
+        {view === "status" && <StatusPage showHistory={jobsLink} />}
       </main>
       <footer class="mx-auto flex w-full max-w-6xl items-center justify-between border-t border-rule/70 px-4 py-4 text-xs text-ink-faint sm:px-6">
         <button

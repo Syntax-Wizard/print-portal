@@ -65,8 +65,9 @@ test("prints a file with the lab defaults and follows the job to completion", as
   await expect(page.getByText(/送信中|プリンターに送信しました|プリンターで待機中/).first()).toBeVisible();
   await expect(page.getByText("印刷しました")).toBeVisible({ timeout: 20_000 });
 
-  // The job is now recognised as "mine" in the history.
-  await page.getByRole("link", { name: "ジョブ" }).click();
+  // The job is now recognised as "mine" in the (collapsed) history on the status page.
+  await page.getByRole("link", { name: "プリンター状態" }).click();
+  await page.getByText("最近のジョブ").click();
   await expect(page.getByText("自分").first()).toBeVisible({ timeout: 10_000 });
 });
 
@@ -80,13 +81,13 @@ test("rejects unsupported files before sending", async ({ page }) => {
 test("switches language instantly and remembers it", async ({ page }) => {
   await openPortal(page);
   await page.getByLabel("表示言語").selectOption("en");
-  await expect(page.getByRole("link", { name: "Jobs" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Mailbox" })).toBeVisible();
   await expect(page.getByText("1 copy of each file, 2-sided (long edge), in black & white on A4.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.lang)).toBe("en");
 
   await page.reload();
   await page.evaluate(bookmarkletCode);
-  await expect(page.getByRole("link", { name: "Jobs" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Mailbox" })).toBeVisible();
 });
 
 test("secure print needs a user ID and numeric passcode", async ({ page }) => {
@@ -105,8 +106,16 @@ test("status and jobs pages render printer data", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "エラー履歴" })).toBeVisible();
   await expect(page.getByText("016-788").first()).toBeVisible();
   await expect(page.getByText("ドラムカートリッジ")).toBeVisible();
-  await page.getByRole("link", { name: "ジョブ" }).click();
-  await expect(page.getByRole("heading", { name: "最近のジョブ" })).toBeVisible();
+  // Job history is folded into the status page and loads when expanded.
+  await expect(page.getByRole("table")).toHaveCount(1); // error log only
+  await page.getByText("最近のジョブ").click();
+  await expect(page.getByRole("columnheader", { name: "完了時刻" })).toBeVisible();
+});
+
+test("old #/jobs links open the status page with the history expanded", async ({ page }) => {
+  await openPortal(page);
+  await page.evaluate(() => (location.hash = "/jobs"));
+  await expect(page.getByRole("columnheader", { name: "完了時刻" })).toBeVisible();
 });
 
 test("shows exact toner levels from the published snapshot", async ({ page }) => {

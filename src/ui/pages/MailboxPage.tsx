@@ -109,7 +109,7 @@ function PasswordForm(props: { box: MailboxSummary; busy: boolean; onSubmit: (pa
         </button>
       </div>
       <p class="m-0 max-w-prose text-xs leading-relaxed text-ink-faint">
-        {t("mailbox.passwordNote")} {t("mailbox.plainHttpNote")}
+        {t("mailbox.passwordNote")}
       </p>
     </form>
   );

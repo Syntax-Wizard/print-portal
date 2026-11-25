@@ -1,6 +1,7 @@
 import { useCallback, useState } from "preact/hooks";
 import { formatDateTime, useT } from "../../i18n";
 import { errorCategory } from "../errorCodes";
+import { JobHistory } from "../components/jobs";
 import { PanelHeading, SupplyList, TrayList, WasteToner, severityTextClass } from "../components/status";
 import { usePrinter } from "../PrinterContext";
 import { usePolling } from "../usePolling";
@@ -9,7 +10,28 @@ import { UpdatedAt } from "./PrintPage";
 const ERROR_LOG_INTERVAL_MS = 5 * 60_000;
 const ERROR_LOG_PAGE = 15;
 
-export function StatusPage() {
+/** Job history, collapsed by default; it is only loaded (and polled) while expanded. */
+function HistorySection(props: { initiallyOpen: boolean }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(props.initiallyOpen);
+  return (
+    <details class="card group p-5 sm:p-6 md:col-span-2" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
+      <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-bold tracking-tight text-ink [&::-webkit-details-marker]:hidden">
+        <span class="inline-block text-ink-faint transition-transform group-open:rotate-90" aria-hidden="true">
+          ▸
+        </span>
+        {t("jobs.historyTitle")}
+      </summary>
+      {open && (
+        <div class="mt-4">
+          <JobHistory />
+        </div>
+      )}
+    </details>
+  );
+}
+
+export function StatusPage(props: { showHistory?: boolean } = {}) {
   const { t, lang } = useT();
   const { client, status } = usePrinter();
   const errorLog = usePolling(useCallback(() => client.getErrorLog(), [client]), ERROR_LOG_INTERVAL_MS);
@@ -98,6 +120,8 @@ export function StatusPage() {
           </>
         )}
       </section>
+
+      <HistorySection initiallyOpen={Boolean(props.showHistory)} />
 
       {status.updatedAt && (
         <div class="px-1 md:col-span-2">

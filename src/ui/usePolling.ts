@@ -11,6 +11,8 @@ export interface Polled<T> {
   loading: boolean;
   updatedAt: Date | undefined;
   refresh: () => Promise<void>;
+  /** Publish data fetched elsewhere (e.g. by job tracking), saving a duplicate request. */
+  push: (value: T) => void;
 }
 
 export function usePolling<T>(load: () => Promise<T>, intervalMs: number): Polled<T> {
@@ -65,5 +67,12 @@ export function usePolling<T>(load: () => Promise<T>, intervalMs: number): Polle
     };
   }, [intervalMs, refresh]);
 
-  return { data, error, loading, updatedAt, refresh };
+  const push = useCallback((value: T) => {
+    setData(value);
+    setError(undefined);
+    setLoading(false);
+    setUpdatedAt(new Date());
+  }, []);
+
+  return { data, error, loading, updatedAt, refresh, push };
 }

@@ -1,11 +1,15 @@
+/**
+ * Print jobs. The current queue appears on the print page only while something is queued;
+ * the history lives in a collapsed section of the status page. Neither needs its own tab.
+ */
+
 import { useCallback, useMemo, useState } from "preact/hooks";
 import { formatDateTime, useT } from "../../i18n";
 import type { HistoryJob, QueuedJob } from "../../printer/types";
 import { isUnmapped } from "../../printer/types";
-import { cx } from "../components/controls";
+import { cx } from "./controls";
 import { usePrinter } from "../PrinterContext";
 import { usePolling } from "../usePolling";
-import { UpdatedAt } from "./PrintPage";
 
 const HISTORY_INTERVAL_MS = 30_000;
 const PAGE_SIZE = 25;
@@ -16,36 +20,28 @@ function Owner({ owner, mine }: { owner: string; mine: boolean }) {
   return <span class="text-ink-soft">{owner === "-" ? "—" : owner}</span>;
 }
 
-function QueueTable({ jobs, owner }: { jobs: QueuedJob[]; owner: string | null }) {
+/** Jobs at the printer right now, for the print page. Renders nothing when the queue is empty. */
+export function QueuePanel() {
   const { t } = useT();
-  if (jobs.length === 0) return <p class="m-0 rounded-xl bg-well/50 px-3.5 py-2.5 text-sm text-ink-soft">{t("jobs.queueEmpty")}</p>;
+  const { queue, owner } = usePrinter();
+  const jobs = queue.data ?? [];
+  if (jobs.length === 0) return null;
   return (
-    <div class="overflow-x-auto">
-      <table class="w-full border-collapse text-sm">
-        <thead>
-          <tr class="border-b border-rule text-left text-xs font-semibold text-ink-faint">
-            <th class="pb-2.5 pr-4">{t("jobs.columns.owner")}</th>
-            <th class="pb-2.5 pr-4">{t("jobs.columns.state")}</th>
-            <th class="pb-2.5 pr-4">{t("jobs.columns.type")}</th>
-            <th class="pb-2.5 text-right">{t("jobs.columns.copies")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.map((j) => (
-            <tr key={j.id} class="border-b border-rule/70 transition-colors last:border-0 hover:bg-well/40">
-              <td class="py-3 pr-4">
-                <Owner owner={j.owner} mine={owner !== null && j.owner === owner} />
-              </td>
-              <td class={cx("py-3 pr-4 font-semibold", j.state === "printing" ? "text-accent-ink" : "text-ink")}>
-                {isUnmapped(j.state) ? j.state.raw : t(`jobs.state.${j.state}`)}
-              </td>
-              <td class="py-3 pr-4 text-ink-soft">{t(`jobs.type.${j.type}`)}</td>
-              <td class="tabular py-3 text-right font-medium text-ink">{j.completedCopies ?? "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <section class="card flex flex-col gap-3 p-5" aria-labelledby="queue-heading">
+      <h2 id="queue-heading" class="m-0 text-sm font-bold tracking-tight text-ink">
+        {t("jobs.queueTitle")}
+      </h2>
+      <ul class="m-0 flex list-none flex-col gap-2 p-0" aria-live="polite">
+        {jobs.map((j: QueuedJob) => (
+          <li key={j.id} class="flex items-center justify-between gap-3 text-sm">
+            <Owner owner={j.owner} mine={owner !== null && j.owner === owner} />
+            <span class={cx("font-semibold", j.state === "printing" ? "text-accent-ink" : "text-ink-soft")}>
+              {isUnmapped(j.state) ? j.state.raw : t(`jobs.state.${j.state}`)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -56,9 +52,10 @@ function resultBadge(r: HistoryJob["result"]): string {
   return "bg-well text-ink-soft";
 }
 
-export function JobsPage() {
+/** Recent jobs; polled only while mounted (i.e. while its section is expanded). */
+export function JobHistory() {
   const { t, lang } = useT();
-  const { client, queue, owner } = usePrinter();
+  const { client, owner } = usePrinter();
   const history = usePolling(useCallback(() => client.getHistory(), [client]), HISTORY_INTERVAL_MS);
   const [onlyMine, setOnlyMine] = useState(false);
   const [limit, setLimit] = useState(PAGE_SIZE);
@@ -69,24 +66,9 @@ export function JobsPage() {
   }, [history.data, onlyMine, owner]);
 
   return (
-    <div class="flex flex-col gap-6">
-      <section aria-labelledby="queue-heading" class="card p-5 sm:p-6">
-        <h2 id="queue-heading" class="m-0 mb-4 text-base font-bold tracking-tight text-ink">
-          {t("jobs.queueTitle")}
-        </h2>
-        {queue.data ? <QueueTable jobs={queue.data} owner={owner} /> : queue.error !== undefined ? <p class="text-sm font-medium text-error">{t("errors.PRINTER_UNREACHABLE")}</p> : null}
-        {queue.updatedAt && (
-          <div class="mt-4 border-t border-rule/70 pt-3.5">
-            <UpdatedAt at={queue.updatedAt} onRefresh={queue.refresh} />
-          </div>
-        )}
-      </section>
-
-      <section aria-labelledby="history-heading" class="card p-5 sm:p-6">
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 id="history-heading" class="m-0 text-base font-bold tracking-tight text-ink">
-            {t("jobs.historyTitle")}
-          </h2>
+    <div>
+      <section>
+        <div class="mb-4 flex flex-wrap items-center justify-end gap-3">
           <label
             class={cx(
               "inline-flex select-none items-center gap-2 rounded-lg border border-rule bg-well/50 px-3 py-1.5 text-xs font-medium transition-colors",
