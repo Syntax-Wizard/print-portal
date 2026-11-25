@@ -66,7 +66,9 @@ export type SupplyState =
   | "qualityEnd"
   | "sensorFailure"
   | "failure"
-  | "checkRequired";
+  | "checkRequired"
+  /** Measured over SNMP at or below ALMOST_EMPTY_PERCENT: more urgent than the printer's own warning. */
+  | "almostEmpty";
 
 export interface Supply {
   kind: SupplyKind;

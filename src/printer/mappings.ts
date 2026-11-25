@@ -95,6 +95,7 @@ export const SUPPLY_SEVERITY: Record<SupplyState, Severity> = {
   replaceSoon: "warning",
   settingUp: "info",
   checkRequired: "warning",
+  almostEmpty: "error",
   qualityEnd: "warning",
   replaceNow: "error",
   nonGenuine: "error",

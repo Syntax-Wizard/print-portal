@@ -237,6 +237,13 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const { state, severity } = effectiveState(status.data, printing, offline);
   const low = status.data ? lowToners(status.data.supplies) : [];
   const listFormat = new Intl.ListFormat(lang, { style: "short", type: "conjunction" });
+  // Almost empty (red) first, then the printer's own "running low" warnings.
+  const urgent = low.filter((s) => s.severity === "error");
+  const notUrgent = low.filter((s) => s.severity !== "error");
+  const colors = (list: typeof low) => listFormat.format(list.map((s) => t(`supplies.color.${s.color ?? "black"}`)));
+  const tonerSummary = [urgent.length ? t("supplies.urgentSummary", { colors: colors(urgent) }) : "", notUrgent.length ? t("supplies.lowSummary", { colors: colors(notUrgent) }) : ""]
+    .filter(Boolean)
+    .join(lang === "ja" ? "　" : ". ");
 
   return (
     <header class="sticky top-0 z-20 border-b border-rule/80 bg-sheet/88 backdrop-blur-md">
@@ -277,7 +284,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
               >
                 <NavIcon view={v} />
                 {t(`nav.${v}`)}
-                {v === "status" && low.length > 0 && <span class="h-1.5 w-1.5 rounded-full bg-warn" aria-hidden="true" />}
+                {v === "status" && low.length > 0 && <span class={cx("h-1.5 w-1.5 rounded-full", urgent.length ? "bg-error" : "bg-warn")} aria-hidden="true" />}
               </a>
             );
           })}
@@ -316,17 +323,17 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
 
       {/* Slim contextual alert strip when toner is low — keeps the header clean and balanced */}
       {low.length > 0 && view !== "status" && (
-        <div class="border-t border-warn/20 bg-warn-wash/75">
+        <div class={cx("border-t", urgent.length ? "border-error/25 bg-error-wash/80" : "border-warn/20 bg-warn-wash/75")}>
           <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5 text-xs sm:px-6">
             <button
               type="button"
-              class="inline-flex cursor-pointer items-center gap-1.5 text-left font-medium text-warn transition-opacity hover:opacity-80"
+              class={cx("inline-flex cursor-pointer items-center gap-1.5 text-left font-medium transition-opacity hover:opacity-80", urgent.length ? "text-error" : "text-warn")}
               onClick={() => onView("status")}
             >
               <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path d="M7.13 2.5a1 1 0 0 1 1.74 0l5.2 9.1A1 1 0 0 1 13.2 13H2.8a1 1 0 0 1-.87-1.4l5.2-9.1ZM8 5.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5.5Zm0 6a.85.85 0 1 0 0-1.7.85.85 0 0 0 0 1.7Z" />
               </svg>
-              <span>{t("supplies.lowSummary", { colors: listFormat.format(low.map((s) => t(`supplies.color.${s.color ?? "black"}`))) })}</span>
+              <span>{tonerSummary}</span>
               <span aria-hidden="true">→</span>
             </button>
           </div>

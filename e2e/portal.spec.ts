@@ -132,7 +132,11 @@ test("shows exact toner levels from the published snapshot", async ({ page }) =>
   await expect(page.getByText("094-421")).toBeVisible();
   await expect(page.getByText(/転写ベルトクリーナーが寿命に達しました/)).toBeVisible();
   await expect(page.getByText(/イエロートナーカートリッジの交換時期が近づいています/)).toBeVisible();
-  await expect(page.getByText("「SNMP」の付いたお知らせは、3 時間前にプリンターから取得した情報です。")).toHaveCount(1);
+  await expect(page.getByText("3 時間前にプリンターから取得した情報です。")).toHaveCount(1);
+  // Measured 1%: red and worded more urgently than the printer's "have a spare ready".
+  await expect(page.getByText("残り約 1%。まもなく交換が必要です。交換用をすぐに用意してください").first()).toBeVisible();
+  await page.getByRole("link", { name: "印刷" }).click();
+  await expect(page.getByText(/マゼンタ、イエローのトナーがまもなくなくなります/)).toBeVisible();
 });
 
 test("mailbox: unlock, save, see new scans, delete, remember my box", async ({ page, request }) => {

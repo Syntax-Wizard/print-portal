@@ -14,6 +14,13 @@ export const SNAPSHOT_SCHEMA = 1;
 /** Snapshots older than this are ignored. */
 export const MAX_SNAPSHOT_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 
+/**
+ * A measured toner level at or below this is shown in red as "almost empty". The printer only
+ * says "have a spare ready" and kept saying so at 1%. 5% is roughly 750 pages for a colour
+ * cartridge (1,300 for black): time to order now, not later.
+ */
+export const ALMOST_EMPTY_PERCENT = 5;
+
 /** Allowed disagreement between the snapshot and the live range, for rounding differences. */
 const TOLERANCE_PERCENT = 1;
 
@@ -107,6 +114,10 @@ export function applySnapshot(supplies: Supply[], model: string, snapshot: Suppl
     const measured = snapshot.supplies.find((m) => m.kind === "toner" && m.color === s.color);
     if (!measured) return s;
     const consistent = measured.percent >= s.level.min - TOLERANCE_PERCENT && measured.percent <= s.level.max + TOLERANCE_PERCENT;
-    return consistent ? { ...s, measured: { percent: measured.percent, at: measuredAt } } : s;
+    if (!consistent) return s;
+    const withMeasured: Supply = { ...s, measured: { percent: measured.percent, at: measuredAt } };
+    // Escalate to "almost empty" unless the printer already reports something as serious.
+    if (measured.percent <= ALMOST_EMPTY_PERCENT && s.severity !== "error") return { ...withMeasured, state: "almostEmpty", severity: "error" };
+    return withMeasured;
   });
 }

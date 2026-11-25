@@ -41,7 +41,6 @@ function SnmpAlertText(props: { code: string; message: string }) {
   // Colour names are capitalised as labels ("Yellow"); mid-sentence English wants "yellow".
   const colorName = (c: string) => (lang === "en" ? c.toLowerCase() : c);
   const known = recognizeAlert(props.message);
-  const tag = <span class="ml-2 rounded bg-well px-1.5 py-px align-middle text-[10px] font-bold text-ink-faint">{t("alerts.snmpTag")}</span>;
   if (known) {
     const text =
       known.key === "tonerReplaceSoon"
@@ -50,7 +49,6 @@ function SnmpAlertText(props: { code: string; message: string }) {
     return (
       <span class="min-w-0 flex-1 text-ink" title={`${t("alerts.original")}: ${props.message}`}>
         {text}
-        {tag}
       </span>
     );
   }
@@ -58,7 +56,6 @@ function SnmpAlertText(props: { code: string; message: string }) {
     <span class="flex min-w-0 flex-1 flex-col gap-0.5">
       <span class="font-semibold text-ink">
         {t(`errorLog.category.${errorCategory(props.code)}`)}
-        {tag}
       </span>
       <span class="text-xs text-ink-soft" lang="en">
         {props.message}

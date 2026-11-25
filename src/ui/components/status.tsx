@@ -73,7 +73,7 @@ export function DeviceBadge(props: { state: DeviceState | { raw: string }; sever
 }
 
 function supplyStateText(t: ReturnType<typeof useT>["t"], s: Supply): string {
-  return isUnmapped(s.state) ? s.state.raw : t(`supplies.state.${s.state}`);
+  return isUnmapped(s.state) ? s.state.raw : t(`supplies.state.${s.state}`, { percent: s.measured?.percent ?? s.level?.max ?? "" });
 }
 
 /** Order toners the way people say them: C, M, Y, K. */

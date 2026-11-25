@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fixture } from "./fixtures";
-import { MAX_SNAPSHOT_AGE_MS, applySnapshot, applySnapshotAlerts, parseSnapshot } from "../src/printer/exactSupplies";
+import { ALMOST_EMPTY_PERCENT, MAX_SNAPSHOT_AGE_MS, applySnapshot, applySnapshotAlerts, parseSnapshot } from "../src/printer/exactSupplies";
 import { parseSupplies } from "../src/printer/parsers";
 import { alertsFromTable, modelFromSysDescr, parseAlertDescription, toPercent } from "../scripts/toner/snapshot";
 
@@ -37,6 +37,26 @@ describe("applySnapshot", () => {
     expect(toner(merged, "black").measured?.percent).toBe(33);
     // Drums are exact on the web already and are left alone.
     expect(merged.filter((s) => s.kind === "drum").every((s) => !s.measured)).toBe(true);
+  });
+
+  it("turns toner at or below the threshold red, more urgent than the printer's own warning", () => {
+    const merged = applySnapshot(live, "ApeosPort-V C4476", snapshot, soon);
+    // Yellow and magenta measured 1%: the printer only says "have a spare ready".
+    expect(toner(merged, "yellow")).toMatchObject({ state: "almostEmpty", severity: "error" });
+    expect(toner(merged, "magenta")).toMatchObject({ state: "almostEmpty", severity: "error" });
+    // Black 33% keeps the printer's warning; cyan 27% stays OK.
+    expect(toner(merged, "black")).toMatchObject({ state: "orderSpare", severity: "warning" });
+    expect(toner(merged, "cyan")).toMatchObject({ state: "ok", severity: "ok" });
+  });
+
+  it("uses a 5% threshold, inclusive", () => {
+    expect(ALMOST_EMPTY_PERCENT).toBe(5);
+    const at = (percent: number) => {
+      const snap = { ...snapshot, supplies: [{ kind: "toner" as const, color: "yellow" as const, percent }] };
+      return toner(applySnapshot(live, "ApeosPort-V C4476", snap, soon), "yellow");
+    };
+    expect(at(5).state).toBe("almostEmpty");
+    expect(at(6).state).toBe("orderSpare");
   });
 
   it("ignores a value that disagrees with the live range (e.g. after a cartridge change)", () => {

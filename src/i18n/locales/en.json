@@ -250,13 +250,15 @@
       "qualityEnd": "End of quality life",
       "sensorFailure": "Sensor failure",
       "failure": "Failure",
-      "checkRequired": "Needs checking"
+      "checkRequired": "Needs checking",
+      "almostEmpty": "About {{percent}}% left. It will need replacing very soon: get a replacement now"
     },
     "level": "About {{percent}}% left",
     "range": "{{min}}–{{max}}%",
     "rangeNote": "The printer only reports toner in 25% steps, so levels are shown as ranges.",
     "measuredNote": "Exact values were measured {{time}}.",
-    "lowSummary": "{{colors}} toner running low"
+    "lowSummary": "{{colors}} toner running low",
+    "urgentSummary": "{{colors}} toner almost empty: get a replacement now"
   },
   "trays": {
     "title": "Paper trays",
@@ -274,8 +276,7 @@
     "parts": {
       "transferBeltCleaner": "transfer belt cleaner"
     },
-    "snmpTag": "SNMP",
-    "snmpNote": "Messages marked SNMP were read from the printer {{time}}.",
+    "snmpNote": "Read from the printer {{time}}.",
     "original": "Printer's original text"
   },
   "jobs": {

@@ -244,13 +244,15 @@
       "qualityEnd": "品質寿命",
       "sensorFailure": "センサー故障",
       "failure": "故障",
-      "checkRequired": "確認が必要です"
+      "checkRequired": "確認が必要です",
+      "almostEmpty": "残り約 {{percent}}%。まもなく交換が必要です。交換用をすぐに用意してください"
     },
     "level": "残り約 {{percent}}%",
     "range": "{{min}}〜{{max}}%",
     "rangeNote": "トナー残量はプリンターから 25% 刻みでしか取得できないため、範囲で表示しています。",
     "measuredNote": "正確な値は{{time}}に測定したものです。",
-    "lowSummary": "{{colors}}のトナーが残りわずかです"
+    "lowSummary": "{{colors}}のトナーが残りわずかです",
+    "urgentSummary": "{{colors}}のトナーがまもなくなくなります。交換用をすぐに用意してください"
   },
   "trays": {
     "title": "用紙トレイ",
@@ -268,8 +270,7 @@
     "parts": {
       "transferBeltCleaner": "転写ベルトクリーナー"
     },
-    "snmpTag": "SNMP",
-    "snmpNote": "「SNMP」の付いたお知らせは、{{time}}にプリンターから取得した情報です。",
+    "snmpNote": "{{time}}にプリンターから取得した情報です。",
     "original": "プリンターの原文"
   },
   "jobs": {
