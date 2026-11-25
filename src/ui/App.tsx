@@ -49,6 +49,19 @@ function useTheme(): [Theme, (t: Theme) => void] {
   return [
     theme,
     (t) => {
+      const nextDark = t === "dark" || (t === "system" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)").matches));
+      const currDark = document.documentElement.classList.contains("dark");
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const startVT = (document as Document & { startViewTransition?: (cb: () => void) => unknown }).startViewTransition;
+      if (startVT && !reduced && nextDark !== currDark) {
+        document.documentElement.dataset.themeDir = nextDark ? "ltr" : "rtl";
+        startVT.call(document, () => {
+          applyTheme(t);
+          saveTheme(t);
+          setTheme(t);
+        });
+        return;
+      }
       saveTheme(t);
       setTheme(t);
     },
@@ -254,7 +267,7 @@ function PrimaryNav({ view, onView, dotClass }: { view: View; onView: (v: View) 
           aria-hidden="true"
           class={cx(
             "pointer-events-none absolute top-1 bottom-1 left-0 rounded-lg bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 dark:ring-white/10",
-            pill.ready && "transition-[transform,width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            pill.ready && "transition-[transform,width] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)]",
           )}
           style={{ width: `${pill.width}px`, transform: `translateX(${pill.left}px)` }}
         />
@@ -332,7 +345,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
           <div class="relative inline-grid grid-cols-3 items-center rounded-lg border border-rule/80 bg-well/80 p-0.5" role="group" aria-label={t("app.theme.label")}>
             <span
               aria-hidden="true"
-              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
+              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
               style={{ transform: `translateX(${themeIndex * 100}%)` }}
             />
             {THEMES.map((mode) => {
@@ -383,12 +396,19 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
 function Shell() {
   const { t } = useT();
   const [view, setView] = useView();
+  const prevView = useRef<View>(view);
+  const dir = useRef<"right" | "left" | null>(null);
+  if (prevView.current !== view) {
+    dir.current = VIEWS.indexOf(view) > VIEWS.indexOf(prevView.current) ? "right" : "left";
+    prevView.current = view;
+  }
   const jobsLink = hashName() === "jobs";
+  const slideClass = dir.current === "right" ? "pp-slide-right" : dir.current === "left" ? "pp-slide-left" : undefined;
   return (
     <div class="flex min-h-screen flex-col">
       <Header view={view} onView={setView} />
-      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-7">
-        <div key={view} class="pp-view">
+      <main class="mx-auto w-full max-w-6xl flex-1 overflow-x-clip px-4 py-6 sm:px-6 sm:py-7">
+        <div key={view} class={slideClass}>
           {view === "print" && <PrintPage />}
           {view === "mailbox" && <MailboxPage />}
           {view === "status" && <StatusPage showHistory={jobsLink} />}

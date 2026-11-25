@@ -48,6 +48,7 @@
     -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scrollbar-gutter: stable;
     transition: background-color 220ms ease, color 220ms ease;
   }
 
@@ -94,14 +95,58 @@
     font-variant-numeric: tabular-nums;
   }
 
-  @keyframes pp-fade-up {
+  /* Directional wipe across the viewport when switching Light <-> Dark via View Transitions API */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-new(root) {
+    animation: pp-wipe-ltr 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  html[data-theme-dir="rtl"]::view-transition-new(root) {
+    animation: pp-wipe-rtl 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes pp-wipe-ltr {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes pp-wipe-rtl {
+    from {
+      clip-path: inset(0 0 0 100%);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes pp-slide-from-right {
     from {
       opacity: 0;
-      transform: translateY(5px);
+      transform: translateX(18px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pp-slide-from-left {
+    from {
+      opacity: 0;
+      transform: translateX(-18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 
@@ -119,7 +164,9 @@
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
-    *::after {
+    *::after,
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
     }
@@ -143,8 +190,12 @@
       0 8px 24px -8px rgb(0 0 0 / 0.38);
   }
 
-  .pp-view {
-    animation: pp-fade-up 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  .pp-slide-right {
+    animation: pp-slide-from-right 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .pp-slide-left {
+    animation: pp-slide-from-left 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .pp-pop {
