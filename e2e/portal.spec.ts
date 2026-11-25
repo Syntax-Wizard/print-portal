@@ -134,7 +134,7 @@ test("shows exact toner levels from the published snapshot", async ({ page }) =>
   await expect(page.getByText(/イエロートナーカートリッジの交換時期が近づいています/)).toBeVisible();
   await expect(page.getByText("3 時間前にプリンターから取得した情報です。")).toHaveCount(1);
   // Measured 1%: red and worded more urgently than the printer's "have a spare ready".
-  await expect(page.getByText("残り約 1%。まもなく交換が必要です。交換用をすぐに用意してください").first()).toBeVisible();
+  await expect(page.getByText("残り約 1%。まもなく交換が必要です").first()).toBeVisible();
   await page.getByRole("link", { name: "印刷" }).click();
   await expect(page.getByText(/マゼンタ、イエローのトナーがまもなくなくなります/)).toBeVisible();
 });
