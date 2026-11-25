@@ -38,6 +38,7 @@ function useView(): [View, (v: View) => void] {
 
 function useTheme(): [Theme, (t: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(loadTheme);
+  const fadeTimer = useRef<number | null>(null);
   useEffect(() => {
     applyTheme(theme);
     if (theme !== "system") return;
@@ -46,22 +47,14 @@ function useTheme(): [Theme, (t: Theme) => void] {
     mq?.addEventListener("change", onChange);
     return () => mq?.removeEventListener("change", onChange);
   }, [theme]);
+  useEffect(() => () => { if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current); }, []);
   return [
     theme,
     (t) => {
-      const nextDark = t === "dark" || (t === "system" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)").matches));
-      const currDark = document.documentElement.classList.contains("dark");
-      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      const startVT = (document as Document & { startViewTransition?: (cb: () => void) => unknown }).startViewTransition;
-      if (startVT && !reduced && nextDark !== currDark) {
-        document.documentElement.dataset.themeDir = nextDark ? "ltr" : "rtl";
-        startVT.call(document, () => {
-          applyTheme(t);
-          saveTheme(t);
-          setTheme(t);
-        });
-        return;
-      }
+      const root = document.documentElement;
+      root.classList.add("pp-theme-fading");
+      if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
+      fadeTimer.current = window.setTimeout(() => root.classList.remove("pp-theme-fading"), 360);
       saveTheme(t);
       setTheme(t);
     },
@@ -318,7 +311,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const themeIndex = Math.max(0, THEMES.indexOf(theme));
 
   return (
-    <header class="sticky top-0 z-20 border-b border-rule/80 bg-sheet/88 backdrop-blur-md transition-colors duration-200">
+    <header class="sticky top-0 z-20 border-b border-rule/80 bg-sheet/88 backdrop-blur-md">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 py-2.5 sm:px-6">
         {/* Left: Brand & Device */}
         <div class="flex min-w-0 items-center gap-2.5">
@@ -345,7 +338,8 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
           <div class="relative inline-grid grid-cols-3 items-center rounded-lg border border-rule/80 bg-well/80 p-0.5" role="group" aria-label={t("app.theme.label")}>
             <span
               aria-hidden="true"
-              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
+              data-theme-thumb
+              class="pointer-events-none absolute top-0.5 left-0.5 h-7 w-7 rounded-md bg-sheet shadow-[0_1px_2px_rgb(15_23_42/0.08)] ring-1 ring-black/5 transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] dark:ring-white/10"
               style={{ transform: `translateX(${themeIndex * 100}%)` }}
             />
             {THEMES.map((mode) => {
@@ -373,7 +367,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
 
       {/* Slim contextual alert strip when toner is low — keeps the header clean and balanced */}
       {low.length > 0 && view !== "status" && (
-        <div class={cx("border-t transition-colors duration-200", urgent.length ? "border-error/25 bg-error-wash/80" : "border-warn/20 bg-warn-wash/75")}>
+        <div class={cx("border-t", urgent.length ? "border-error/25 bg-error-wash/80" : "border-warn/20 bg-warn-wash/75")}>
           <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5 text-xs sm:px-6">
             <button
               type="button"

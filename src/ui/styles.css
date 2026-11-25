@@ -49,7 +49,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scrollbar-gutter: stable;
-    transition: background-color 220ms ease, color 220ms ease;
   }
 
   .dark {
@@ -95,37 +94,12 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Directional wipe across the viewport when switching Light <-> Dark via View Transitions API */
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
-    mix-blend-mode: normal;
-  }
-
-  ::view-transition-new(root) {
-    animation: pp-wipe-ltr 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  html[data-theme-dir="rtl"]::view-transition-new(root) {
-    animation: pp-wipe-rtl 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  @keyframes pp-wipe-ltr {
-    from {
-      clip-path: inset(0 100% 0 0);
-    }
-    to {
-      clip-path: inset(0 0 0 0);
-    }
-  }
-
-  @keyframes pp-wipe-rtl {
-    from {
-      clip-path: inset(0 0 0 100%);
-    }
-    to {
-      clip-path: inset(0 0 0 0);
-    }
+  /* Gentle crossfade across all page surfaces when switching Light <-> Dark, without blocking the toggle thumb slide */
+  html.pp-theme-fading,
+  html.pp-theme-fading *:not([data-theme-thumb]),
+  html.pp-theme-fading *::before,
+  html.pp-theme-fading *::after {
+    transition: background-color 320ms ease, border-color 320ms ease, color 320ms ease, fill 320ms ease, stroke 320ms ease, box-shadow 320ms ease !important;
   }
 
   @keyframes pp-slide-from-right {
@@ -164,9 +138,7 @@
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
-    *::after,
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
+    *::after {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
     }
@@ -181,7 +153,6 @@
     box-shadow:
       0 1px 2px rgb(15 23 42 / 0.04),
       0 6px 20px -6px rgb(15 23 42 / 0.05);
-    transition: background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
   }
 
   .dark .card {
