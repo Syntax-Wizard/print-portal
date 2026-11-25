@@ -66,8 +66,12 @@ function tokyoTimestamp(date: Date): string {
   return `${get("year")}/${get("month")}/${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
+/** POST /__mock/hold?on=1 freezes jobs where they are (to test cancelling); on=0 resumes. */
+let holdJobs = false;
+
 /** Advance job states based on elapsed time. */
 function tick(): void {
+  if (holdJobs) return;
   const now = Date.now();
   for (let i = queue.length - 1; i >= 0; i--) {
     const job = queue[i]!;
@@ -312,6 +316,28 @@ const server = createServer((req, res) => {
     return;
   }
   if (path === "/__mock/last-upload") return send(res, 200, JSON.stringify(lastUpload), "application/json");
+  if (req.method === "POST" && path === "/__mock/hold") {
+    holdJobs = url.searchParams.get("on") === "1";
+    // Resume from where they were frozen, not with all the time that passed meanwhile.
+    if (!holdJobs) for (const job of queue) job.submittedAt = Date.now();
+    return send(res, 200, JSON.stringify({ holdJobs }), "application/json");
+  }
+  if (req.method === "POST" && path === "/JOBCTRL.cmd") {
+    readBody(req)
+      .then((form) => {
+        const ids = (form.get("JOBS") ?? "").split("/").filter(Boolean);
+        // Like the printer: only waiting (0) or printing (1) jobs can be canceled.
+        const targets = queue.filter((j) => ids.includes(j.id.padStart(8, "0")) || ids.includes(j.id));
+        if (form.get("OPR") !== "CANCEL" || targets.length !== ids.length || targets.some((j) => j.state > 1)) {
+          return send(res, 503, fixture("upload-error.html"));
+        }
+        for (const job of targets) queue.splice(queue.indexOf(job), 1);
+        console.log(`[mock] canceled jobs ${ids.join(", ")}`);
+        send(res, 200, fixture("upload-accepted.html"));
+      })
+      .catch(() => send(res, 500, "Internal error", "text/plain"));
+    return;
+  }
   if (path.startsWith("/__portal/")) return serveDist(path, res);
   if (/^\/(PBDOCLST|PBPWD|PBDOCLNK|PBDOCRM)\.cmd$/.test(path) || path.startsWith("/box/") || path === "/__mock/scan") {
     handleMailbox(req, res, url)

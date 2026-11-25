@@ -13,7 +13,7 @@ import { type PdfIssue, type Rotation, buildMergedFile, buildPrintFile, countPdf
 import { canReadImage } from "../images/convert";
 import { usePrinter } from "./PrinterContext";
 
-export type ItemStatus = "ready" | "queued" | "preparing" | "uploading" | "sent" | "waiting" | "printing" | "held" | "done" | "failed";
+export type ItemStatus = "ready" | "queued" | "preparing" | "uploading" | "sent" | "waiting" | "printing" | "held" | "done" | "failed" | "canceled";
 
 export interface PrintItem {
   key: string;
@@ -58,9 +58,15 @@ function statusForJob(job: QueuedJob): ItemStatus {
 export function useSubmissions() {
   const { client, owner, rememberOwner, queue } = usePrinter();
   const [items, setItems] = useState<PrintItem[]>([]);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
   const [busy, setBusy] = useState(false);
   const [tooMany, setTooMany] = useState(false);
   const counting = useRef(new Set<string>());
+  /** Files the user canceled: uploads stop, tracking stops, nothing is reported as printed. */
+  const canceled = useRef(new Set<string>());
+  /** Aborts the upload in progress, keyed by every file it carries. */
+  const uploads = useRef(new Map<string, AbortController>());
   const ownerRef = useRef(owner);
   ownerRef.current = owner;
 
@@ -105,6 +111,49 @@ export function useSubmissions() {
 
   const setPageRange = useCallback((key: string, pageRange: string) => update(key, { pageRange }), [update]);
 
+  /**
+   * Cancel a file at whatever stage it is: waiting its turn here, being prepared or uploaded
+   * (the upload is aborted), or already at the printer (the printer job is canceled; all files
+   * of a merged job go together). Returns the printer's answer for jobs at the printer.
+   */
+  const cancel = useCallback(
+    async (key: string): Promise<SubmitResult | null> => {
+      const item = itemsRef.current.find((i) => i.key === key);
+      if (!item) return null;
+      if (item.jobId) {
+        const result = await client.cancelJob(item.jobId);
+        if (result.ok) {
+          const group = itemsRef.current.filter((i) => i.jobId === item.jobId).map((i) => i.key);
+          for (const k of group) canceled.current.add(k);
+          update(group, { status: "canceled" });
+          void queue.refresh();
+        }
+        return result;
+      }
+      canceled.current.add(key);
+      const upload = uploads.current.get(key);
+      if (upload) upload.abort();
+      else update(key, { status: "canceled" });
+      return { ok: true };
+    },
+    [client, update, queue],
+  );
+
+  /** Cancel a job from the queue panel; files of this tab that belong to it are marked too. */
+  const cancelJob = useCallback(
+    async (jobId: string): Promise<SubmitResult> => {
+      const result = await client.cancelJob(jobId);
+      if (result.ok) {
+        const group = itemsRef.current.filter((i) => i.jobId === jobId).map((i) => i.key);
+        for (const k of group) canceled.current.add(k);
+        if (group.length) update(group, { status: "canceled" });
+        void queue.refresh();
+      }
+      return result;
+    },
+    [client, update, queue],
+  );
+
   /** Turn a file a further 90° clockwise (0 -> 90 -> 180 -> 270 -> 0). */
   const rotate = useCallback((key: string) => {
     setItems((list) => list.map((it) => (it.key === key ? { ...it, rotation: (((it.rotation + 90) % 360) as Rotation) } : it)));
@@ -133,7 +182,9 @@ export function useSubmissions() {
     async (key: string | readonly string[], before: Set<string>, since: Date) => {
       const started = Date.now();
       let jobId: string | undefined;
+      const keyList = typeof key === "string" ? [key] : key;
       for (let attempt = 0; ; attempt++) {
+        if (keyList.some((k) => canceled.current.has(k))) break;
         // Poll quickly at first: small jobs can pass through the queue in a few seconds.
         await new Promise((r) => setTimeout(r, attempt === 0 ? FIRST_TRACK_DELAY_MS : TRACK_INTERVAL_MS));
         let list: QueuedJob[];
@@ -150,6 +201,7 @@ export function useSubmissions() {
           if (!ownerRef.current) rememberOwner(job.owner);
           update(key, { jobId });
         }
+        if (keyList.some((k) => canceled.current.has(k))) break; // Canceled while we were polling.
         if (jobId && !job) {
           update(key, { status: "done" });
           break;
@@ -182,6 +234,8 @@ export function useSubmissions() {
   /** Upload one file (or merged file) for `keys` and follow the job. */
   const sendOne = useCallback(
     async (keys: readonly string[], build: () => Promise<{ file: File; options: PrintOptions }>, needsBuild: boolean) => {
+      const isCanceled = () => keys.some((k) => canceled.current.has(k));
+      if (isCanceled()) return;
       update(keys, { status: "uploading" });
       const since = new Date();
       let before = new Set<string>();
@@ -200,8 +254,13 @@ export function useSubmissions() {
         update(keys, { status: "failed", pdfIssue: issueFromError(err) });
         return;
       }
+      if (isCanceled()) return update(keys, { status: "canceled" });
       update(keys, { status: "uploading" });
-      const result = await client.submit(prepared.file, prepared.options, { onProgress: (p) => update(keys, { progress: p }) });
+      const controller = new AbortController();
+      for (const k of keys) uploads.current.set(k, controller);
+      const result = await client.submit(prepared.file, prepared.options, { onProgress: (p) => update(keys, { progress: p }), signal: controller.signal });
+      for (const k of keys) uploads.current.delete(k);
+      if (!result.ok && (result.code === "ABORTED" || isCanceled())) return update(keys, { status: "canceled" });
       if (result.ok) {
         update(keys, { status: "sent", progress: 1 });
         void track(keys, before, since);
@@ -217,7 +276,10 @@ export function useSubmissions() {
       const targets = items.filter((i) => !i.problem && (opts.onlyKey ? i.key === opts.onlyKey : i.status === "ready"));
       if (targets.length === 0) return;
       setBusy(true);
-      for (const t of targets) update(t.key, { status: "queued", progress: 0, error: undefined });
+      for (const t of targets) {
+        canceled.current.delete(t.key);
+        update(t.key, { status: "queued", progress: 0, error: undefined, jobId: undefined });
+      }
       try {
         if (opts.merge && targets.length > 1) {
           // One job, in the order shown: pages per sheet and 2-sided run across the files.
@@ -235,7 +297,7 @@ export function useSubmissions() {
     [items, update, sendOne],
   );
 
-  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate };
+  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelJob };
 }
 
 export type Submissions = ReturnType<typeof useSubmissions>;

@@ -203,6 +203,7 @@ export function FileList(props: {
   /** When set (merged printing), files can be reordered. */
   onMove?: (key: string, delta: -1 | 1) => void;
   onRotate: (key: string) => void;
+  onCancel?: (key: string) => void;
   tooMany: boolean;
 }) {
   const { t, lang } = useT();
@@ -212,7 +213,10 @@ export function FileList(props: {
     <div class="flex flex-col gap-2">
       <ul class="card m-0 flex list-none flex-col divide-y divide-rule overflow-hidden p-0" aria-live="polite">
         {props.items.map((item, index) => {
-          const removable = ["ready", "failed", "done"].includes(item.status);
+          const removable = ["ready", "failed", "done", "canceled"].includes(item.status);
+          // Cancellable while waiting here, being sent, or at the printer once its job is known.
+          const cancellable =
+            ["queued", "preparing", "uploading"].includes(item.status) || (Boolean(item.jobId) && ["sent", "waiting", "printing"].includes(item.status));
           return (
             <li key={item.key} class="relative flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-well/40">
               {item.status === "uploading" && (
@@ -237,7 +241,17 @@ export function FileList(props: {
                   <PdfControls item={item} onRangeChange={(text) => props.onRangeChange(item.key, text)} onPreview={() => props.onPreview(item.key)} onRotate={() => props.onRotate(item.key)} />
                 )}
               </div>
-              {item.status === "failed" && !item.problem && (
+              {cancellable && props.onCancel && (
+                <button
+                  type="button"
+                  class="cursor-pointer rounded-lg border border-rule bg-sheet px-2.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-error/40 hover:bg-error-wash hover:text-error"
+                  aria-label={t("files.cancelLabel", { name: item.file.name })}
+                  onClick={() => props.onCancel!(item.key)}
+                >
+                  {t("files.cancel")}
+                </button>
+              )}
+              {(item.status === "failed" || item.status === "canceled") && !item.problem && (
                 <button
                   type="button"
                   class="cursor-pointer rounded-lg bg-accent-wash px-2.5 py-1.5 text-xs font-semibold text-accent-ink transition-colors hover:bg-accent hover:text-on-accent"

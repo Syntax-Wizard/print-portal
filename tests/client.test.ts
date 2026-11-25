@@ -91,6 +91,19 @@ describe("PrinterClient", () => {
     expect(second).toEqual({ ok: true });
   });
 
+  it("cancels a job like the printer's own job list", async () => {
+    let body = "";
+    const client = new PrinterClient({
+      fetchImpl: async (input, init) => {
+        expect(String(input)).toBe("/JOBCTRL.cmd");
+        body = String(init?.body);
+        return new Response(fixture("upload-accepted.html"), { status: 200 });
+      },
+    });
+    expect(await client.cancelJob("0001c562")).toEqual({ ok: true });
+    expect(Object.fromEntries(new URLSearchParams(body))).toEqual({ JOBS: "0001c562/", OPR: "CANCEL" });
+  });
+
   it("does not upload when already aborted", async () => {
     const client = new PrinterClient({ transport: async () => expect.fail("should not upload") });
     const controller = new AbortController();

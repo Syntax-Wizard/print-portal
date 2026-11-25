@@ -555,3 +555,44 @@ test("rotate an image", async ({ page, request }) => {
   expect(upload.name).toBe("sideways.pdf");
   expect(upload.firstPageRotation).toBe(90);
 });
+
+test("rotate from inside the preview", async ({ page, request }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: "turn-me.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) });
+  await expect(page.getByText("全 1 ページ")).toBeVisible();
+  await page.getByRole("button", { name: "仕上がりを確認" }).click();
+  const frame = page.getByRole("dialog").locator("iframe");
+  const first = await frame.getAttribute("src");
+  await page.getByRole("dialog").getByRole("button", { name: /回転（印刷に反映）/ }).click();
+  // The preview is rebuilt for the new rotation, and the dialog shows the angle.
+  await expect(frame).not.toHaveAttribute("src", first!);
+  await expect(page.getByRole("dialog").getByRole("button", { name: /回転（印刷に反映）\s*90°/ })).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByRole("button", { name: /turn-me\.pdf を右に 90° 回転（今は 90°）/ })).toBeVisible();
+  const upload = await printAndInspect(page, request, "turn-me.pdf");
+  expect(upload.firstPageRotation).toBe(90);
+});
+
+test("cancel a job at the printer, from the file list and from the queue panel", async ({ page, request }) => {
+  // Let jobs from earlier tests finish, then keep new jobs waiting so there is time to cancel.
+  await expect.poll(async () => (await (await request.get("/jblist.htm")).text()).includes("var info=[];"), { timeout: 20_000 }).toBe(true);
+  await request.post("/__mock/hold?on=1");
+  try {
+    await openPortal(page);
+    page.on("dialog", (d) => void d.accept());
+    await page.locator('input[type="file"]').setInputFiles({ name: "oops.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) });
+    await page.getByRole("button", { name: "1 ファイルを印刷" }).first().click();
+    const row = page.locator("li", { hasText: "oops.pdf" });
+    await row.getByRole("button", { name: "oops.pdf の印刷をキャンセル" }).click({ timeout: 15_000 });
+    await expect(row.getByText("キャンセルしました")).toBeVisible();
+    await expect(page.getByText("印刷中・待機中のジョブ")).toHaveCount(0);
+
+    // Retry, then cancel from the queue panel instead.
+    await row.getByRole("button", { name: "もう一度送る" }).click();
+    const panel = page.locator("section", { hasText: "印刷中・待機中のジョブ" });
+    await panel.getByRole("button", { name: "キャンセル" }).click({ timeout: 15_000 });
+    await expect(row.getByText("キャンセルしました")).toBeVisible();
+  } finally {
+    await request.post("/__mock/hold?on=0");
+  }
+});

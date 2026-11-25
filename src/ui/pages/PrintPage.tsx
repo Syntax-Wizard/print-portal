@@ -79,7 +79,17 @@ export function PrintPage() {
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
   const [remember, setRemember] = useState<boolean>(loadRememberOptions);
   const [showErrors, setShowErrors] = useState(false);
-  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate } = usePrintList();
+  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel } = usePrintList();
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const onCancel = async (key: string) => {
+    const item = items.find((i) => i.key === key);
+    // Jobs already at the printer are worth a second thought; local ones are simply dropped.
+    if (item?.jobId && !window.confirm(t("files.cancelConfirm", { name: item.file.name }))) return;
+    setCancelError(null);
+    const result = await cancel(key);
+    if (result && !result.ok) setCancelError(t("files.cancelFailed"));
+  };
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [merge, setMerge] = useState(false);
   const [mergedPreview, setMergedPreview] = useState(false);
@@ -213,8 +223,10 @@ export function PrintPage() {
           onPreview={setPreviewKey}
           onMove={merging ? move : undefined}
           onRotate={rotate}
+          onCancel={(key) => void onCancel(key)}
           tooMany={tooMany}
         />
+        {cancelError && <p class="m-0 px-1 text-xs font-medium text-error" role="alert">{cancelError}</p>}
         {readyItems.length > 1 && (
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
             <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold">
@@ -230,7 +242,7 @@ export function PrintPage() {
           </div>
         )}
         {mergedPreview && <MergedPreview items={readyItems} options={options} onClose={() => setMergedPreview(false)} />}
-        <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} />
+        <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} onRotate={rotate} />
         <section aria-labelledby="settings-heading" class="card p-5 sm:p-6">
           <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 id="settings-heading" class="m-0 text-base font-bold tracking-tight text-ink">

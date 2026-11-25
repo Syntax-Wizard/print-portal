@@ -66,7 +66,11 @@
     "moveUp": "Move {{name}} up",
     "moveDown": "Move {{name}} down",
     "rotate": "Rotate",
-    "rotateLabel": "Rotate {{name}} 90° clockwise (now {{angle}}°)"
+    "rotateLabel": "Rotate {{name}} 90° clockwise (now {{angle}}°)",
+    "cancel": "Cancel",
+    "cancelLabel": "Cancel printing {{name}}",
+    "cancelConfirm": "Cancel printing “{{name}}”? Pages already printed can't be undone.",
+    "cancelFailed": "Couldn't cancel. The job may have finished already, or the printer refused."
   },
   "item": {
     "ready": "Ready",
@@ -79,7 +83,8 @@
     "held": "Held at the printer. Release it on the control panel",
     "failed": "Couldn't print",
     "retry": "Send again",
-    "preparing": "Preparing…"
+    "preparing": "Preparing…",
+    "canceled": "Canceled"
   },
   "options": {
     "title": "Settings",
@@ -335,7 +340,8 @@
     },
     "showMore": "Show more",
     "showLess": "Show less",
-    "retrievalsHidden": "Mailbox retrievals (the printer logs one for every thumbnail and download) are not shown."
+    "retrievalsHidden": "Mailbox retrievals (the printer logs one for every thumbnail and download) are not shown.",
+    "cancelConfirm": "Cancel this print job? Pages already printed can't be undone."
   },
   "mailbox": {
     "intro": "Documents you scan to a mailbox on the printer can be saved here as PDF.",
@@ -499,6 +505,8 @@
     "failed": "Couldn't create the preview.",
     "close": "Close",
     "openInTab": "Open in new tab",
-    "notShowing": "If the preview doesn't show, use “Open in new tab”."
+    "notShowing": "If the preview doesn't show, use “Open in new tab”.",
+    "rotate": "Rotate (for printing)",
+    "rotateHint": "Rotates 90° clockwise, and prints that way. The viewer's own rotate button only changes the view."
   }
 }

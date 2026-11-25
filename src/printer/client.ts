@@ -121,6 +121,25 @@ export class PrinterClient {
   }
 
   /**
+   * Cancel a job that is waiting or printing (the printer refuses others). Same endpoint and
+   * fields as the printer's own job list ("JOBS" = "id/", "OPR" = "CANCEL"). The printer does
+   * not check who submitted the job, so the UI only offers this for the user's own jobs.
+   */
+  async cancelJob(jobId: string): Promise<SubmitResult> {
+    try {
+      const res = await this.fetchImpl(`${this.baseUrl}/JOBCTRL.cmd`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ JOBS: `${jobId}/`, OPR: "CANCEL" }).toString(),
+        cache: "no-store",
+      });
+      return parseUploadResponse(res.status, await res.text());
+    } catch {
+      return { ok: false, code: "PRINTER_UNREACHABLE" };
+    }
+  }
+
+  /**
    * Submit one file. Calls are queued and executed one at a time.
    * Never throws for printer-side problems; they are reported as `{ ok: false, code }`.
    */

@@ -9,6 +9,7 @@ import type { HistoryJob, QueuedJob } from "../../printer/types";
 import { isUnmapped } from "../../printer/types";
 import { cx } from "./controls";
 import { usePrinter } from "../PrinterContext";
+import { usePrintList } from "../useSubmissions";
 import { usePolling } from "../usePolling";
 
 const HISTORY_INTERVAL_MS = 30_000;
@@ -24,6 +25,7 @@ function Owner({ owner, mine }: { owner: string; mine: boolean }) {
 export function QueuePanel() {
   const { t } = useT();
   const { queue, owner } = usePrinter();
+  const { cancelJob } = usePrintList();
   // The printer logs every mailbox retrieval (thumbnails, downloads) as a job: not of interest here.
   const jobs = (queue.data ?? []).filter((j) => j.type !== "mailboxRetrieval");
   if (jobs.length === 0) return null;
@@ -33,14 +35,35 @@ export function QueuePanel() {
         {t("jobs.queueTitle")}
       </h2>
       <ul class="m-0 flex list-none flex-col gap-2 p-0" aria-live="polite">
-        {jobs.map((j: QueuedJob) => (
-          <li key={j.id} class="flex items-center justify-between gap-3 text-sm">
-            <Owner owner={j.owner} mine={owner !== null && j.owner === owner} />
-            <span class={cx("font-semibold", j.state === "printing" ? "text-accent-ink" : "text-ink-soft")}>
-              {isUnmapped(j.state) ? j.state.raw : t(`jobs.state.${j.state}`)}
-            </span>
-          </li>
-        ))}
+        {jobs.map((j: QueuedJob) => {
+          const mine = owner !== null && j.owner === owner;
+          // The printer cancels any job for anyone; only offer it for the user's own,
+          // and only in the states the printer accepts (waiting, printing).
+          const cancellable = mine && (j.state === "waiting" || j.state === "printing");
+          return (
+            <li key={j.id} class="flex items-center justify-between gap-3 text-sm">
+              <Owner owner={j.owner} mine={mine} />
+              <span class="flex items-center gap-2">
+                <span class={cx("font-semibold", j.state === "printing" ? "text-accent-ink" : "text-ink-soft")}>
+                  {isUnmapped(j.state) ? j.state.raw : t(`jobs.state.${j.state}`)}
+                </span>
+                {cancellable && (
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-md border border-rule bg-sheet px-2 py-0.5 text-xs font-semibold text-ink-soft hover:border-error/40 hover:bg-error-wash hover:text-error"
+                    onClick={async () => {
+                      if (!window.confirm(t("jobs.cancelConfirm"))) return;
+                      const result = await cancelJob(j.id);
+                      if (!result.ok) window.alert(t("files.cancelFailed"));
+                    }}
+                  >
+                    {t("files.cancel")}
+                  </button>
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
