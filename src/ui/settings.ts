@@ -8,6 +8,7 @@ import type { PrintOptions } from "../printer/types";
 
 const KEYS = {
   options: "printPortal.options",
+  rememberOptions: "printPortal.rememberOptions",
   theme: "printPortal.theme",
   owner: "printPortal.owner",
 } as const;
@@ -31,11 +32,30 @@ function write(key: string, value: unknown): void {
   }
 }
 
+function remove(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable.
+  }
+}
+
+/** Whether the user explicitly asked to keep their print settings for future visits. Defaults to false. */
+export function loadRememberOptions(): boolean {
+  return read<boolean>(KEYS.rememberOptions) === true;
+}
+
+export function saveRememberOptions(remember: boolean): void {
+  write(KEYS.rememberOptions, remember);
+  if (!remember) remove(KEYS.options);
+}
+
 /**
- * Last used options. Special job types (secure, sample, delayed) are deliberately not
- * restored: they should always be a conscious choice for the current job.
+ * Last used options, restored only when the user opted in to remembering them.
+ * Special job types (secure, sample, delayed) are deliberately never restored.
  */
 export function loadOptions(): PrintOptions {
+  if (!loadRememberOptions()) return DEFAULT_OPTIONS;
   const saved = read<Partial<PrintOptions>>(KEYS.options);
   if (!saved || typeof saved !== "object") return DEFAULT_OPTIONS;
   const merged: PrintOptions = { ...DEFAULT_OPTIONS };

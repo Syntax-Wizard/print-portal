@@ -83,6 +83,7 @@
   },
   "options": {
     "title": "Settings",
+    "remember": "Remember these settings",
     "copies": "Copies",
     "copiesDecrease": "Fewer copies",
     "copiesIncrease": "More copies",

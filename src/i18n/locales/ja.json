@@ -81,6 +81,7 @@
   },
   "options": {
     "title": "設定",
+    "remember": "この設定を次回も使う",
     "copies": "部数",
     "copiesDecrease": "部数を減らす",
     "copiesIncrease": "部数を増やす",

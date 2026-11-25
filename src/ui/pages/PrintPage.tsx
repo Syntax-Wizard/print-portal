@@ -9,7 +9,7 @@ import { SheetPreview } from "../components/SheetPreview";
 import { PanelHeading, SupplyList, TrayList } from "../components/status";
 import { cx } from "../components/controls";
 import { usePrinter } from "../PrinterContext";
-import { loadOptions, saveOptions } from "../settings";
+import { loadOptions, loadRememberOptions, saveOptions, saveRememberOptions } from "../settings";
 import { type PrintItem, usePrintList } from "../useSubmissions";
 import { MergedPreview } from "../components/PreviewDialog";
 import { PreviewDialog } from "../components/PreviewDialog";
@@ -77,6 +77,7 @@ export function PrintPage() {
   const { t } = useT();
   const { status } = usePrinter();
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
+  const [remember, setRemember] = useState<boolean>(loadRememberOptions);
   const [showErrors, setShowErrors] = useState(false);
   const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate } = usePrintList();
   const [previewKey, setPreviewKey] = useState<string | null>(null);
@@ -84,7 +85,10 @@ export function PrintPage() {
   const [mergedPreview, setMergedPreview] = useState(false);
   const [confirmingLarge, setConfirmingLarge] = useState(false);
 
-  useEffect(() => saveOptions(options), [options]);
+  useEffect(() => {
+    saveRememberOptions(remember);
+    if (remember) saveOptions(options);
+  }, [remember, options]);
 
   // Paste a screenshot (⌘V / Ctrl+V) to print it. Typing in a text field keeps normal pasting.
   useEffect(() => {
@@ -228,9 +232,20 @@ export function PrintPage() {
         {mergedPreview && <MergedPreview items={readyItems} options={options} onClose={() => setMergedPreview(false)} />}
         <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} />
         <section aria-labelledby="settings-heading" class="card p-5 sm:p-6">
-          <h2 id="settings-heading" class="m-0 mb-4 text-base font-bold tracking-tight text-ink">
-            {t("options.title")}
-          </h2>
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 id="settings-heading" class="m-0 text-base font-bold tracking-tight text-ink">
+              {t("options.title")}
+            </h2>
+            <label class="inline-flex cursor-pointer select-none items-center gap-2 rounded-lg px-2 py-1 text-xs font-medium text-ink-soft transition-colors hover:bg-well hover:text-ink">
+              <input
+                type="checkbox"
+                class="h-3.5 w-3.5 accent-[var(--color-accent)]"
+                checked={remember}
+                onChange={(e) => setRemember((e.currentTarget as HTMLInputElement).checked)}
+              />
+              {t("options.remember")}
+            </label>
+          </div>
           <OptionsForm options={options} onChange={setOptions} trays={trays} errors={showErrors ? errors : []} />
         </section>
       </div>
