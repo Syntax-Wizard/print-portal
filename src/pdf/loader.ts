@@ -5,6 +5,7 @@
  * came from (recorded at startup). Development: src/dev.tsx imports the tools directly.
  */
 
+import { PDF_TOOLS_API } from "./api";
 import type { PdfTools } from "./index";
 
 type WithTools = Window & { PrintPortalPdf?: PdfTools; __printPortalBase?: string };
@@ -17,16 +18,43 @@ export function rememberScriptBase(): void {
   if (src) (window as WithTools).__printPortalBase = new URL(".", src).href;
 }
 
+/** Raised when the loaded pdf-tools.js belongs to a different release than this portal.js. */
+export class PdfToolsOutdatedError extends Error {
+  constructor() {
+    super("pdf-tools.js does not match this version of the portal");
+    this.name = "PdfToolsOutdatedError";
+  }
+}
+
+function checked(tools: PdfTools): PdfTools {
+  if (tools.apiVersion !== PDF_TOOLS_API) throw new PdfToolsOutdatedError();
+  return tools;
+}
+
 export function loadPdfTools(): Promise<PdfTools> {
   const w = window as WithTools;
-  if (w.PrintPortalPdf) return Promise.resolve(w.PrintPortalPdf);
+  if (w.PrintPortalPdf) {
+    try {
+      return Promise.resolve(checked(w.PrintPortalPdf));
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
   if (pending) return pending;
   pending = new Promise<PdfTools>((resolve, reject) => {
     const base = w.__printPortalBase;
     if (!base) return reject(new Error("PDF tools location unknown"));
     const script = document.createElement("script");
-    script.src = `${base}pdf-tools.js?v=${encodeURIComponent(__PORTAL_VERSION__)}`;
-    script.onload = () => (w.PrintPortalPdf ? resolve(w.PrintPortalPdf) : reject(new Error("PDF tools did not register")));
+    // The build id ties this request to the pdf-tools.js built with this portal.js.
+    script.src = `${base}pdf-tools.js?b=${encodeURIComponent(__BUILD_ID__)}`;
+    script.onload = () => {
+      if (!w.PrintPortalPdf) return reject(new Error("PDF tools did not register"));
+      try {
+        resolve(checked(w.PrintPortalPdf));
+      } catch (err) {
+        reject(err);
+      }
+    };
     script.onerror = () => reject(new Error("Could not load PDF tools"));
     document.head.appendChild(script);
   }).catch((err) => {

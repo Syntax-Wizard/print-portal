@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
+import { buildId } from "./scripts/build-id";
 
 // Where printer requests are proxied during `npm run dev`.
 // Defaults to the local mock printer so development never wastes paper.
@@ -31,6 +32,7 @@ export default defineConfig({
   },
   define: {
     __PORTAL_VERSION__: JSON.stringify(process.env.npm_package_version ?? "dev"),
+    __BUILD_ID__: JSON.stringify(buildId()),
     // Exact toner levels (scripts/toner/). Defaults to the mock printer's sample for local work.
     __TONER_DATA_URL__: JSON.stringify(process.env.TONER_DATA_URL ?? "http://localhost:8631/__portal/toner.json"),
   },

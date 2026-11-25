@@ -9,7 +9,7 @@ import { loadPdfTools } from "../pdf/loader";
 import { type PageRangeResult, parsePageRange } from "../pdf/pageRange";
 import type { PrintOptions } from "../printer/types";
 
-export type PdfIssue = "encrypted" | "unreadable" | "toolsUnavailable";
+export type PdfIssue = "encrypted" | "unreadable" | "toolsUnavailable" | "toolsOutdated";
 
 export interface PdfInfo {
   file: File;
@@ -24,8 +24,15 @@ export function isPdf(file: File): boolean {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 }
 
+/** True when the bytes start with the PDF signature "%PDF-". */
+export function isPdfBytes(bytes: unknown): bytes is Uint8Array {
+  if (!(bytes instanceof Uint8Array) || bytes.length < 5) return false;
+  return String.fromCharCode(...bytes.subarray(0, 5)) === "%PDF-";
+}
+
 export function issueFromError(err: unknown): PdfIssue {
   const e = err as { name?: string; code?: string };
+  if (e?.name === "PdfToolsOutdatedError") return "toolsOutdated";
   if (e?.name === "PdfToolError" && (e.code === "encrypted" || e.code === "unreadable")) return e.code;
   return "toolsUnavailable";
 }
@@ -46,7 +53,9 @@ export function selectedPageCount(info: PdfInfo): number | null {
 }
 
 export function needsProcessing(info: PdfInfo, options: PrintOptions): boolean {
-  if (!isPdf(info.file) || info.pdfIssue) return false;
+  // Protected or unreadable PDFs are printed as they are (the list says so). If only the tools
+  // failed to load, keep trying: printing the whole file 1-up would ignore the user's settings.
+  if (!isPdf(info.file) || info.pdfIssue === "encrypted" || info.pdfIssue === "unreadable") return false;
   return info.pageRange.trim() !== "" || options.pagesPerSheet > 1;
 }
 
@@ -77,6 +86,8 @@ export async function buildPrintFile(info: PdfInfo, options: PrintOptions): Prom
     pagesPerSheet: options.pagesPerSheet,
     paper: paperFor(options),
   });
+  // Never send something that is not a PDF (e.g. if the tools bundle misbehaves).
+  if (!isPdfBytes(prepared?.bytes)) throw new Error("PDF tools returned something that is not a PDF");
   return {
     file: new File([prepared.bytes as BlobPart], info.file.name, { type: "application/pdf" }),
     options: { ...options, duplex: duplexForPrinter(options.duplex, prepared.landscape) },

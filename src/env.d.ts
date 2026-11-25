@@ -3,6 +3,9 @@
 /** Injected at build time from package.json. */
 declare const __PORTAL_VERSION__: string;
 
+/** Identifies one build; shared by portal.js and pdf-tools.js. */
+declare const __BUILD_ID__: string;
+
 /** URL of the published exact toner snapshot, or "" when disabled. */
 declare const __TONER_DATA_URL__: string;
 

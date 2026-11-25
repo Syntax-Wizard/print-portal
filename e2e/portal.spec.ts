@@ -244,3 +244,23 @@ test("asks before leaving while files are waiting, and offers the preview in a n
   expect(d.type()).toBe("beforeunload");
   await d.dismiss();
 });
+
+test("an outdated pdf-tools.js from the browser cache is refused, never used", async ({ page, request }) => {
+  // Simulate the cache mismatch seen right after a release: an older tools bundle whose
+  // preparePdf returned raw bytes instead of { bytes, landscape }.
+  await page.route("**/pdf-tools.js*", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: "window.PrintPortalPdf={apiVersion:1,countPages:async()=>4,preparePdf:async()=>new Uint8Array([1,2,3])};",
+    }),
+  );
+  await openPortal(page);
+  const before = await (await request.get("/__mock/last-upload")).json();
+  await page.locator('input[type="file"]').setInputFiles({ name: "stale.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(4) });
+  await expect(page.getByText("新しいバージョンに更新されました。ページを再読み込みしてから、もう一度ブックマークをクリックしてください。")).toBeVisible();
+  // With 2 pages per sheet chosen, the file must not be sent 1-up as if nothing happened.
+  await page.getByText("2 ページ", { exact: true }).click();
+  await page.getByRole("button", { name: "1 ファイルを印刷" }).first().click();
+  await expect(page.locator("li", { hasText: "stale.pdf" }).getByText("印刷できませんでした")).toBeVisible();
+  expect(await (await request.get("/__mock/last-upload")).json()).toEqual(before);
+});

@@ -54,7 +54,8 @@
     "pdfIssue": {
       "encrypted": "This PDF is protected, so page selection and several pages per sheet aren't available. It can still be printed as is.",
       "unreadable": "This PDF can't be read, so page selection and several pages per sheet aren't available. It can still be printed as is.",
-      "toolsUnavailable": "Couldn't load the PDF tools. Check your internet connection."
+      "toolsUnavailable": "Couldn't load the PDF tools. Check your internet connection.",
+      "toolsOutdated": "Print Portal was just updated. Reload the page, then click the bookmark again."
     }
   },
   "item": {
