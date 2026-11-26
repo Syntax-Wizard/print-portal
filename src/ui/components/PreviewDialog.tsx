@@ -1,6 +1,6 @@
 /**
- * Show exactly what will be sent to the printer for one file, using the browser's own
- * PDF viewer (no PDF renderer of our own to download).
+ * Show exactly what will be sent to the printer for one file, in the portal's page viewer
+ * (whose rotate button turns the file for printing).
  */
 
 import { useEffect, useState } from "preact/hooks";
@@ -14,6 +14,8 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
   const { t } = useT();
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  /** A rotation is being applied: the previous pages stay shown meanwhile. */
+  const [rotating, setRotating] = useState(false);
 
   useEffect(() => {
     let objectUrl: string | null = null;
@@ -23,6 +25,7 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
         if (cancelled) return;
         objectUrl = URL.createObjectURL(file);
         setUrl(objectUrl);
+        setRotating(false);
       })
       .catch(() => !cancelled && setFailed(true));
     return () => {
@@ -35,17 +38,18 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
   }, [props.item.rotation]);
 
   const rotation = props.item.rotation;
-  const actions = props.onRotate && (
+  const tools = props.onRotate && (
     <button
       type="button"
-      class="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-rule bg-sheet px-3 py-1.5 text-sm font-semibold hover:bg-well"
+      class="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-wash"
       title={t("preview.rotateHint")}
+      aria-busy={rotating}
       onClick={() => {
-        setUrl(null); // Show "preparing" until the rotated file is ready.
+        setRotating(true);
         props.onRotate!();
       }}
     >
-      <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg class={rotating ? "h-4 w-4 animate-spin" : "h-4 w-4"} viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M13 8a5 5 0 1 1-1.5-3.6" />
         <path d="M13 2.5V5h-2.5" />
       </svg>
@@ -53,7 +57,7 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
       {rotation ? <span class="tabular text-accent-ink">{rotation}°</span> : null}
     </button>
   );
-  return <PdfDialog title={`${t("preview.title")}: ${props.item.file.name}`} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} actions={actions} hideViewerToolbar />;
+  return <PdfDialog title={`${t("preview.title")}: ${props.item.file.name}`} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} pageViewer={{ tools }} />;
 }
 
 export function PreviewDialog(props: { item: PrintItem | null; options: PrintOptions; onClose: () => void; onRotate?: (key: string) => void }) {
@@ -84,5 +88,5 @@ export function MergedPreview(props: { items: PrintItem[]; options: PrintOptions
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} hideViewerToolbar />;
+  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} pageViewer={{}} />;
 }

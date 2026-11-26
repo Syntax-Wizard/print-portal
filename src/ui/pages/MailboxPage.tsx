@@ -468,13 +468,22 @@ export function MailboxPage() {
   // The first visit loads the list of boxes (and opens "my" box).
   useEffect(() => mb.activate(), [mb.activate]);
   const box = mb.selected;
+  const openingMine = mb.myBox !== null && mb.boxes === null && !box && mb.notice?.kind !== "error";
 
   return (
     <div class="flex max-w-4xl flex-col gap-6">
       <p class="m-0 max-w-prose text-sm text-ink-soft">{t("mailbox.intro")}</p>
       <Notice notice={mb.notice} />
 
-      {(mb.phase === "choose" || !box) && <BoxChooser boxes={mb.boxes} myBox={mb.myBox} onChoose={(b) => void mb.choose(b)} />}
+      {/* With "my" box set, the first visit opens it as soon as the list arrives: show that rather
+          than flashing the chooser for the moment the list takes. A failed load shows the chooser. */}
+      {openingMine && (
+        <section class="card flex items-center gap-3 p-5 text-sm text-ink-soft sm:p-6" aria-live="polite">
+          <span class="h-4 w-4 animate-spin rounded-full border-2 border-rule border-t-accent" aria-hidden="true" />
+          {t("mailbox.openingMine", { number: boxNumber(mb.myBox!) })}
+        </section>
+      )}
+      {!openingMine && (mb.phase === "choose" || !box) && <BoxChooser boxes={mb.boxes} myBox={mb.myBox} onChoose={(b) => void mb.choose(b)} />}
 
       {box && mb.phase !== "choose" && (
         <section class="card flex flex-col gap-5 p-5 sm:p-6" aria-labelledby="mb-title">

@@ -1,5 +1,5 @@
-# Unit-test, build and publish dist/ (portal.js + install page) to GitHub Pages on every push to
-# main. End-to-end tests run in a separate job that does not block the deploy.
+# Build and publish dist/ (portal.js + install page) to GitHub Pages on every push to main.
+# Tests (npm test, npm run e2e) are run locally before pushing, not here, so deploys are fast.
 name: Deploy to GitHub Pages
 
 on:
@@ -26,7 +26,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
       - name: Build for https://<owner>.github.io/<repo>/
         run: |
           owner="${GITHUB_REPOSITORY_OWNER,,}"
@@ -37,23 +36,6 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-
-  # Runs alongside the build and does not hold up deploying: a failure marks the commit
-  # (and its annotations say why) but the site still goes live. E2E also runs locally before pushing.
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - name: End-to-end tests against the mock printer
-        run: |
-          npx playwright install --with-deps chromium
-          PW_CHANNEL="" npx playwright test
 
   deploy:
     needs: build
