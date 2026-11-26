@@ -61,14 +61,17 @@
     "mergeOrderHint": "この順番で印刷します。↑↓ で並べ替えられます。",
     "mergedPreview": "まとめた仕上がりを確認",
     "mergedPreviewTitle": "まとめた仕上がり（{{count}} ファイル）",
-    "moveUp": "{{name}} を上へ",
-    "moveDown": "{{name}} を下へ",
     "rotate": "回転",
     "rotateLabel": "{{name}} を右に 90° 回転（今は {{angle}}°）",
     "cancel": "キャンセル",
     "cancelLabel": "{{name}} の印刷をキャンセル",
     "cancelConfirm": "「{{name}}」の印刷をキャンセルしますか？すでに印刷された分は戻りません。",
-    "cancelFailed": "キャンセルできませんでした。すでに印刷が終わったか、プリンターが受け付けませんでした。"
+    "cancelFailed": "キャンセルできませんでした。すでに印刷が終わったか、プリンターが受け付けませんでした。",
+    "reorderLabel": "「{{name}}」を並べ替え（ドラッグ、または ↑↓ キー）",
+    "reorderHint": "ドラッグして順番を変更",
+    "cancelAll_other": "すべてキャンセル（{{count}} 件）",
+    "cancelAllConfirm_other": "送信待ち・送信中・プリンターで待機中の {{count}} 件をすべてキャンセルしますか？すでに印刷された分は戻りません。",
+    "cancelAllFailed_other": "{{count}} 件のジョブをキャンセルできませんでした。すでに印刷が終わったか、プリンターが受け付けませんでした。"
   },
   "item": {
     "ready": "印刷待ち",
@@ -267,8 +270,16 @@
   },
   "trays": {
     "title": "用紙トレイ",
-    "level": "残り {{percent}}%",
-    "noLevel": "残量不明"
+    "noLevel": "残量不明",
+    "quarters": {
+      "4": "ほぼ満杯",
+      "3": "約 3/4",
+      "2": "約半分",
+      "1": "約 1/4",
+      "0": "わずか"
+    },
+    "about": "約 {{percent}}%",
+    "sensorNote": "トレイのセンサーは 4 段階（約 1/4 ずつ）でしか用紙の量を検出できません。"
   },
   "alerts": {
     "title": "プリンターからのお知らせ",
@@ -335,7 +346,9 @@
     "showMore": "さらに表示",
     "showLess": "折りたたむ",
     "retrievalsHidden": "ボックスからの取り出し（サムネイルや保存のたびにプリンターが記録します）は表示していません。",
-    "cancelConfirm": "このジョブの印刷をキャンセルしますか？すでに印刷された分は戻りません。"
+    "cancelConfirm": "このジョブの印刷をキャンセルしますか？すでに印刷された分は戻りません。",
+    "cancelMine_other": "自分のジョブをすべてキャンセル（{{count}}）",
+    "cancelMineConfirm_other": "自分のジョブ {{count}} 件の印刷をすべてキャンセルしますか？すでに印刷された分は戻りません。"
   },
   "mailbox": {
     "intro": "プリンターでスキャンしてボックスに保存した文書を、ここから PDF で保存できます。",

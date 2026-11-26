@@ -7,7 +7,7 @@ import { useCallback, useMemo, useState } from "preact/hooks";
 import { formatDateTime, useT } from "../../i18n";
 import type { HistoryJob, QueuedJob } from "../../printer/types";
 import { isUnmapped } from "../../printer/types";
-import { cx } from "./controls";
+import { cx, rowsHeightFrom, useHeightAnimation } from "./controls";
 import { usePrinter } from "../PrinterContext";
 import { usePrintList } from "../useSubmissions";
 import { usePolling } from "../usePolling";
@@ -29,11 +29,29 @@ export function QueuePanel() {
   // The printer logs every mailbox retrieval (thumbnails, downloads) as a job: not of interest here.
   const jobs = (queue.data ?? []).filter((j) => j.type !== "mailboxRetrieval");
   if (jobs.length === 0) return null;
+  const myCancellable = jobs.filter((j) => owner !== null && j.owner === owner && (j.state === "waiting" || j.state === "printing"));
+  const cancelMine = async () => {
+    if (!window.confirm(t("jobs.cancelMineConfirm", { count: myCancellable.length }))) return;
+    let failed = 0;
+    for (const j of myCancellable) if (!(await cancelJob(j.id)).ok) failed++;
+    if (failed) window.alert(t("files.cancelAllFailed", { count: failed }));
+  };
   return (
     <section class="card flex flex-col gap-3 p-5" aria-labelledby="queue-heading">
-      <h2 id="queue-heading" class="m-0 text-sm font-bold tracking-tight text-ink">
-        {t("jobs.queueTitle")}
-      </h2>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="queue-heading" class="m-0 text-sm font-bold tracking-tight text-ink">
+          {t("jobs.queueTitle")}
+        </h2>
+        {myCancellable.length > 1 && (
+          <button
+            type="button"
+            class="cursor-pointer rounded-md px-2 py-0.5 text-xs font-semibold text-ink-soft hover:bg-error-wash hover:text-error"
+            onClick={() => void cancelMine()}
+          >
+            {t("jobs.cancelMine", { count: myCancellable.length })}
+          </button>
+        )}
+      </div>
       <ul class="m-0 flex list-none flex-col gap-2 p-0" aria-live="polite">
         {jobs.map((j: QueuedJob) => {
           const mine = owner !== null && j.owner === owner;
@@ -83,6 +101,7 @@ export function JobHistory() {
   const history = usePolling(useCallback(() => client.getHistory(), [client]), HISTORY_INTERVAL_MS);
   const [onlyMine, setOnlyMine] = useState(false);
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const historyRows = useHeightAnimation();
 
   const rows = useMemo(() => {
     // Mailbox retrievals ("ボックス取出") cannot be avoided on the printer, so they are hidden here.
@@ -114,7 +133,7 @@ export function JobHistory() {
         {history.error !== undefined && !history.data && <p class="text-sm font-medium text-error">{t("errors.PRINTER_UNREACHABLE")}</p>}
         {history.data && rows.length === 0 && <p class="m-0 rounded-xl bg-well/50 px-3.5 py-2.5 text-sm text-ink-soft">{t("jobs.historyEmpty")}</p>}
         {rows.length > 0 && (
-          <div class="overflow-x-auto">
+          <div ref={historyRows.ref} class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
               <thead>
                 <tr class="border-b border-rule text-left text-xs font-semibold text-ink-faint">
@@ -151,7 +170,7 @@ export function JobHistory() {
                   <button
                     type="button"
                     class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-2 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
-                    onClick={() => setLimit((l) => l + PAGE_SIZE)}
+                    onClick={() => historyRows.expand(() => setLimit((l) => l + PAGE_SIZE))}
                   >
                     {t("jobs.showMore")}
                   </button>
@@ -160,7 +179,7 @@ export function JobHistory() {
                   <button
                     type="button"
                     class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-2 text-xs font-semibold text-ink-soft shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well hover:text-ink"
-                    onClick={() => setLimit(PAGE_SIZE)}
+                    onClick={() => historyRows.collapse(() => setLimit(PAGE_SIZE), rowsHeightFrom(historyRows.ref.current, PAGE_SIZE))}
                   >
                     {t("jobs.showLess")}
                   </button>

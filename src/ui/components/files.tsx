@@ -3,11 +3,11 @@
  */
 
 import { checkRange, isImageItem, isPdf } from "../pdfJobs";
-import { useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { useT } from "../../i18n";
 import { ACCEPT, MAX_FILE_MB, MAX_FILES, formatSize } from "../files";
-import type { PrintItem } from "../useSubmissions";
-import { cx } from "./controls";
+import { type PrintItem, isCancellable } from "../useSubmissions";
+import { cx, prefersReducedMotion } from "./controls";
 
 export function DropZone(props: { onFiles: (files: File[]) => void; compact?: boolean }) {
   const { t } = useT();
@@ -203,6 +203,128 @@ function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => 
   );
 }
 
+/**
+ * Reorder rows by dragging their handle (mouse, pen or touch), or with ↑/↓ on a focused handle.
+ * The dragged row follows the pointer; when it passes half of a neighbour, the two swap and the
+ * neighbour slides into its new place. Only rows marked data-draggable take part.
+ */
+function useDragReorder(onMove: ((key: string, delta: -1 | 1) => void) | undefined) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const drag = useRef<{ key: string; startY: number; originTop: number; pointerDelta: number } | null>(null);
+  const refocus = useRef<string | null>(null);
+  const positions = useRef(new Map<string, number>());
+
+  const rowOf = (key: string) => listRef.current?.querySelector<HTMLElement>(`:scope > li[data-key="${CSS.escape(key)}"]`) ?? null;
+
+  // After each render: slide rows that changed place (FLIP), keep the dragged row under the
+  // pointer, and give focus back to a handle moved with the keyboard.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const reduce = prefersReducedMotion();
+    const seen = new Set<string>();
+    for (const row of list.querySelectorAll<HTMLElement>(":scope > li[data-key]")) {
+      const key = row.dataset.key!;
+      const top = row.offsetTop;
+      const before = positions.current.get(key);
+      positions.current.set(key, top);
+      seen.add(key);
+      if (drag.current?.key === key || before === undefined || before === top || reduce) continue;
+      row.style.transition = "none";
+      row.style.transform = `translateY(${before - top}px)`;
+      void row.offsetHeight;
+      row.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
+      row.style.transform = "";
+    }
+    for (const key of positions.current.keys()) if (!seen.has(key)) positions.current.delete(key);
+    const d = drag.current;
+    const row = d && rowOf(d.key);
+    if (d && row) setOffset(d.originTop + d.pointerDelta - row.offsetTop);
+    if (refocus.current) {
+      rowOf(refocus.current)?.querySelector<HTMLElement>("[data-drag-handle]")?.focus();
+      refocus.current = null;
+    }
+  });
+
+  const neighbour = (row: HTMLElement, delta: -1 | 1) => {
+    const el = (delta < 0 ? row.previousElementSibling : row.nextElementSibling) as HTMLElement | null;
+    return el?.dataset.draggable ? el : null;
+  };
+
+  const handleProps = (key: string) => ({
+    "data-drag-handle": true,
+    onPointerDown: (e: PointerEvent) => {
+      const row = rowOf(key);
+      if (!onMove || !row || e.button !== 0) return;
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      drag.current = { key, startY: e.clientY, originTop: row.offsetTop, pointerDelta: 0 };
+      setDragKey(key);
+      setOffset(0);
+    },
+    onPointerMove: (e: PointerEvent) => {
+      const d = drag.current;
+      const row = d && rowOf(d.key);
+      if (!d || !row || !onMove) return;
+      d.pointerDelta = e.clientY - d.startY;
+      const shift = d.originTop + d.pointerDelta - row.offsetTop;
+      const next = neighbour(row, 1);
+      const prev = neighbour(row, -1);
+      if (next && shift > next.offsetHeight / 2) onMove(d.key, 1);
+      else if (prev && shift < -prev.offsetHeight / 2) onMove(d.key, -1);
+      setOffset(shift);
+    },
+    onPointerUp: () => {
+      drag.current = null;
+      setDragKey(null);
+      setOffset(0);
+    },
+    onPointerCancel: () => {
+      drag.current = null;
+      setDragKey(null);
+      setOffset(0);
+    },
+    onKeyDown: (e: KeyboardEvent) => {
+      const row = rowOf(key);
+      const delta = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
+      if (!delta || !row || !onMove) return;
+      e.preventDefault();
+      if (!neighbour(row, delta)) return;
+      refocus.current = key; // the row's DOM node moves, which can drop focus
+      onMove(key, delta);
+    },
+  });
+
+  return { listRef, dragKey, offset, handleProps };
+}
+
+function DragHandle(props: { name: string; dragging: boolean; handle: ReturnType<ReturnType<typeof useDragReorder>["handleProps"]> }) {
+  const { t } = useT();
+  return (
+    <button
+      type="button"
+      {...props.handle}
+      class={cx(
+        "-ml-1.5 grid h-10 w-5 shrink-0 touch-none select-none place-items-center rounded-md text-ink-faint transition-colors hover:bg-well hover:text-ink-soft",
+        props.dragging ? "cursor-grabbing text-ink-soft" : "cursor-grab",
+      )}
+      aria-label={t("files.reorderLabel", { name: props.name })}
+      title={t("files.reorderHint")}
+    >
+      <svg class="h-4 w-2.5" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
+        <circle cx="2.5" cy="3" r="1.3" />
+        <circle cx="7.5" cy="3" r="1.3" />
+        <circle cx="2.5" cy="8" r="1.3" />
+        <circle cx="7.5" cy="8" r="1.3" />
+        <circle cx="2.5" cy="13" r="1.3" />
+        <circle cx="7.5" cy="13" r="1.3" />
+      </svg>
+    </button>
+  );
+}
+
 export function FileList(props: {
   items: PrintItem[];
   onRemove: (key: string) => void;
@@ -210,28 +332,49 @@ export function FileList(props: {
   onClearDone: () => void;
   onRangeChange: (key: string, text: string) => void;
   onPreview: (key: string) => void;
-  /** When set (merged printing), files can be reordered. */
+  /** Reorders files waiting to print (they print, or are merged, in list order). */
   onMove?: (key: string, delta: -1 | 1) => void;
   onRotate: (key: string) => void;
   onCancel?: (key: string) => void;
+  onCancelAll?: () => void;
   tooMany: boolean;
 }) {
   const { t, lang } = useT();
+  const { listRef, dragKey, offset, handleProps } = useDragReorder(props.onMove);
   if (props.items.length === 0 && !props.tooMany) return null;
+  const isDraggable = (i: PrintItem) => Boolean(props.onMove) && i.status === "ready" && !i.problem;
+  const reorderable = props.items.filter(isDraggable).length > 1;
   const anyDone = props.items.some((i) => i.status === "done");
+  const cancellableCount = props.items.filter(isCancellable).length;
   return (
     <div class="flex flex-col gap-2">
-      <ul class="card m-0 flex list-none flex-col divide-y divide-rule overflow-hidden p-0" aria-live="polite">
-        {props.items.map((item, index) => {
+      <ul ref={listRef} class="card m-0 flex list-none flex-col divide-y divide-rule overflow-hidden p-0" aria-live="polite">
+        {props.items.map((item) => {
           const removable = ["ready", "failed", "done", "canceled"].includes(item.status);
-          // Cancellable while waiting here, being sent, or at the printer once its job is known.
-          const cancellable =
-            ["queued", "preparing", "uploading"].includes(item.status) || (Boolean(item.jobId) && ["sent", "waiting", "printing"].includes(item.status));
+          const cancellable = isCancellable(item);
           return (
-            <li key={item.key} class="pp-enter relative flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-well/40">
+            <li
+              key={item.key}
+              data-key={item.key}
+              data-draggable={reorderable && isDraggable(item) ? "true" : undefined}
+              class={cx(
+                "pp-enter relative flex items-center gap-3.5 px-4 py-3.5",
+                // While dragged: opaque and lifted (no translucent hover tint, or the row below shows through).
+                dragKey === item.key
+                  ? "z-10 bg-sheet shadow-[0_8px_24px_-6px_rgb(15_23_42/0.25)] ring-1 ring-accent/30"
+                  : "transition-[background-color,transform] duration-(--pp-dur-enter) ease-(--pp-ease-move) hover:bg-well/40",
+              )}
+              style={dragKey === item.key ? { transform: `translateY(${offset}px)` } : undefined}
+            >
               {item.status === "uploading" && (
                 <span class="absolute inset-x-0 bottom-0 h-0.5 bg-accent transition-[width] duration-150" style={{ width: `${item.progress * 100}%` }} aria-hidden="true" />
               )}
+              {reorderable &&
+                (isDraggable(item) ? (
+                  <DragHandle name={item.file.name} dragging={dragKey === item.key} handle={handleProps(item.key)} />
+                ) : (
+                  <span class="-ml-1.5 w-5 shrink-0" aria-hidden="true" />
+                ))}
               <FileGlyph name={item.file.name} invalid={Boolean(item.problem || item.status === "failed")} />
               <div class="min-w-0 flex-1">
                 <p class="m-0 truncate text-sm font-semibold text-ink" title={item.file.name}>
@@ -270,22 +413,6 @@ export function FileList(props: {
                   {t("item.retry")}
                 </button>
               )}
-              {props.onMove && item.status === "ready" && !item.problem && (
-                <span class="flex shrink-0 flex-col">
-                  {([-1, 1] as const).map((delta) => (
-                    <button
-                      key={delta}
-                      type="button"
-                      class="grid h-5 w-7 cursor-pointer place-items-center rounded text-xs text-ink-soft hover:bg-well hover:text-ink disabled:cursor-default disabled:text-rule"
-                      aria-label={t(delta < 0 ? "files.moveUp" : "files.moveDown", { name: item.file.name })}
-                      disabled={delta < 0 ? index === 0 : index === props.items.length - 1}
-                      onClick={() => props.onMove!(item.key, delta)}
-                    >
-                      {delta < 0 ? "↑" : "↓"}
-                    </button>
-                  ))}
-                </span>
-              )}
               {removable && (
                 <button
                   type="button"
@@ -304,11 +431,22 @@ export function FileList(props: {
       </ul>
       <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
         {props.tooMany ? <p class="m-0 font-medium text-warn">{t("files.tooMany", { max: MAX_FILES })}</p> : <span />}
+        <span class="flex flex-wrap items-center gap-1">
+        {cancellableCount > 1 && props.onCancelAll && (
+          <button
+            type="button"
+            class="cursor-pointer rounded-lg px-2.5 py-1 font-semibold text-ink-soft transition-colors hover:bg-error-wash hover:text-error"
+            onClick={props.onCancelAll}
+          >
+            {t("files.cancelAll", { count: cancellableCount })}
+          </button>
+        )}
         {anyDone && (
           <button type="button" class="cursor-pointer rounded-lg px-2.5 py-1 font-medium text-ink-soft transition-colors hover:bg-well hover:text-ink" onClick={props.onClearDone}>
             {t("files.clearDone")}
           </button>
         )}
+        </span>
       </div>
     </div>
   );

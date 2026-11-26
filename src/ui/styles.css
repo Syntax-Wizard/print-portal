@@ -211,7 +211,8 @@
 
   /* A row just added to a list: confirms the drop or paste worked. */
   .pp-enter {
-    animation: pp-enter var(--pp-dur-enter) var(--pp-ease-pop) both;
+    /* backwards, not both: once done it must not hold transform (rows slide when reordered). */
+    animation: pp-enter var(--pp-dur-enter) var(--pp-ease-pop) backwards;
   }
 
   /* Modal dialogs (previews): fade and settle in; the backdrop fades. */

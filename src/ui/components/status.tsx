@@ -157,6 +157,29 @@ export function trayPaper(t: ReturnType<typeof useT>["t"], tray: Tray): string {
   return [size, media].filter(Boolean).join(" ");
 }
 
+/**
+ * Paper left in a tray. The tray sensor only tells four levels: the web page and SNMP both give
+ * multiples of a quarter (e.g. 420 of 560 sheets), so this shows quarters, not a precise-looking
+ * percentage. Other values (another model) fall back to "about N%".
+ */
+function TrayLevel(props: { percent: number }) {
+  const { t } = useT();
+  const percent = Math.max(0, Math.min(100, props.percent));
+  const quarters = percent % 25 === 0 ? percent / 25 : null;
+  const text = quarters !== null ? t(`trays.quarters.${quarters}`) : t("trays.about", { percent });
+  const filled = quarters ?? Math.round(percent / 25);
+  return (
+    <div class="flex shrink-0 items-center gap-2" title={t("trays.sensorNote")}>
+      <span class="hidden gap-0.5 sm:flex" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} class={cx("h-1.5 w-2.5 rounded-sm", i < filled ? "bg-ink-soft/60" : "bg-rule")} />
+        ))}
+      </span>
+      <span class={cx("text-right text-xs font-semibold whitespace-nowrap", filled === 0 ? "text-warn" : "text-ink-soft")}>{text}</span>
+    </div>
+  );
+}
+
 export function TrayList(props: { trays: Tray[] }) {
   const { t } = useT();
   return (
@@ -175,12 +198,7 @@ export function TrayList(props: { trays: Tray[] }) {
             {problem ? (
               <span class="shrink-0 rounded-full bg-error-wash px-2 py-0.5 text-[11px] font-semibold text-error">{t(`trayState.${tray.state}`)}</span>
             ) : tray.levelPercent !== null ? (
-              <div class="flex shrink-0 items-center gap-2">
-                <span class="hidden h-1.5 w-10 overflow-hidden rounded-full bg-rule sm:block" aria-hidden="true">
-                  <span class="block h-full rounded-full bg-ink-soft/60" style={{ width: `${Math.max(0, Math.min(100, tray.levelPercent))}%` }} />
-                </span>
-                <span class="tabular w-9 text-right text-xs font-semibold text-ink-soft">{tray.levelPercent}%</span>
-              </div>
+              <TrayLevel percent={tray.levelPercent} />
             ) : null}
           </li>
         );

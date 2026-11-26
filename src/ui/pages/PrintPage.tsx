@@ -10,7 +10,7 @@ import { PanelHeading, SupplyList, TrayList } from "../components/status";
 import { cx } from "../components/controls";
 import { usePrinter } from "../PrinterContext";
 import { loadOptions, loadRememberOptions, saveOptions, saveRememberOptions } from "../settings";
-import { type PrintItem, usePrintList } from "../useSubmissions";
+import { type PrintItem, isCancellable, usePrintList } from "../useSubmissions";
 import { MergedPreview } from "../components/PreviewDialog";
 import { PreviewDialog } from "../components/PreviewDialog";
 import { checkRange, isPdf, selectedPageCount } from "../pdfJobs";
@@ -79,7 +79,7 @@ export function PrintPage() {
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
   const [remember, setRemember] = useState<boolean>(loadRememberOptions);
   const [showErrors, setShowErrors] = useState(false);
-  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel } = usePrintList();
+  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelAll } = usePrintList();
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const onCancel = async (key: string) => {
@@ -89,6 +89,14 @@ export function PrintPage() {
     setCancelError(null);
     const result = await cancel(key);
     if (result && !result.ok) setCancelError(t("files.cancelFailed"));
+  };
+  const onCancelAll = async () => {
+    const count = items.filter(isCancellable).length;
+    // A bulk action: always ask, whether or not anything has reached the printer yet.
+    if (!window.confirm(t("files.cancelAllConfirm", { count }))) return;
+    setCancelError(null);
+    const { failed } = await cancelAll();
+    if (failed) setCancelError(t("files.cancelAllFailed", { count: failed }));
   };
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [merge, setMerge] = useState(false);
@@ -235,9 +243,10 @@ export function PrintPage() {
           onClearDone={clearDone}
           onRangeChange={setPageRange}
           onPreview={setPreviewKey}
-          onMove={merging ? move : undefined}
+          onMove={move}
           onRotate={rotate}
           onCancel={(key) => void onCancel(key)}
+          onCancelAll={() => void onCancelAll()}
           tooMany={tooMany}
         />
         {cancelError && <p class="m-0 px-1 text-xs font-medium text-error" role="alert">{cancelError}</p>}

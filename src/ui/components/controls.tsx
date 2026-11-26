@@ -254,3 +254,72 @@ export function Meter(props: { percent: number | null; min?: number | null; colo
     </div>
   );
 }
+
+export function prefersReducedMotion(): boolean {
+  return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/**
+ * Smoothly animate a container's height when its content grows or shrinks (e.g. "Show more" /
+ * "Show less" on a list). Height cannot transition to "auto" by itself, so:
+ * - expand(update): apply the update, then grow from the old height to the new one;
+ * - collapse(update, removedPx): first shrink by removedPx with the extra rows still there
+ *   (they slide under the clip), then apply the update, so nothing vanishes before the motion.
+ * Uses the --pp-dur-expand / --pp-ease-move motion tokens; instant with reduced motion.
+ */
+export function useHeightAnimation<T extends HTMLElement = HTMLDivElement>() {
+  const ref = useRef<T>(null);
+  const pendingFrom = useRef<number | null>(null);
+  const [tick, setTick] = useState(0);
+
+  const animate = (el: T, from: number, to: number, onDone?: () => void) => {
+    el.style.height = `${from}px`;
+    el.style.overflow = "hidden";
+    void el.offsetHeight; // commit the start height before transitioning
+    el.style.transition = "height var(--pp-dur-expand) var(--pp-ease-move)";
+    el.style.height = `${to}px`;
+    let finished = false;
+    const done = () => {
+      if (finished) return;
+      finished = true;
+      el.removeEventListener("transitionend", onEnd);
+      onDone?.();
+      el.style.height = el.style.overflow = el.style.transition = "";
+    };
+    const onEnd = (e: TransitionEvent) => e.target === el && done();
+    el.addEventListener("transitionend", onEnd);
+    window.setTimeout(done, 800); // in case transitionend never fires (e.g. tab hidden)
+  };
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const from = pendingFrom.current;
+    pendingFrom.current = null;
+    if (!el || from === null) return;
+    const to = el.offsetHeight;
+    if (from !== to) animate(el, from, to);
+  }, [tick]);
+
+  return {
+    ref,
+    expand(update: () => void) {
+      const el = ref.current;
+      if (!el || prefersReducedMotion()) return update();
+      pendingFrom.current = el.offsetHeight;
+      update();
+      setTick((n) => n + 1);
+    },
+    collapse(update: () => void, removedPx: number) {
+      const el = ref.current;
+      if (!el || prefersReducedMotion() || removedPx <= 0) return update();
+      const from = el.offsetHeight;
+      animate(el, from, from - removedPx, update);
+    },
+  };
+}
+
+/** Height of the table body rows from index `keep` on: what a "Show less" removes. */
+export function rowsHeightFrom(container: HTMLElement | null, keep: number): number {
+  const rows = [...(container?.querySelectorAll<HTMLElement>("tbody > tr") ?? [])];
+  return rows.slice(keep).reduce((sum, r) => sum + r.offsetHeight, 0);
+}

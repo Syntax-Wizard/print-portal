@@ -463,7 +463,15 @@ test("merged print: two PDFs as one job, reordered, two pages per sheet", async 
   await expect(page.getByText("全 3 ページ")).toBeVisible();
   await expect(page.getByText("全 2 ページ")).toBeVisible();
   await page.getByLabel("1 つにまとめて印刷する").check();
-  await page.getByRole("button", { name: "part-b.pdf を上へ" }).click();
+  // Drag part-b's handle above part-a, in small steps like a real pointer.
+  const handle = page.getByRole("button", { name: /「part-b\.pdf」を並べ替え/ });
+  await handle.hover(); // waits until the layout has settled after ticking "merge"
+  const box = (await handle.boundingBox())!;
+  const rowHeight = (await page.locator("li", { hasText: "part-a.pdf" }).boundingBox())!.height;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 - rowHeight, { steps: 8 });
+  await page.mouse.up();
   await expect(page.locator("li", { hasText: ".pdf" }).first()).toContainText("part-b.pdf");
   await page.getByText("2 ページ", { exact: true }).click();
   // 5 pages, 2 per sheet, 2-sided: 3 sides on 2 sheets.
@@ -632,4 +640,57 @@ test("language menu works from the keyboard", async ({ page }) => {
   await expect(page.getByRole("menuitemradio", { name: "English" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: /^Language/ })).toBeFocused();
+});
+
+test("reorder files with the keyboard on the drag handle", async ({ page }) => {
+  await openPortal(page);
+  await page.locator('input[type="file"]').setInputFiles([
+    { name: "one.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) },
+    { name: "two.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) },
+    { name: "three.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) },
+  ]);
+  const names = () => page.locator("li[data-key] p[title]").allTextContents();
+  await expect.poll(names).toEqual(["one.pdf", "two.pdf", "three.pdf"]);
+  const handle = page.getByRole("button", { name: /「three\.pdf」を並べ替え/ });
+  await handle.focus();
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("ArrowUp");
+  await expect.poll(names).toEqual(["three.pdf", "one.pdf", "two.pdf"]);
+  await expect(handle).toBeFocused(); // focus stays on the moved row
+  await page.keyboard.press("ArrowUp"); // already first: nothing happens
+  await expect.poll(names).toEqual(["three.pdf", "one.pdf", "two.pdf"]);
+});
+
+test("tray paper is shown in quarters, as precise as the sensor", async ({ page }) => {
+  await openPortal(page);
+  await page.getByRole("link", { name: "プリンター状態" }).click();
+  const trays = page.locator("section", { hasText: "用紙トレイ" }).first();
+  await expect(trays.getByText("ほぼ満杯")).toBeVisible();
+  await expect(trays.getByText("約 3/4")).toBeVisible();
+  await expect(trays.getByText("約半分").first()).toBeVisible();
+  await expect(trays.getByText(/\d+%/)).toHaveCount(0);
+});
+
+test("cancel all files of this tab at once", async ({ page, request }) => {
+  await expect.poll(async () => (await (await request.get("/jblist.htm")).text()).includes("var info=[];"), { timeout: 20_000 }).toBe(true);
+  await request.post("/__mock/hold?on=1");
+  try {
+    await openPortal(page);
+    page.on("dialog", (d) => void d.accept());
+    await page.locator('input[type="file"]').setInputFiles([
+      { name: "a.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) },
+      { name: "b.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) },
+      { name: "c.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) },
+    ]);
+    await page.getByRole("button", { name: "3 ファイルを印刷" }).first().click();
+    // Wait until at least one has reached the printer, so both kinds get canceled.
+    await expect(page.getByText("プリンターで待機中").first()).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: /^すべてキャンセル（\d 件）$/ }).click();
+    for (const name of ["a.pdf", "b.pdf", "c.pdf"]) {
+      await expect(page.locator("li", { hasText: name }).getByText(/キャンセルしました|印刷しました/)).toBeVisible();
+    }
+    await expect.poll(async () => (await (await request.get("/jblist.htm")).text()).includes("var info=[];")).toBe(true);
+  } finally {
+    await request.post("/__mock/hold?on=0");
+  }
 });

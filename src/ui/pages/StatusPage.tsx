@@ -3,6 +3,7 @@ import { formatDateTime, formatRelative, useT } from "../../i18n";
 import { errorCategory } from "../errorCodes";
 import { recognizeAlert } from "../alertText";
 import { JobHistory } from "../components/jobs";
+import { rowsHeightFrom, useHeightAnimation } from "../components/controls";
 import { PanelHeading, SupplyList, TrayList, WasteToner, severityTextClass } from "../components/status";
 import { usePrinter } from "../PrinterContext";
 import { usePolling } from "../usePolling";
@@ -70,6 +71,7 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
   const { client, status } = usePrinter();
   const errorLog = usePolling(useCallback(() => client.getErrorLog(), [client]), ERROR_LOG_INTERVAL_MS);
   const [limit, setLimit] = useState(ERROR_LOG_INITIAL);
+  const errorRows = useHeightAnimation();
   const s = status.data;
   const snmpTime = s?.device.alerts.find((a) => a.measuredAt)?.measuredAt ?? null;
 
@@ -129,7 +131,7 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
         {errorLog.data && errorLog.data.length === 0 && <p class="m-0 rounded-xl bg-well/50 px-3.5 py-2.5 text-sm text-ink-soft">{t("errorLog.empty")}</p>}
         {errorLog.data && errorLog.data.length > 0 && (
           <div class="flex flex-1 flex-col justify-between gap-3">
-            <div class="overflow-x-auto">
+            <div ref={errorRows.ref} class="overflow-x-auto">
               <table class="w-full border-collapse text-sm">
                 <tbody>
                   {errorLog.data.slice(0, limit).map((e, i) => (
@@ -150,7 +152,7 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
                   <button
                     type="button"
                     class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-1.5 text-xs font-semibold text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well"
-                    onClick={() => setLimit((l) => l + ERROR_LOG_STEP)}
+                    onClick={() => errorRows.expand(() => setLimit((l) => l + ERROR_LOG_STEP))}
                   >
                     {t("jobs.showMore")}
                   </button>
@@ -159,7 +161,7 @@ export function StatusPage(props: { showHistory?: boolean } = {}) {
                   <button
                     type="button"
                     class="cursor-pointer rounded-xl border border-rule bg-sheet px-4 py-1.5 text-xs font-semibold text-ink-soft shadow-[0_1px_2px_rgb(15_23_42/0.04)] transition-colors hover:bg-well hover:text-ink"
-                    onClick={() => setLimit(ERROR_LOG_INITIAL)}
+                    onClick={() => errorRows.collapse(() => setLimit(ERROR_LOG_INITIAL), rowsHeightFrom(errorRows.ref.current, ERROR_LOG_INITIAL))}
                   >
                     {t("jobs.showLess")}
                   </button>

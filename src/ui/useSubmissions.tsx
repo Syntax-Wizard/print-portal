@@ -13,6 +13,11 @@ import { type PdfIssue, type Rotation, buildMergedFile, buildPrintFile, countPdf
 import { canReadImage } from "../images/convert";
 import { usePrinter } from "./PrinterContext";
 
+/** Waiting its turn here, being prepared or sent, or at the printer once its job is known. */
+export function isCancellable(i: Pick<PrintItem, "status" | "jobId">): boolean {
+  return ["queued", "preparing", "uploading"].includes(i.status) || (Boolean(i.jobId) && ["sent", "waiting", "printing"].includes(i.status));
+}
+
 export type ItemStatus = "ready" | "queued" | "preparing" | "uploading" | "sent" | "waiting" | "printing" | "held" | "done" | "failed" | "canceled";
 
 export interface PrintItem {
@@ -153,6 +158,34 @@ export function useSubmissions() {
     },
     [client, update, queue],
   );
+
+  /**
+   * Cancel everything of this tab that can still be stopped. Files not yet sent are dropped
+   * first (so none starts uploading meanwhile), then uploads are aborted, then jobs at the
+   * printer are canceled one by one (once per job: merged files share one).
+   * Returns how many printer jobs could not be canceled.
+   */
+  const cancelAll = useCallback(async (): Promise<{ failed: number }> => {
+    const list = itemsRef.current.filter(isCancellable);
+    const local = list.filter((i) => !i.jobId);
+    for (const i of local) canceled.current.add(i.key);
+    const notStarted = local.filter((i) => !uploads.current.has(i.key)).map((i) => i.key);
+    if (notStarted.length) update(notStarted, { status: "canceled" });
+    for (const i of local) uploads.current.get(i.key)?.abort();
+    let failed = 0;
+    for (const jobId of new Set(list.map((i) => i.jobId).filter((id): id is string => Boolean(id)))) {
+      const result = await client.cancelJob(jobId);
+      if (!result.ok) {
+        failed++;
+        continue;
+      }
+      const group = itemsRef.current.filter((i) => i.jobId === jobId).map((i) => i.key);
+      for (const k of group) canceled.current.add(k);
+      update(group, { status: "canceled" });
+    }
+    void queue.refresh();
+    return { failed };
+  }, [client, update, queue]);
 
   /** Turn a file a further 90° clockwise (0 -> 90 -> 180 -> 270 -> 0). */
   const rotate = useCallback((key: string) => {
@@ -297,7 +330,7 @@ export function useSubmissions() {
     [items, update, sendOne],
   );
 
-  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelJob };
+  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelJob, cancelAll };
 }
 
 export type Submissions = ReturnType<typeof useSubmissions>;

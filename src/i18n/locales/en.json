@@ -63,14 +63,20 @@
     "mergeOrderHint": "Printed in this order. Use ↑↓ to reorder.",
     "mergedPreview": "Preview combined",
     "mergedPreviewTitle": "Combined ({{count}} files)",
-    "moveUp": "Move {{name}} up",
-    "moveDown": "Move {{name}} down",
     "rotate": "Rotate",
     "rotateLabel": "Rotate {{name}} 90° clockwise (now {{angle}}°)",
     "cancel": "Cancel",
     "cancelLabel": "Cancel printing {{name}}",
     "cancelConfirm": "Cancel printing “{{name}}”? Pages already printed can't be undone.",
-    "cancelFailed": "Couldn't cancel. The job may have finished already, or the printer refused."
+    "cancelFailed": "Couldn't cancel. The job may have finished already, or the printer refused.",
+    "reorderLabel": "Reorder {{name}} (drag, or ↑/↓ keys)",
+    "reorderHint": "Drag to change the order",
+    "cancelAll_one": "Cancel all ({{count}})",
+    "cancelAll_other": "Cancel all ({{count}})",
+    "cancelAllConfirm_one": "Cancel {{count}} file that is waiting, being sent or at the printer? Pages already printed can't be undone.",
+    "cancelAllConfirm_other": "Cancel all {{count}} files that are waiting, being sent or at the printer? Pages already printed can't be undone.",
+    "cancelAllFailed_one": "{{count}} job couldn't be canceled. It may have finished already, or the printer refused.",
+    "cancelAllFailed_other": "{{count}} jobs couldn't be canceled. They may have finished already, or the printer refused."
   },
   "item": {
     "ready": "Ready",
@@ -273,8 +279,16 @@
   },
   "trays": {
     "title": "Paper trays",
-    "level": "{{percent}}% full",
-    "noLevel": "Level unknown"
+    "noLevel": "Level unknown",
+    "quarters": {
+      "4": "Nearly full",
+      "3": "About 3/4",
+      "2": "About half",
+      "1": "About 1/4",
+      "0": "Almost empty"
+    },
+    "about": "About {{percent}}%",
+    "sensorNote": "The tray sensor only detects the paper level in four steps (quarters)."
   },
   "alerts": {
     "title": "Messages from the printer",
@@ -341,7 +355,11 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "retrievalsHidden": "Mailbox retrievals (the printer logs one for every thumbnail and download) are not shown.",
-    "cancelConfirm": "Cancel this print job? Pages already printed can't be undone."
+    "cancelConfirm": "Cancel this print job? Pages already printed can't be undone.",
+    "cancelMine_one": "Cancel my job",
+    "cancelMine_other": "Cancel all mine ({{count}})",
+    "cancelMineConfirm_one": "Cancel your print job? Pages already printed can't be undone.",
+    "cancelMineConfirm_other": "Cancel all {{count}} of your print jobs? Pages already printed can't be undone."
   },
   "mailbox": {
     "intro": "Documents you scan to a mailbox on the printer can be saved here as PDF.",
