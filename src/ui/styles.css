@@ -40,6 +40,10 @@
 }
 
 @layer base {
+  /* Chinese text needs Chinese fonts: Japanese ones lack many simplified characters and draw shared ones differently. */
+  html:lang(zh) {
+    --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", system-ui, -apple-system, sans-serif;
+  }
   html {
     background: var(--color-paper);
     color: var(--color-ink);

@@ -1,6 +1,6 @@
 # Tombo
 
-A modern, multilingual (Japanese / English) print screen for the lab's FUJI XEROX
+A modern, multilingual (Japanese / English / Chinese) print screen for the lab's FUJI XEROX
 ApeosPort-V C4476. It needs **no server**: a bookmarklet loads the app into the
 printer's own web page, so every request is same-origin and goes straight to the printer.
 The printer's original screen keeps working; reloading the page brings it back.
@@ -73,7 +73,7 @@ Log: `~/Library/Logs/print-portal-toner.log`.
 |---|---|
 | `src/printer/` | Printer adapter: page parsers, option mapping, upload client. No UI code. |
 | `src/ui/` | Preact UI (pages, components, polling, per-browser settings). |
-| `src/i18n/` | i18next setup and `locales/{ja,en}.json`. Add a language by adding a file. |
+| `src/i18n/` | i18next setup and `locales/{ja,en,zh}.json`. Add a language by adding a file. |
 | `src/loader/bookmarklet.js` | Bookmarklet source (minified at build time). |
 | `src/bootstrap.tsx` | Takes over the printer page and mounts the app. |
 | `site/` | Install page template. |

@@ -323,7 +323,7 @@ function Header({ view, onView }: { view: View; onView: (v: View) => void }) {
   const colors = (list: typeof low) => listFormat.format(list.map((s) => t(`supplies.color.${s.color ?? "black"}`)));
   const tonerSummary = [urgent.length ? t("supplies.urgentSummary", { colors: colors(urgent) }) : "", notUrgent.length ? t("supplies.lowSummary", { colors: colors(notUrgent) }) : ""]
     .filter(Boolean)
-    .join(lang === "ja" ? "　" : ". ");
+    .join(lang === "ja" ? "　" : lang === "zh" ? "；" : ". ");
   const themeIndex = Math.max(0, THEMES.indexOf(theme));
 
   return (

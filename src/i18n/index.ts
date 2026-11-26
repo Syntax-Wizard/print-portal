@@ -9,11 +9,13 @@ import i18next, { type TFunction } from "i18next";
 import { useEffect, useState } from "preact/hooks";
 import ja from "./locales/ja.json";
 import en from "./locales/en.json";
+import zh from "./locales/zh.json";
 
 export const LANGUAGES = [
   // Each language is labelled in its own script so people can always find theirs.
   { code: "ja", label: "日本語" },
   { code: "en", label: "English" },
+  { code: "zh", label: "简体中文" },
 ] as const;
 
 export type LanguageCode = (typeof LANGUAGES)[number]["code"];
@@ -50,7 +52,7 @@ export function initI18n(language?: LanguageCode): Promise<TFunction> {
   return i18n.init({
     lng,
     fallbackLng: DEFAULT_LANGUAGE,
-    resources: { ja: { translation: ja }, en: { translation: en } },
+    resources: { ja: { translation: ja }, en: { translation: en }, zh: { translation: zh } },
     interpolation: { escapeValue: false }, // Preact escapes output already.
     initAsync: false,
   });

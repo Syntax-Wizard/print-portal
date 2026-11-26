@@ -29,7 +29,7 @@ export function buildBookmarklet(source: string, base: string): string {
 const bookmarklet = buildBookmarklet(readFileSync(root("src/loader/bookmarklet.js"), "utf-8"), baseUrl);
 
 const locales = Object.fromEntries(
-  ["ja", "en"].map((lang) => [lang, JSON.parse(readFileSync(root(`src/i18n/locales/${lang}.json`), "utf-8")).install]),
+  ["ja", "en", "zh"].map((lang) => [lang, JSON.parse(readFileSync(root(`src/i18n/locales/${lang}.json`), "utf-8")).install]),
 );
 
 const escapeAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");

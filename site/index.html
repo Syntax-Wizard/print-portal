@@ -43,6 +43,7 @@
     }
   }
   * { box-sizing: border-box; }
+  html:lang(zh) { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", system-ui, -apple-system, sans-serif; }
   html {
     background: var(--bg);
     color: var(--ink);
@@ -284,7 +285,8 @@
   var KEY = "printPortal.language";
   var LANGS = [
     { code: "ja", label: "日本語" },
-    { code: "en", label: "English" }
+    { code: "en", label: "English" },
+    { code: "zh", label: "简体中文" }
   ];
   function pick() {
     try { var s = localStorage.getItem(KEY); if (I18N[s]) return s; } catch (e) {}
