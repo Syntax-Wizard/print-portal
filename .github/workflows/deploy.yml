@@ -1,4 +1,5 @@
-# Test, build and publish dist/ (portal.js + install page) to GitHub Pages on every push to main.
+# Unit-test, build and publish dist/ (portal.js + install page) to GitHub Pages on every push to
+# main. End-to-end tests run in a separate job that does not block the deploy.
 name: Deploy to GitHub Pages
 
 on:
@@ -33,13 +34,26 @@ jobs:
           PORTAL_BASE_URL="https://${owner}.github.io/${repo}/" \
           TONER_DATA_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/refs/heads/toner-data/toner.json" \
           npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  # Runs alongside the build and does not hold up deploying: a failure marks the commit
+  # (and its annotations say why) but the site still goes live. E2E also runs locally before pushing.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
       - name: End-to-end tests against the mock printer
         run: |
           npx playwright install --with-deps chromium
           PW_CHANNEL="" npx playwright test
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
 
   deploy:
     needs: build
