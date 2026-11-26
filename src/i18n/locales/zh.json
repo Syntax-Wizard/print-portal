@@ -1,9 +1,9 @@
 {
   "app": {
     "name": "Tombo",
-    "classicUi": "返回原来的界面",
-    "classicUiHint": "刷新页面即可回到打印机自带的界面",
-    "language": "显示语言",
+    "classicUi": "返回原界面",
+    "classicUiHint": "刷新页面即可回到打印机自带界面",
+    "language": "语言",
     "theme": {
       "label": "主题",
       "system": "跟随系统",
@@ -18,79 +18,79 @@
   },
   "device": {
     "state": {
-      "ready": "可以打印",
-      "printing": "正在打印",
+      "ready": "可打印",
+      "printing": "打印中",
       "sleep": "节能中",
       "warmingUp": "准备中",
       "panelInUse": "操作面板使用中",
       "error": "错误",
-      "warning": "需要注意",
+      "warning": "注意",
       "offline": "无法连接"
     },
-    "sleepHint": "发送打印后会自动唤醒",
+    "sleepHint": "发送作业后会自动唤醒",
     "updatedAt": "{{time}} 更新",
     "refresh": "刷新"
   },
   "files": {
     "dropTitle": "把要打印的文件拖到这里",
     "dropAction": "或选择文件",
-    "dropHint": "可以打印 PDF 和图片（JPEG、PNG、截图等），也可以用 ⌘V / Ctrl+V 粘贴（每个文件最大 {{max}} MB）",
+    "dropHint": "可打印 PDF 和图片（JPEG、PNG、截图等）。也可以按 ⌘V / Ctrl+V 粘贴（单个文件最大 {{max}} MB）",
     "dropActive": "松开即可添加",
     "remove": "移除 {{name}}",
-    "clearDone": "从列表中清除已打印的文件",
-    "unsupported": "这种格式无法直接打印。请导出为 PDF 或另存为图片后再添加。",
+    "clearDone": "清除已打印的文件",
+    "unsupported": "无法直接打印这种格式。请导出为 PDF 或另存为图片后再添加。",
     "tooLarge": "超过 {{max}} MB 的文件无法打印。",
     "empty": "空文件无法打印。",
-    "tooMany": "一次最多可以添加 {{max}} 个文件。",
+    "tooMany": "一次最多添加 {{max}} 个文件。",
     "pages_other": "共 {{count}} 页",
     "countingPages": "正在统计页数…",
     "pageRange": "打印页码",
-    "pageRangePlaceholder": "全部（例：1-3, 5）",
-    "rangeInvalid": "请像「1-3, 5」这样输入页码和范围，用逗号分隔。",
-    "rangeOutOfRange_other": "这个文件只有 {{count}} 页。",
+    "pageRangePlaceholder": "全部（如 1-3, 5）",
+    "rangeInvalid": "请按「1-3, 5」的格式，用逗号分隔页码和范围。",
+    "rangeOutOfRange_other": "该文件只有 {{count}} 页。",
     "preview": "预览效果",
     "pdfIssue": {
-      "encrypted": "这是受保护的 PDF，无法指定页码或一张打印多页，但可以按原样打印。",
-      "unreadable": "无法读取这个 PDF，无法指定页码或一张打印多页，但可以按原样打印。",
-      "toolsUnavailable": "无法加载 PDF 处理功能。请检查网络连接。",
-      "toolsOutdated": "Tombo 刚刚更新了。请刷新页面，再点击一次书签。"
+      "encrypted": "该 PDF 已加密，无法指定页码和多页合一。可以直接打印。",
+      "unreadable": "无法读取该 PDF，无法指定页码和多页合一。可以直接打印。",
+      "toolsUnavailable": "PDF 处理功能加载失败。请检查网络连接。",
+      "toolsOutdated": "已更新到新版本。请刷新页面后重新点击书签。"
     },
-    "imageUnreadable": "这个浏览器无法读取这张图片（例如在 Safari 以外打开 HEIC）。请转换为 JPEG 或 PNG 后再添加。",
+    "imageUnreadable": "当前浏览器无法读取该图片（如 Safari 以外的 HEIC）。请转换为 JPEG 或 PNG 后再添加。",
     "merge": "合并为一个作业打印",
-    "mergeHint": "把多个文件合并成一个作业，双面打印和「一张印 2/4 页」可以跨文件使用。",
-    "mergeOrderHint": "按这个顺序打印。拖动即可调整顺序。",
+    "mergeHint": "把多个文件合并成一个作业，双面打印和「每张纸打印 2/4 页」可跨文件生效。",
+    "mergeOrderHint": "按此顺序打印。可拖动调整顺序。",
     "mergedPreview": "预览合并效果",
     "mergedPreviewTitle": "合并效果（{{count}} 个文件）",
     "rotate": "旋转",
     "rotateLabel": "将 {{name}} 顺时针旋转 90°（当前 {{angle}}°）",
     "cancel": "取消",
     "cancelLabel": "取消打印 {{name}}",
-    "cancelConfirm": "要取消打印「{{name}}」吗？已经打印出来的部分无法撤回。",
-    "cancelFailed": "无法取消。可能已经打印完成，或打印机没有接受。",
-    "reorderLabel": "调整「{{name}}」的顺序（拖动，或按 ↑↓ 键）",
-    "reorderHint": "拖动以调整顺序",
+    "cancelConfirm": "确定取消打印「{{name}}」吗？已打印的部分无法撤回。",
+    "cancelFailed": "取消失败。可能已打印完成，或打印机未接受。",
+    "reorderLabel": "调整「{{name}}」的顺序（拖动或按 ↑↓ 键）",
+    "reorderHint": "拖动调整顺序",
     "cancelAll_other": "全部取消（{{count}} 个）",
-    "cancelAllConfirm_other": "要取消全部 {{count}} 个等待发送、正在发送或在打印机上等待的文件吗？已经打印出来的部分无法撤回。",
-    "cancelAllFailed_other": "有 {{count}} 个作业无法取消。可能已经打印完成，或打印机没有接受。"
+    "cancelAllConfirm_other": "确定取消所有 {{count}} 个待发送、发送中、打印机等待中的作业吗？已打印的部分无法撤回。",
+    "cancelAllFailed_other": "{{count}} 个作业取消失败。可能已打印完成，或打印机未接受。"
   },
   "item": {
     "ready": "待打印",
     "queued": "排队中",
-    "uploading": "正在发送 {{percent}}%",
+    "uploading": "发送中 {{percent}}%",
     "sent": "已发送到打印机",
-    "waiting": "在打印机上等待",
-    "processing": "打印机正在准备",
-    "printing": "正在打印",
-    "done": "已打印",
-    "held": "在打印机上保留中，请在操作面板上处理",
+    "waiting": "等待打印机处理",
+    "processing": "打印机准备中",
+    "printing": "打印中",
+    "done": "打印完成",
+    "held": "已在打印机上保留，请在操作面板上操作",
     "failed": "打印失败",
     "retry": "重新发送",
-    "preparing": "正在准备打印…",
+    "preparing": "准备打印…",
     "canceled": "已取消"
   },
   "options": {
     "title": "设置",
-    "remember": "下次继续使用这些设置",
+    "remember": "下次沿用此设置",
     "copies": "份数",
     "copiesDecrease": "减少份数",
     "copiesIncrease": "增加份数",
@@ -118,13 +118,13 @@
     "advanced": "更多设置",
     "collate": {
       "label": "逐份打印",
-      "default": "不指定",
+      "default": "打印机默认",
       "on": "逐份",
       "off": "不逐份"
     },
     "media": {
       "label": "纸张类型",
-      "default": "不指定"
+      "default": "打印机默认"
     },
     "delivery": {
       "label": "打印类型",
@@ -133,27 +133,27 @@
       "sample": "样本打印",
       "delayed": "延时打印",
       "normalHint": "发送后立即打印。",
-      "secureHint": "在打印机操作面板上输入用户 ID 和密码之前不会打印。适合不想被别人看到的文件。",
-      "sampleHint": "先只打印 1 份。确认无误后，在操作面板上打印其余份数。",
-      "delayedHint": "在指定的时间打印。",
+      "secureHint": "需在打印机操作面板上输入用户 ID 和密码后才会打印。适合不想被别人看到的文件。",
+      "sampleHint": "先打印 1 份，确认无误后在操作面板上打印剩余的份数。",
+      "delayedHint": "在指定时间打印。",
       "userId": "用户 ID",
       "pin": "密码（最多 12 位数字）",
-      "pinNote": "密码不会保存在这个浏览器中。",
+      "pinNote": "密码不会保存在此浏览器中。",
       "time": "打印时间"
     },
     "errors": {
-      "copiesOutOfRange": "份数请设为 1〜999。",
+      "copiesOutOfRange": "份数请设置为 1～999。",
       "userIdRequired": "请输入用户 ID。",
-      "userIdTooLong": "用户 ID 最多 24 个字符。",
-      "pinInvalid": "密码请输入 1〜12 位数字。",
+      "userIdTooLong": "用户 ID 请控制在 24 个字符以内。",
+      "pinInvalid": "密码请设置为 1～12 位数字。",
       "timeInvalid": "请输入正确的时间。"
     },
     "pagesPerSheet": {
-      "label": "每张纸打印的页数",
+      "label": "每张纸打印页数",
       "1": "1 页",
       "2": "2 页",
       "4": "4 页",
-      "hint": "仅适用于 PDF 文件。"
+      "hint": "仅对 PDF 文件生效。"
     }
   },
   "paperSize": {
@@ -172,11 +172,11 @@
     "plain": "普通纸",
     "bond": "证券纸",
     "recycled": "再生纸",
-    "user1": "自定义纸张 1",
-    "user2": "自定义纸张 2",
-    "user3": "自定义纸张 3",
-    "user4": "自定义纸张 4",
-    "user5": "自定义纸张 5"
+    "user1": "用户纸张 1",
+    "user2": "用户纸张 2",
+    "user3": "用户纸张 3",
+    "user4": "用户纸张 4",
+    "user5": "用户纸张 5"
   },
   "tray": {
     "T1": "纸盒 1",
@@ -189,16 +189,16 @@
     "ok": "",
     "empty": "缺纸",
     "unknown": "状态未知",
-    "unavailable": "无法使用"
+    "unavailable": "不可用"
   },
   "summary": {
     "sentence": "{{copies_phrase}}，{{paper}}，{{color}}，{{sides}}。",
-    "copies_other": "每个文件 {{count}} 份",
-    "paperDefault": "纸张尺寸与原稿一致",
+    "copies_other": "每个文件各 {{count}} 份",
+    "paperDefault": "按原稿尺寸",
     "color": {
       "bw": "黑白",
       "color": "彩色",
-      "auto": "自动识别彩色"
+      "auto": "自动判断彩色/黑白"
     },
     "sides": {
       "none": "单面",
@@ -206,34 +206,34 @@
       "short-edge": "双面（短边装订）"
     },
     "delivery": {
-      "secure": "以安全打印方式发送。",
+      "secure": "将以安全打印方式发送。",
       "sample": "先只打印 1 份。",
       "delayed": "将在 {{time}} 打印。"
     },
-    "previewLabel": "打印效果示意",
-    "pagesPerSheet": "每张纸排 {{count}} 页。",
-    "sheets_other": "约用纸 {{count}} 张。"
+    "previewLabel": "成品预览",
+    "pagesPerSheet": "每张纸打印 {{count}} 页。",
+    "sheets_other": "约需 {{count}} 张纸。"
   },
   "submit": {
     "button_other": "打印 {{count}} 个文件",
     "buttonEmpty": "打印",
     "noFiles": "添加文件后即可打印。",
-    "busy": "正在发送…",
+    "busy": "发送中…",
     "fixErrors": "请检查设置。",
-    "fixRanges": "请检查页码设置。",
-    "mergedButton_other": "将 {{count}} 个文件合并打印",
-    "confirmLarge": "共约 {{sheets}} 张（每个文件 {{copies}} 份）。确定要打印吗？",
-    "confirmLargeSheets": "共约 {{sheets}} 张。确定要打印吗？",
-    "confirmLargeCopies": "每个文件各打印 {{copies}} 份。确定要打印吗？",
+    "fixRanges": "请检查打印页码。",
+    "mergedButton_other": "合并打印 {{count}} 个文件",
+    "confirmLarge": "将打印约 {{sheets}} 张纸（每个文件 {{copies}} 份），确定吗？",
+    "confirmLargeSheets": "将打印约 {{sheets}} 张纸，确定吗？",
+    "confirmLargeCopies": "每个文件将打印 {{copies}} 份，确定吗？",
     "confirmYes": "继续打印",
     "confirmCancel": "取消"
   },
   "errors": {
-    "PRINTER_UNREACHABLE": "无法连接打印机。请确认是否在同一网络中。",
-    "FILE_REJECTED": "打印机没有接受这个文件。请重新导出为 PDF 后再试。",
-    "OPTION_REJECTED": "打印机没有接受这些设置（{{fields}}）。",
-    "PRINTER_ERROR": "打印机返回了错误。",
-    "UNEXPECTED_RESPONSE": "打印机返回了意外的响应（HTTP {{status}}）。",
+    "PRINTER_UNREACHABLE": "无法连接打印机，请确认是否在同一网络。",
+    "FILE_REJECTED": "打印机不接受此文件，请重新导出为 PDF 后再试。",
+    "OPTION_REJECTED": "打印机不接受这些设置（{{fields}}）。",
+    "PRINTER_ERROR": "打印机返回错误。",
+    "UNEXPECTED_RESPONSE": "打印机返回了异常响应（HTTP {{status}}）。",
     "ABORTED": "已取消发送。",
     "statusUnavailable": "无法获取打印机状态。"
   },
@@ -248,15 +248,15 @@
       "yellow": "黄色"
     },
     "state": {
-      "ok": "良好",
-      "orderSpare": "余量不多，请准备备用品",
+      "ok": "正常",
+      "orderSpare": "余量不足，请备好备用件",
       "replaceSoon": "即将需要更换",
       "replaceNow": "请更换",
-      "nonGenuine": "非原装产品",
+      "nonGenuine": "非原装",
       "idError": "无法识别",
       "settingUp": "设置中",
       "notInstalled": "未安装或安装不良",
-      "qualityEnd": "已达品质寿命",
+      "qualityEnd": "质量寿命已到",
       "sensorFailure": "传感器故障",
       "failure": "故障",
       "checkRequired": "需要检查",
@@ -264,10 +264,10 @@
     },
     "level": "剩余约 {{percent}}%",
     "range": "{{min}}〜{{max}}%",
-    "rangeNote": "打印机只能以 25% 为单位报告碳粉余量，所以显示为范围。",
-    "measuredNote": "精确值于{{time}}测得。",
-    "lowSummary": "{{colors}}碳粉余量不多",
-    "urgentSummary": "{{colors}}碳粉即将用完，请尽快准备替换品"
+    "rangeNote": "打印机只能按 25% 的档位报告碳粉余量，因此以范围显示。",
+    "measuredNote": "精确值为{{time}}测得。",
+    "lowSummary": "{{colors}}碳粉余量不足",
+    "urgentSummary": "{{colors}}碳粉即将用完，请尽快备好新碳粉盒"
   },
   "trays": {
     "title": "纸盒",
@@ -277,31 +277,31 @@
       "3": "约 3/4",
       "2": "约一半",
       "1": "约 1/4",
-      "0": "所剩无几"
+      "0": "所剩不多"
     },
     "about": "约 {{percent}}%",
-    "sensorNote": "纸盒传感器只能分 4 档（每档约 1/4）检测纸量。"
+    "sensorNote": "纸盒传感器只能按 4 档（每档约 1/4）检测纸张余量。"
   },
   "alerts": {
-    "title": "打印机消息",
-    "none": "没有消息",
+    "title": "打印机通知",
+    "none": "暂无通知",
     "known": {
       "tonerReplaceSoon": "{{color}}碳粉即将用完，建议提前备好新粉盒，收到更换提示后再换，不影响正常打印。",
-      "partEndOfLife": "{{part}}已达到寿命。请联系管理员更换（可以继续打印）。"
+      "partEndOfLife": "{{part}}已到使用寿命，请联系管理员更换（不影响正常打印）。"
     },
     "parts": {
       "transferBeltCleaner": "转印带清洁器"
     },
-    "snmpNote": "以上信息获取自打印机（{{time}}）。",
+    "snmpNote": "以上信息为{{time}}从打印机获取。",
     "original": "打印机原文"
   },
   "jobs": {
-    "queueTitle": "正在打印和等待中的作业",
-    "queueEmpty": "没有等待中的作业。",
-    "historyTitle": "最近的作业",
-    "onlyMine": "只显示我的作业",
+    "queueTitle": "打印队列",
+    "queueEmpty": "没有待打印的作业。",
+    "historyTitle": "最近作业",
+    "onlyMine": "只看我的作业",
     "mine": "我",
-    "mineUnknown": "在这个浏览器里打印过一次后，就能识别出你的作业。",
+    "mineUnknown": "从这个浏览器打印一次后，就能识别出你的作业。",
     "historyEmpty": "没有可显示的作业。",
     "columns": {
       "owner": "发送者",
@@ -311,21 +311,21 @@
       "copies": "份数",
       "time": "完成时间",
       "result": "结果",
-      "via": "途径"
+      "via": "来源"
     },
     "state": {
       "waiting": "等待中",
-      "processing": "准备打印",
-      "printing": "执行中",
+      "processing": "准备中",
+      "printing": "打印中",
       "paused": "已暂停",
-      "held": "保留中",
+      "held": "已保留",
       "completed": "已结束"
     },
     "type": {
       "print": "打印",
       "copy": "复印",
       "scan": "扫描",
-      "mailboxRetrieval": "从信箱取出",
+      "mailboxRetrieval": "信箱取出",
       "fax": "传真",
       "report": "报告",
       "unknown": "其他"
@@ -334,7 +334,7 @@
       "completed": "正常结束",
       "warning": "有警告",
       "aborted": "已中止",
-      "shutdown": "电源关闭",
+      "shutdown": "电源断开",
       "failed": "异常结束",
       "incomingCall": "来电",
       "remoteCheck": "对方确认",
@@ -346,16 +346,16 @@
     },
     "showMore": "显示更多",
     "showLess": "收起",
-    "retrievalsHidden": "未显示从信箱取出的记录（每次查看缩略图或保存，打印机都会记录一次）。",
-    "cancelConfirm": "要取消这个作业的打印吗？已经打印出来的部分无法撤回。",
+    "retrievalsHidden": "不显示从信箱取出的记录（每次查看缩略图或保存时打印机都会记录）。",
+    "cancelConfirm": "确定取消这个作业的打印吗？已打印的部分无法撤回。",
     "cancelMine_other": "取消我的全部作业（{{count}}）",
-    "cancelMineConfirm_other": "要取消你的全部 {{count}} 个打印作业吗？已经打印出来的部分无法撤回。"
+    "cancelMineConfirm_other": "确定取消你的全部 {{count}} 个作业吗？已打印的部分无法撤回。"
   },
   "mailbox": {
-    "intro": "在打印机上扫描并保存到信箱的文档，可以在这里保存为 PDF。",
+    "intro": "在打印机上扫描并存到信箱的文档，可以在这里保存为 PDF。",
     "chooseTitle": "选择信箱",
     "search": "按编号或名称查找",
-    "noMatch": "没有符合的信箱。",
+    "noMatch": "没有匹配的信箱。",
     "mine": "我的信箱",
     "setMine": "设为我的信箱",
     "unsetMine": "取消我的信箱",
@@ -364,10 +364,10 @@
     "password": "密码",
     "open": "打开",
     "opening": "正在打开…",
-    "passwordNote": "密码不会被保存。关闭此页面或 30 分钟无操作后会被清除。",
+    "passwordNote": "密码不会被保存。关闭此页面或 30 分钟无操作后即会清除。",
     "close": "关闭信箱",
-    "autoClosed": "由于 30 分钟没有操作，信箱已关闭。",
-    "documents_other": "{{count}} 份文档",
+    "autoClosed": "30 分钟无操作，信箱已关闭。",
+    "documents_other": "{{count}} 个文档",
     "empty": "这个信箱里没有文档。在打印机上扫描并保存到这个信箱后，文档会显示在这里。",
     "pages_other": "{{count}} 页",
     "type": {
@@ -384,72 +384,72 @@
       "tiffJpeg": "TIFF / JPEG"
     },
     "save": "保存",
-    "saving": "正在保存…",
-    "saved_other": "已保存 {{count}} 份文档。",
+    "saving": "保存中…",
+    "saved_other": "已保存 {{count}} 个。",
     "selectAll": "全选",
     "selectDocument": "选择 {{name}}",
-    "saveSelected_other": "保存所选的 {{count}} 份",
-    "deleteSelected_other": "删除所选的 {{count}} 份",
-    "confirmDelete_other": "将删除 {{count}} 份文档，删除后无法恢复。",
+    "saveSelected_other": "保存选中的 {{count}} 个",
+    "deleteSelected_other": "删除选中的 {{count}} 个",
+    "confirmDelete_other": "将删除 {{count}} 个文档，无法恢复。",
     "confirmDeleteYes": "删除",
     "cancel": "取消",
-    "deleting": "正在删除…",
-    "deleted_other": "已删除 {{count}} 份文档。",
-    "panelInUseHint": "打印机的操作面板正在使用中，这期间可能无法删除文档。",
+    "deleting": "删除中…",
+    "deleted_other": "已删除 {{count}} 个。",
+    "panelInUseHint": "打印机操作面板正在使用中，此时可能无法删除文档。",
     "errors": {
       "WRONG_PASSWORD": "密码错误。",
-      "PRINTER_BUSY": "打印机正忙，未能删除。请确认没有人在使用操作面板，或在原来的界面中打开着信箱，然后再试一次。",
-      "PRINTER_UNREACHABLE": "无法连接打印机。请确认是否已连接到实验室的网络。",
-      "UNEXPECTED_RESPONSE": "打印机返回了意外的响应。请再试一次。",
+      "PRINTER_BUSY": "打印机正在使用中，删除失败。请确认没有人在使用操作面板，也没有人在原界面打开信箱，然后再试一次。",
+      "PRINTER_UNREACHABLE": "无法连接打印机。请确认已连接实验室网络。",
+      "UNEXPECTED_RESPONSE": "打印机返回了异常响应，请重试。",
       "listFailed": "无法获取信箱列表。"
     },
     "view": "查看",
     "thumbnailOf": "{{name}} 的第 1 页（点击查看）",
-    "rename": "命名",
+    "rename": "重命名",
     "renameLabel": "显示名称",
     "renameApply": "确定",
     "renamePlaceholder": "例：组会资料",
-    "renameNote": "名称只保存在这个浏览器中，打印机上的文档名不会改变。",
-    "scannedAt": "扫描于 {{time}}",
-    "cannotView": "无法查看这种类型的文档。",
-    "idleNote": "30 分钟没有操作时，信箱会自动关闭。",
-    "archiveSelected_other": "将所选的 {{count}} 份保存为 ZIP",
+    "renameNote": "名称仅保存在此浏览器中，打印机上的文档名不会改变。",
+    "scannedAt": "{{time}} 扫描",
+    "cannotView": "无法查看此类型的文档。",
+    "idleNote": "30 分钟无操作，信箱会自动关闭。",
+    "archiveSelected_other": "将选中的 {{count}} 个保存为 ZIP",
     "archiveDeleteAfter": "保存后从信箱中删除",
     "archiveRun": "保存",
-    "archived_other": "已将 {{count}} 份文档打包保存为 ZIP。",
-    "archivedDeleted_other": "已将 {{count}} 份文档打包保存为 ZIP，并从信箱中删除。",
-    "sendToPrint_other": "打印所选的 {{count}} 份",
-    "sentToPrint_other": "已将 {{count}} 份文档添加到打印列表。",
+    "archived_other": "已将 {{count}} 个打包保存为 ZIP。",
+    "archivedDeleted_other": "已将 {{count}} 个打包保存为 ZIP，并从信箱中删除。",
+    "sendToPrint_other": "打印选中的 {{count}} 个",
+    "sentToPrint_other": "已将 {{count}} 个添加到打印列表。",
     "receive": {
       "title": "自动接收扫描件",
-      "description": "从现在起保存到这个信箱的扫描件，会自动下载到这台电脑。最长持续 2 小时，切换到其他标签页也会继续。",
+      "description": "此后保存到此信箱的扫描件会自动下载到这台电脑。最长持续 2 小时，切换标签页后仍会继续。",
       "start": "开始接收",
       "waiting": "等待接收（至 {{time}}）",
-      "stop": "结束接收",
+      "stop": "停止接收",
       "deleteAfter": "接收后从信箱中删除",
       "received": "已接收的文件",
-      "none": "还没有。请在打印机上扫描并保存到这个信箱。",
-      "pendingDeletes_other": "有 {{count}} 份文档因打印机正忙，稍后再删除。",
-      "ended": "接收时间（2 小时）已到，信箱已关闭。",
-      "downloadHint": "如果浏览器询问是否允许下载多个文件，请选择允许。"
+      "none": "暂无。请在打印机上扫描并保存到此信箱。",
+      "pendingDeletes_other": "{{count}} 个文档将在打印机空闲后删除。",
+      "ended": "接收时间（2 小时）已结束，信箱已关闭。",
+      "downloadHint": "如果浏览器询问是否允许「下载多个文件」，请选择允许。"
     },
     "openingMine": "正在打开我的信箱（{{number}}）…"
   },
   "errorLog": {
     "title": "错误记录",
-    "empty": "没有错误记录。",
+    "empty": "暂无错误记录。",
     "category": {
       "005": "输稿器",
-      "010": "定影部",
-      "016": "打印数据处理或网络",
+      "010": "定影单元",
+      "016": "打印数据处理与网络",
       "033": "传真",
-      "071": "纸盒 1 供纸",
-      "072": "纸盒 2 供纸",
-      "073": "纸盒 3 供纸",
-      "074": "纸盒 4 供纸",
-      "075": "手送纸盒供纸",
+      "071": "纸盒 1 进纸",
+      "072": "纸盒 2 进纸",
+      "073": "纸盒 3 进纸",
+      "074": "纸盒 4 进纸",
+      "075": "手送纸盒进纸",
       "077": "纸张传送（卡纸）",
-      "09x": "碳粉和成像部",
+      "09x": "碳粉与成像单元",
       "other": "其他"
     }
   },
@@ -458,36 +458,36 @@
   },
   "install": {
     "title": "Tombo",
-    "lead": "实验室打印机的新打印界面。拖入文件、确认设置，就能打印。打印机原来的界面也照常可用。",
-    "setupTitle": "首次设置（只需一次）",
+    "lead": "这是实验室打印机的新打印界面。拖入文件、确认设置后即可打印。打印机原本的界面也照常可用。",
+    "setupTitle": "首次使用前设置一次",
     "step1": "把下面的按钮拖到浏览器的书签栏。",
-    "step1Hint": "看不到书签栏时：Chrome、Edge、Firefox 按 Ctrl+Shift+B（Mac 按 ⌘+Shift+B）；Safari 在「显示」菜单中选择「显示个人收藏栏」。",
+    "step1Hint": "看不到书签栏时：Chrome、Edge、Firefox 按 Ctrl+Shift+B（Mac 为 ⌘+Shift+B），Safari 在「显示」菜单中选「显示个人收藏栏」。",
     "button": "Tombo",
-    "buttonNote": "在这个页面上点击按钮没有作用，请拖动它。",
-    "useTitle": "每次打印时",
-    "use1": "照常打开打印机的网页（地址见实验室的说明）。",
-    "use2": "点击书签栏里的「Tombo」，就会切换到新界面。",
+    "buttonNote": "在本页点击按钮没有反应，请拖动它。",
+    "useTitle": "打印时",
+    "use1": "照常打开打印机页面（地址以实验室通知的为准）。",
+    "use2": "点击书签栏里的「Tombo」，即可切换到新界面。",
     "faqTitle": "常见问题",
     "faq": [
       [
-        "刷新页面后又回到了原来的界面。",
-        "刷新后总是会显示打印机自带的界面。请再点击一次「Tombo」。"
+        "刷新页面后变回了原来的界面。",
+        "刷新后会回到打印机原本的界面，再点一次「Tombo」即可。"
       ],
       [
         "点击后没有反应。",
-        "请在打开打印机网页的状态下点击。在其他网页上点击会显示一条提示。"
+        "请在打开打印机页面的状态下点击。在其他页面点击会显示提示。"
       ],
       [
-        "按钮拖不动。",
+        "拖不动按钮。",
         "复制下面的代码，新建一个书签，把代码粘贴到网址栏，名称设为「Tombo」。"
       ],
       [
         "想回到原来的界面。",
-        "点击新界面底部的「返回原来的界面」，或刷新页面。"
+        "点击新界面下方的「返回原界面」，或刷新页面。"
       ],
       [
-        "会把我的文件发送到别处吗？",
-        "要打印的文件和设置直接发送到打印机，不会发送到其他服务器。设置只保存在这个浏览器中。"
+        "会不会把文件发送到别处？",
+        "要打印的文件和设置会直接发送到打印机，不会发送到其他服务器。设置只保存在这个浏览器里。"
       ]
     ],
     "copy": "复制代码",
@@ -495,12 +495,12 @@
     "version": "版本 {{version}}"
   },
   "preview": {
-    "title": "预览效果",
-    "note": "将按这个样子发送到打印机。",
+    "title": "打印预览",
+    "note": "将按此效果发送到打印机。",
     "loading": "正在准备…",
-    "failed": "无法生成预览。",
+    "failed": "预览生成失败。",
     "close": "关闭",
-    "openInTab": "在新标签页中打开",
-    "notShowing": "如果显示不正常，请使用「在新标签页中打开」。"
+    "openInTab": "在新标签页打开",
+    "notShowing": "显示不正常时，请用「在新标签页打开」。"
   }
 }
