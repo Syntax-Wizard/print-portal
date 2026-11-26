@@ -725,7 +725,10 @@ test("drag the second file to the top (rows of equal height)", async ({ page }) 
   await handle.hover();
   const box = (await handle.boundingBox())!;
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2, box.y - 300, { steps: 15 });
+  // Go a little above the first row, but stay inside the window: outside it a headless browser
+  // gets no pointer events at all (not even the release).
+  const firstTop = (await page.locator("li[data-key]").first().boundingBox())!.y;
+  await page.mouse.move(box.x + box.width / 2, Math.max(2, firstTop - 10), { steps: 15 });
   await page.mouse.up();
   await expect.poll(names).toEqual(["B.pdf", "A.pdf", "C.pdf"]);
 });

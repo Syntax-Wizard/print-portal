@@ -372,6 +372,8 @@ function useDragReorder(onMove?: (key: string, delta: -1 | 1) => void, onReorder
     },
     onPointerUp: drop,
     onPointerCancel: drop,
+    // If the release is never delivered (capture lost), end the drag rather than leave it hanging.
+    onLostPointerCapture: drop,
     onKeyDown: (e: KeyboardEvent) => {
       const delta = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
       const row = rowOf(key);
