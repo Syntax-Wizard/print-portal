@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "Tombo",
-    "classicUi": "Back to the original screen",
-    "classicUiHint": "Reloading the page brings back the printer's own screen",
+    "classicUi": "Switch to classic UI",
+    "classicUiHint": "Reload the page to return to the printer's built-in interface",
     "language": "Language",
     "theme": {
       "label": "Theme",
-      "system": "Match system",
+      "system": "System",
       "light": "Light",
       "dark": "Dark"
     }
@@ -18,78 +18,78 @@
   },
   "device": {
     "state": {
-      "ready": "Ready to print",
+      "ready": "Ready",
       "printing": "Printing",
       "sleep": "Power saver",
       "warmingUp": "Warming up",
-      "panelInUse": "Control panel in use",
+      "panelInUse": "Panel in use",
       "error": "Error",
       "warning": "Needs attention",
-      "offline": "Can't connect"
+      "offline": "Offline"
     },
-    "sleepHint": "Wakes up automatically when you send a job",
+    "sleepHint": "Wakes automatically when you send a print job",
     "updatedAt": "Updated {{time}}",
     "refresh": "Refresh"
   },
   "files": {
-    "dropTitle": "Drop files to print here",
-    "dropAction": "or choose files",
-    "dropHint": "Print PDFs and images (JPEG, PNG, screenshots…). You can also paste with ⌘V / Ctrl+V (up to {{max}} MB per file)",
-    "dropActive": "Release to add",
+    "dropTitle": "Drop files here to print",
+    "dropAction": "Browse files",
+    "dropHint": "PDFs and images (JPEG, PNG, screenshots). You can also paste with ⌘V / Ctrl+V (max {{max}} MB each)",
+    "dropActive": "Drop to add",
     "remove": "Remove {{name}}",
-    "clearDone": "Clear printed files",
-    "unsupported": "This file type can't be printed. Export it to PDF or save it as an image, then add it again.",
-    "tooLarge": "Files over {{max}} MB can't be printed.",
+    "clearDone": "Clear completed",
+    "unsupported": "Unsupported file type. Export as a PDF or image and try again.",
+    "tooLarge": "File exceeds the {{max}} MB limit.",
     "empty": "This file is empty.",
     "tooMany": "You can add up to {{max}} files at a time.",
     "pages_one": "{{count}} page",
     "pages_other": "{{count}} pages",
     "countingPages": "Counting pages…",
-    "pageRange": "Pages to print",
+    "pageRange": "Page range",
     "pageRangePlaceholder": "All (e.g. 1-3, 5)",
-    "rangeInvalid": "Enter page numbers and ranges separated by commas, like 1-3, 5.",
-    "rangeOutOfRange_one": "This file has only {{count}} page.",
-    "rangeOutOfRange_other": "This file has only {{count}} pages.",
+    "rangeInvalid": "Enter page numbers or ranges separated by commas, like 1-3, 5.",
+    "rangeOutOfRange_one": "This file only has {{count}} page.",
+    "rangeOutOfRange_other": "This file only has {{count}} pages.",
     "preview": "Preview",
     "pdfIssue": {
-      "encrypted": "This PDF is protected, so page selection and several pages per sheet aren't available. It can still be printed as is.",
-      "unreadable": "This PDF can't be read, so page selection and several pages per sheet aren't available. It can still be printed as is.",
+      "encrypted": "This PDF is password-protected, so page selection and multi-page layouts aren't available. You can still print it as is.",
+      "unreadable": "Couldn't read this PDF, so page selection and multi-page layouts aren't available. You can still print it as is.",
       "toolsUnavailable": "Couldn't load the PDF tools. Check your internet connection.",
-      "toolsOutdated": "Tombo was just updated. Reload the page, then click the bookmark again."
+      "toolsOutdated": "Tombo was just updated. Reload the page and click the bookmark again."
     },
-    "imageUnreadable": "This browser can't read this image (e.g. HEIC outside Safari). Convert it to JPEG or PNG and add it again.",
-    "merge": "Print as one job",
-    "mergeHint": "Combine the files into one job so 2-sided printing and pages per sheet run across them.",
+    "imageUnreadable": "Your browser can't decode this image format (e.g., HEIC outside Safari). Convert it to JPEG or PNG and try again.",
+    "merge": "Combine into one job",
+    "mergeHint": "Merge files into a single job so double-sided printing and multi-page layouts flow across them.",
     "mergeOrderHint": "Printed in this order. Drag to reorder.",
     "mergedPreview": "Preview combined",
-    "mergedPreviewTitle": "Combined ({{count}} files)",
+    "mergedPreviewTitle": "Combined preview ({{count}} files)",
     "rotate": "Rotate",
-    "rotateLabel": "Rotate {{name}} 90° clockwise (now {{angle}}°)",
+    "rotateLabel": "Rotate {{name}} 90° clockwise (currently {{angle}}°)",
     "cancel": "Cancel",
     "cancelLabel": "Cancel printing {{name}}",
-    "cancelConfirm": "Cancel printing “{{name}}”? Pages already printed can't be undone.",
-    "cancelFailed": "Couldn't cancel. The job may have finished already, or the printer refused.",
-    "reorderLabel": "Reorder {{name}} (drag, or ↑/↓ keys)",
-    "reorderHint": "Drag to change the order",
+    "cancelConfirm": "Cancel “{{name}}”? Pages already printed can't be stopped.",
+    "cancelFailed": "Couldn't cancel — the job may have already finished, or the printer rejected the request.",
+    "reorderLabel": "Reorder {{name}} (drag, or use ↑/↓ keys)",
+    "reorderHint": "Drag to reorder",
     "cancelAll_one": "Cancel all ({{count}})",
     "cancelAll_other": "Cancel all ({{count}})",
-    "cancelAllConfirm_one": "Cancel {{count}} file that is waiting, being sent or at the printer? Pages already printed can't be undone.",
-    "cancelAllConfirm_other": "Cancel all {{count}} files that are waiting, being sent or at the printer? Pages already printed can't be undone.",
-    "cancelAllFailed_one": "{{count}} job couldn't be canceled. It may have finished already, or the printer refused.",
-    "cancelAllFailed_other": "{{count}} jobs couldn't be canceled. They may have finished already, or the printer refused."
+    "cancelAllConfirm_one": "Cancel {{count}} active job? Pages already printed can't be stopped.",
+    "cancelAllConfirm_other": "Cancel all {{count}} active jobs? Pages already printed can't be stopped.",
+    "cancelAllFailed_one": "Couldn't cancel {{count}} job — it may have already finished, or the printer rejected the request.",
+    "cancelAllFailed_other": "Couldn't cancel {{count}} jobs — they may have already finished, or the printer rejected the request."
   },
   "item": {
     "ready": "Ready",
-    "queued": "Waiting its turn",
-    "uploading": "Sending {{percent}}%",
-    "sent": "Sent to the printer",
-    "waiting": "Waiting at the printer",
-    "processing": "Being prepared at the printer",
+    "queued": "Queued",
+    "uploading": "Uploading {{percent}}%",
+    "sent": "Sent",
+    "waiting": "Waiting at printer",
+    "processing": "Processing",
     "printing": "Printing",
     "done": "Printed",
-    "held": "Held at the printer. Release it on the control panel",
-    "failed": "Couldn't print",
-    "retry": "Send again",
+    "held": "Held — release from the printer panel",
+    "failed": "Failed",
+    "retry": "Retry",
     "preparing": "Preparing…",
     "canceled": "Canceled"
   },
@@ -97,8 +97,8 @@
     "title": "Settings",
     "remember": "Remember these settings",
     "copies": "Copies",
-    "copiesDecrease": "Fewer copies",
-    "copiesIncrease": "More copies",
+    "copiesDecrease": "Decrease copies",
+    "copiesIncrease": "Increase copies",
     "duplex": {
       "label": "Sides",
       "none": "1-sided",
@@ -137,20 +137,20 @@
       "secure": "Secure Print",
       "sample": "Sample Set",
       "delayed": "Delayed Print",
-      "normalHint": "Prints as soon as it arrives.",
-      "secureHint": "Nothing prints until you enter your user ID and passcode on the printer's control panel. Use it for documents others shouldn't see.",
-      "sampleHint": "Prints one copy first. Release the rest on the control panel once it looks right.",
-      "delayedHint": "Prints at the time you choose.",
+      "normalHint": "Prints immediately.",
+      "secureHint": "Holds the job until you enter your user ID and passcode at the printer. Ideal for confidential documents.",
+      "sampleHint": "Prints one proof copy first. Release the remaining copies at the printer once you've checked it.",
+      "delayedHint": "Starts printing at the time you choose.",
       "userId": "User ID",
       "pin": "Passcode (up to 12 digits)",
-      "pinNote": "The passcode is never saved in this browser.",
+      "pinNote": "Your passcode is never saved in this browser.",
       "time": "Print at"
     },
     "errors": {
-      "copiesOutOfRange": "Copies must be between 1 and 999.",
+      "copiesOutOfRange": "Enter a number between 1 and 999.",
       "userIdRequired": "Enter a user ID.",
-      "userIdTooLong": "User IDs can be up to 24 characters.",
-      "pinInvalid": "The passcode must be 1 to 12 digits.",
+      "userIdTooLong": "User ID must be 24 characters or fewer.",
+      "pinInvalid": "Passcode must be 1 to 12 digits.",
       "timeInvalid": "Enter a valid time."
     },
     "pagesPerSheet": {
@@ -158,7 +158,7 @@
       "1": "1",
       "2": "2",
       "4": "4",
-      "hint": "Applies to PDF files."
+      "hint": "Applies to PDF files only."
     }
   },
   "paperSize": {
@@ -200,7 +200,7 @@
     "sentence": "{{copies_phrase}}, {{sides}}, in {{color}} on {{paper}}.",
     "copies_one": "{{count}} copy of each file",
     "copies_other": "{{count}} copies of each file",
-    "paperDefault": "paper that matches the document",
+    "paperDefault": "document paper size",
     "color": {
       "bw": "black & white",
       "color": "color",
@@ -213,13 +213,13 @@
     },
     "delivery": {
       "secure": "Sent as Secure Print.",
-      "sample": "One copy prints first.",
-      "delayed": "Prints at {{time}}."
+      "sample": "Prints one proof copy first.",
+      "delayed": "Scheduled for {{time}}."
     },
-    "previewLabel": "Preview of the result",
-    "pagesPerSheet": "{{count}} pages on each sheet.",
-    "sheets_one": "Uses about {{count}} sheet of paper.",
-    "sheets_other": "Uses about {{count}} sheets of paper."
+    "previewLabel": "Print layout preview",
+    "pagesPerSheet": "{{count}} pages per sheet.",
+    "sheets_one": "Uses about {{count}} sheet.",
+    "sheets_other": "Uses about {{count}} sheets."
   },
   "submit": {
     "button_one": "Print {{count}} file",
@@ -228,23 +228,23 @@
     "noFiles": "Add a file to print.",
     "busy": "Sending…",
     "fixErrors": "Check the settings above.",
-    "fixRanges": "Check the page selections.",
+    "fixRanges": "Check the page ranges.",
     "mergedButton_one": "Print {{count}} file as one job",
     "mergedButton_other": "Print {{count}} files as one job",
-    "confirmLarge": "This will print about {{sheets}} sheets ({{copies}} copies each). Continue?",
-    "confirmLargeSheets": "This will print about {{sheets}} sheets. Continue?",
+    "confirmLarge": "This will use about {{sheets}} sheets ({{copies}} copies each). Continue?",
+    "confirmLargeSheets": "This will use about {{sheets}} sheets. Continue?",
     "confirmLargeCopies": "This will print {{copies}} copies of each file. Continue?",
     "confirmYes": "Print anyway",
     "confirmCancel": "Cancel"
   },
   "errors": {
-    "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",
-    "FILE_REJECTED": "The printer didn't accept this file. Export it to PDF again and retry.",
-    "OPTION_REJECTED": "The printer didn't accept these settings ({{fields}}).",
+    "PRINTER_UNREACHABLE": "Couldn't reach the printer. Make sure you're connected to the lab network.",
+    "FILE_REJECTED": "The printer rejected this file. Try re-exporting it as a PDF.",
+    "OPTION_REJECTED": "The printer rejected these settings ({{fields}}).",
     "PRINTER_ERROR": "The printer returned an error.",
-    "UNEXPECTED_RESPONSE": "The printer sent an unexpected response (HTTP {{status}}).",
-    "ABORTED": "Sending was canceled.",
-    "statusUnavailable": "Can't read the printer status."
+    "UNEXPECTED_RESPONSE": "Unexpected response from the printer (HTTP {{status}}).",
+    "ABORTED": "Upload canceled.",
+    "statusUnavailable": "Couldn't load printer status."
   },
   "supplies": {
     "title": "Toner",
@@ -258,60 +258,60 @@
     },
     "state": {
       "ok": "OK",
-      "orderSpare": "Running low. Have a spare ready",
+      "orderSpare": "Low — keep a spare ready",
       "replaceSoon": "Replace soon",
       "replaceNow": "Replace now",
-      "nonGenuine": "Not a genuine cartridge",
+      "nonGenuine": "Non-genuine cartridge",
       "idError": "Not recognized",
       "settingUp": "Setting up",
-      "notInstalled": "Missing or not seated",
+      "notInstalled": "Missing or improperly seated",
       "qualityEnd": "End of quality life",
       "sensorFailure": "Sensor failure",
       "failure": "Failure",
       "checkRequired": "Needs checking",
-      "almostEmpty": "About {{percent}}% left. Needs replacing very soon"
+      "almostEmpty": "~{{percent}}% left — replace very soon"
     },
-    "level": "About {{percent}}% left",
+    "level": "~{{percent}}% left",
     "range": "{{min}}–{{max}}%",
-    "rangeNote": "The printer only reports toner in 25% steps, so levels are shown as ranges.",
-    "measuredNote": "Exact values were measured {{time}}.",
+    "rangeNote": "The printer reports toner in 25% steps, so levels are shown as ranges.",
+    "measuredNote": "Exact levels measured {{time}}.",
     "lowSummary": "{{colors}} toner running low",
-    "urgentSummary": "{{colors}} toner almost empty: get a replacement now"
+    "urgentSummary": "{{colors}} toner nearly empty — order a replacement soon"
   },
   "trays": {
     "title": "Paper trays",
     "noLevel": "Level unknown",
     "quarters": {
-      "4": "Nearly full",
+      "4": "Full",
       "3": "About 3/4",
       "2": "About half",
       "1": "About 1/4",
-      "0": "Almost empty"
+      "0": "Nearly empty"
     },
-    "about": "About {{percent}}%",
-    "sensorNote": "The tray sensor only detects the paper level in four steps (quarters)."
+    "about": "~{{percent}}%",
+    "sensorNote": "Tray sensors report paper levels in 25% increments."
   },
   "alerts": {
-    "title": "Messages from the printer",
-    "none": "No messages",
+    "title": "Printer alerts",
+    "none": "No alerts",
     "known": {
-      "tonerReplaceSoon": "The {{color}} toner is running low. Get a new cartridge ready and replace it when the printer asks you to (printing can continue).",
-      "partEndOfLife": "The {{part}} has reached the end of its life. Ask the administrator to replace it (printing can continue)."
+      "tonerReplaceSoon": "{{color}} toner is running low. Keep a spare cartridge ready and replace it when prompted (you can keep printing for now).",
+      "partEndOfLife": "The {{part}} has reached the end of its service life. Please notify an administrator (you can keep printing for now)."
     },
     "parts": {
       "transferBeltCleaner": "transfer belt cleaner"
     },
-    "snmpNote": "Read from the printer {{time}}.",
-    "original": "Printer's original text"
+    "snmpNote": "Updated {{time}}.",
+    "original": "Original message"
   },
   "jobs": {
-    "queueTitle": "Printing and waiting",
-    "queueEmpty": "Nothing is waiting to print.",
+    "queueTitle": "Print queue",
+    "queueEmpty": "No active jobs.",
     "historyTitle": "Recent jobs",
-    "onlyMine": "Show only my jobs",
+    "onlyMine": "My jobs only",
     "mine": "You",
-    "mineUnknown": "Print once from this browser and your jobs will be marked here.",
-    "historyEmpty": "No jobs to show.",
+    "mineUnknown": "Print once from this browser so your jobs can be highlighted here.",
+    "historyEmpty": "No recent jobs.",
     "columns": {
       "owner": "Sent by",
       "state": "Status",
@@ -320,11 +320,11 @@
       "copies": "Copies",
       "time": "Finished",
       "result": "Result",
-      "via": "Sent via"
+      "via": "Source"
     },
     "state": {
       "waiting": "Waiting",
-      "processing": "Preparing",
+      "processing": "Processing",
       "printing": "Printing",
       "paused": "Paused",
       "held": "Held",
@@ -334,14 +334,14 @@
       "print": "Print",
       "copy": "Copy",
       "scan": "Scan",
-      "mailboxRetrieval": "Folder retrieval",
+      "mailboxRetrieval": "Mailbox retrieval",
       "fax": "Fax",
       "report": "Report",
       "unknown": "Other"
     },
     "result": {
       "completed": "Completed",
-      "warning": "Completed with warning",
+      "warning": "Warning",
       "aborted": "Canceled",
       "shutdown": "Power off",
       "failed": "Failed",
@@ -355,32 +355,32 @@
     },
     "showMore": "Show more",
     "showLess": "Show less",
-    "retrievalsHidden": "Mailbox retrievals (the printer logs one for every thumbnail and download) are not shown.",
-    "cancelConfirm": "Cancel this print job? Pages already printed can't be undone.",
+    "retrievalsHidden": "Mailbox retrievals (logged on every thumbnail and download) are hidden.",
+    "cancelConfirm": "Cancel this print job? Pages already printed can't be stopped.",
     "cancelMine_one": "Cancel my job",
     "cancelMine_other": "Cancel all mine ({{count}})",
-    "cancelMineConfirm_one": "Cancel your print job? Pages already printed can't be undone.",
-    "cancelMineConfirm_other": "Cancel all {{count}} of your print jobs? Pages already printed can't be undone."
+    "cancelMineConfirm_one": "Cancel your print job? Pages already printed can't be stopped.",
+    "cancelMineConfirm_other": "Cancel all {{count}} of your print jobs? Pages already printed can't be stopped."
   },
   "mailbox": {
-    "intro": "Documents you scan to a mailbox on the printer can be saved here as PDF.",
-    "chooseTitle": "Choose a mailbox",
+    "intro": "Download documents scanned to a printer mailbox as PDFs.",
+    "chooseTitle": "Select a mailbox",
     "search": "Search by number or name",
-    "noMatch": "No mailbox matches.",
-    "mine": "My mailbox",
-    "setMine": "Set as my mailbox",
-    "unsetMine": "Unset my mailbox",
-    "change": "Open another mailbox",
+    "noMatch": "No matching mailboxes.",
+    "mine": "Default",
+    "setMine": "Set as default",
+    "unsetMine": "Clear default",
+    "change": "Switch mailbox",
     "boxLabel": "{{number}} {{name}}",
     "password": "Password",
-    "open": "Open",
+    "open": "Unlock",
     "opening": "Opening…",
-    "passwordNote": "The password is never saved. It is forgotten when you close this page or after 30 minutes without activity.",
-    "close": "Close mailbox",
-    "autoClosed": "The mailbox was closed after 30 minutes without activity.",
+    "passwordNote": "Your password is never saved and is cleared when you close this tab or after 30 minutes of inactivity.",
+    "close": "Lock mailbox",
+    "autoClosed": "Mailbox closed after 30 minutes of inactivity.",
     "documents_one": "{{count}} document",
     "documents_other": "{{count}} documents",
-    "empty": "This mailbox is empty. Scan on the printer and save to this mailbox, and the documents appear here.",
+    "empty": "No documents in this mailbox yet. Scan at the printer and save here to see them.",
     "pages_one": "{{count}} page",
     "pages_other": "{{count}} pages",
     "type": {
@@ -396,16 +396,16 @@
       "pdf": "PDF",
       "tiffJpeg": "TIFF / JPEG"
     },
-    "save": "Save",
-    "saving": "Saving…",
-    "saved_one": "Saved {{count}} document.",
-    "saved_other": "Saved {{count}} documents.",
+    "save": "Download",
+    "saving": "Downloading…",
+    "saved_one": "Downloaded {{count}} document.",
+    "saved_other": "Downloaded {{count}} documents.",
     "selectAll": "Select all",
     "selectDocument": "Select {{name}}",
-    "saveSelected_one": "Save {{count}} selected",
-    "saveSelected_other": "Save {{count}} selected",
-    "deleteSelected_one": "Delete {{count}} selected",
-    "deleteSelected_other": "Delete {{count}} selected",
+    "saveSelected_one": "Download ({{count}})",
+    "saveSelected_other": "Download ({{count}})",
+    "deleteSelected_one": "Delete ({{count}})",
+    "deleteSelected_other": "Delete ({{count}})",
     "confirmDelete_one": "Delete {{count}} document? This can't be undone.",
     "confirmDelete_other": "Delete {{count}} documents? This can't be undone.",
     "confirmDeleteYes": "Delete",
@@ -413,51 +413,51 @@
     "deleting": "Deleting…",
     "deleted_one": "Deleted {{count}} document.",
     "deleted_other": "Deleted {{count}} documents.",
-    "panelInUseHint": "The printer's control panel is in use. Deleting may not work until it's free.",
+    "panelInUseHint": "Someone is using the printer's control panel — deletion may fail until it's free.",
     "errors": {
-      "WRONG_PASSWORD": "Wrong password.",
-      "PRINTER_BUSY": "The printer is busy, so nothing was deleted. Check that nobody is using the control panel or has a mailbox open on the original screen, then try again.",
-      "PRINTER_UNREACHABLE": "Can't reach the printer. Check that you're on the lab network.",
-      "UNEXPECTED_RESPONSE": "The printer sent an unexpected response. Try again.",
-      "listFailed": "Can't load the list of mailboxes."
+      "WRONG_PASSWORD": "Incorrect password.",
+      "PRINTER_BUSY": "Couldn't delete while the printer is busy. Make sure nobody is using the control panel or viewing a mailbox on the classic interface, then try again.",
+      "PRINTER_UNREACHABLE": "Couldn't reach the printer. Make sure you're connected to the lab network.",
+      "UNEXPECTED_RESPONSE": "Unexpected response from the printer. Please try again.",
+      "listFailed": "Couldn't load mailboxes."
     },
-    "view": "View",
-    "thumbnailOf": "First page of {{name}} (click to view)",
+    "view": "Preview",
+    "thumbnailOf": "First page of {{name}} (click to preview)",
     "rename": "Rename",
     "renameLabel": "Display name",
-    "renameApply": "OK",
+    "renameApply": "Save",
     "renamePlaceholder": "e.g. Lab meeting handout",
-    "renameNote": "Names are kept in this browser only. The document on the printer keeps its own name.",
+    "renameNote": "Display names are saved in this browser only and don't rename the file on the printer.",
     "scannedAt": "Scanned {{time}}",
-    "cannotView": "This kind of document can't be viewed.",
-    "idleNote": "The mailbox closes automatically after 30 minutes without activity.",
-    "archiveSelected_one": "Save {{count}} selected as ZIP",
-    "archiveSelected_other": "Save {{count}} selected as ZIP",
-    "archiveDeleteAfter": "Delete them from the mailbox after saving",
-    "archiveRun": "Save",
-    "archived_one": "Saved {{count}} document in a ZIP file.",
-    "archived_other": "Saved {{count}} documents in a ZIP file.",
-    "archivedDeleted_one": "Saved {{count}} document in a ZIP file and deleted it from the mailbox.",
-    "archivedDeleted_other": "Saved {{count}} documents in a ZIP file and deleted them from the mailbox.",
-    "sendToPrint_one": "Print {{count}} selected",
-    "sendToPrint_other": "Print {{count}} selected",
-    "sentToPrint_one": "Added {{count}} document to the print list.",
-    "sentToPrint_other": "Added {{count}} documents to the print list.",
+    "cannotView": "Preview isn't available for this document type.",
+    "idleNote": "Closes automatically after 30 minutes of inactivity.",
+    "archiveSelected_one": "Download ZIP ({{count}})",
+    "archiveSelected_other": "Download ZIP ({{count}})",
+    "archiveDeleteAfter": "Delete from mailbox after downloading",
+    "archiveRun": "Download ZIP",
+    "archived_one": "Downloaded {{count}} document as a ZIP archive.",
+    "archived_other": "Downloaded {{count}} documents as a ZIP archive.",
+    "archivedDeleted_one": "Downloaded {{count}} document as a ZIP archive and deleted it from the mailbox.",
+    "archivedDeleted_other": "Downloaded {{count}} documents as a ZIP archive and deleted them from the mailbox.",
+    "sendToPrint_one": "Send to Print ({{count}})",
+    "sendToPrint_other": "Send to Print ({{count}})",
+    "sentToPrint_one": "Added {{count}} document to the print queue.",
+    "sentToPrint_other": "Added {{count}} documents to the print queue.",
     "receive": {
-      "title": "Receive scans automatically",
-      "description": "Scans saved to this mailbox from now on are downloaded to this computer automatically. Runs for up to 2 hours and keeps going when you switch tabs.",
-      "start": "Start receiving",
-      "waiting": "Waiting for scans (until {{time}})",
-      "stop": "Stop receiving",
-      "deleteAfter": "Delete from the mailbox once received",
-      "received": "Received",
-      "none": "Nothing yet. Scan on the printer and save to this mailbox.",
+      "title": "Auto-download new scans",
+      "description": "Automatically downloads new scans saved to this mailbox for up to 2 hours, even while you work in other tabs.",
+      "start": "Start listening",
+      "waiting": "Listening for scans (until {{time}})",
+      "stop": "Stop",
+      "deleteAfter": "Delete from mailbox after downloading",
+      "received": "Downloaded",
+      "none": "Waiting for scans. Scan at the printer and save to this mailbox.",
       "pendingDeletes_one": "{{count}} document will be deleted once the printer is free.",
       "pendingDeletes_other": "{{count}} documents will be deleted once the printer is free.",
-      "ended": "Receiving ended after 2 hours, so the mailbox was closed.",
-      "downloadHint": "If the browser asks whether to allow downloading multiple files, allow it."
+      "ended": "Auto-download stopped after 2 hours and the mailbox was closed.",
+      "downloadHint": "If prompted, allow your browser to download multiple files."
     },
-    "openingMine": "Opening your mailbox ({{number}})…"
+    "openingMine": "Opening default mailbox ({{number}})…"
   },
   "errorLog": {
     "title": "Error history",
@@ -465,7 +465,7 @@
     "category": {
       "005": "Document feeder",
       "010": "Fuser",
-      "016": "Print data or network processing",
+      "016": "Print data or network",
       "033": "Fax",
       "071": "Tray 1 paper feed",
       "072": "Tray 2 paper feed",
@@ -473,7 +473,7 @@
       "074": "Tray 4 paper feed",
       "075": "Bypass tray paper feed",
       "077": "Paper path (jam)",
-      "09x": "Toner and imaging",
+      "09x": "Toner & imaging",
       "other": "Other"
     }
   },
@@ -482,36 +482,36 @@
   },
   "install": {
     "title": "Tombo",
-    "lead": "A new print screen for the lab printer. Drop in files, check the settings, and print. The printer's original screen keeps working as before.",
-    "setupTitle": "Set up once",
+    "lead": "A modern print interface for the lab printer. Drop files, adjust settings, and print — while keeping the printer's built-in interface available anytime.",
+    "setupTitle": "One-time setup",
     "step1": "Drag the button below onto your browser's bookmarks bar.",
-    "step1Hint": "Can't see the bookmarks bar? In Chrome, Edge and Firefox press Ctrl+Shift+B (⌘+Shift+B on a Mac). In Safari choose View, then Show Favorites Bar.",
+    "step1Hint": "Bookmarks bar hidden? Press Ctrl+Shift+B (⌘+Shift+B on Mac) in Chrome, Edge, or Firefox. In Safari, choose View → Show Favorites Bar.",
     "button": "Tombo",
-    "buttonNote": "Clicking the button on this page does nothing. Drag it instead.",
-    "useTitle": "Each time you print",
-    "use1": "Open the printer's page as usual (use the address shared in the lab).",
-    "use2": "Click Tombo in your bookmarks bar to switch to the new screen.",
-    "faqTitle": "Questions",
+    "buttonNote": "Drag this button to your bookmarks bar — clicking it here won't do anything.",
+    "useTitle": "How to use",
+    "use1": "Open the printer's web page as usual (using the lab printer address).",
+    "use2": "Click Tombo in your bookmarks bar to launch the new interface.",
+    "faqTitle": "FAQ",
     "faq": [
       [
-        "I reloaded the page and the old screen came back.",
-        "Reloading always shows the printer's own screen. Click Tombo again."
+        "Reloading brought back the old interface.",
+        "Refreshing always loads the printer's built-in screen. Just click Tombo in your bookmarks bar again."
       ],
       [
-        "Nothing happens when I click it.",
-        "Click it while the printer's page is open. On any other page it shows a short reminder."
+        "Nothing happens when I click the bookmark.",
+        "Make sure you're on the printer's web page first. On other sites, clicking it simply shows a reminder."
       ],
       [
-        "I can't drag the button.",
-        "Copy the code below, create a new bookmark, and paste it into the URL field. Name it Tombo."
+        "I can't drag the button to my bookmarks bar.",
+        "Copy the code below, create a new bookmark manually, paste it into the URL field, and name it Tombo."
       ],
       [
-        "How do I get the old screen back?",
-        "Use Back to the original screen at the bottom of the new screen, or reload the page."
+        "How do I switch back to the original interface?",
+        "Click “Switch to classic UI” at the bottom of the page, or simply reload."
       ],
       [
-        "Does it send my files anywhere?",
-        "Files and settings go straight to the printer and nowhere else. Your preferences are stored only in this browser."
+        "Are my files sent to an external server?",
+        "No. Files and settings go directly from your browser to the printer, and your preferences stay local to this browser."
       ]
     ],
     "copy": "Copy code",
@@ -520,11 +520,11 @@
   },
   "preview": {
     "title": "Preview",
-    "note": "This is exactly what will be sent to the printer.",
-    "loading": "Preparing…",
-    "failed": "Couldn't create the preview.",
+    "note": "Exact output that will be sent to the printer.",
+    "loading": "Preparing preview…",
+    "failed": "Couldn't generate preview.",
     "close": "Close",
     "openInTab": "Open in new tab",
-    "notShowing": "If the preview doesn't show, use “Open in new tab”."
+    "notShowing": "Preview not loading? Click “Open in new tab”."
   }
 }

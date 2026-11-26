@@ -1,6 +1,6 @@
 {
   "name": "tombo",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "description": "A modern, multilingual print UI that runs inside the FUJI XEROX ApeosPort web interface via a bookmarklet.",
   "type": "module",
