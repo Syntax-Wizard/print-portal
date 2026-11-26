@@ -1,6 +1,6 @@
 /**
- * Show exactly what will be sent to the printer for one file, in the portal's page viewer
- * (whose rotate button turns the file for printing).
+ * Show exactly what will be sent to the printer for one file, using the browser's own
+ * PDF viewer (no PDF renderer of our own to download).
  */
 
 import { useEffect, useState } from "preact/hooks";
@@ -10,12 +10,10 @@ import { buildMergedFile, buildPrintFile } from "../pdfJobs";
 import type { PrintItem } from "../useSubmissions";
 import { PdfDialog } from "./PdfDialog";
 
-function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose: () => void; onRotate?: () => void }) {
+function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose: () => void }) {
   const { t } = useT();
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
-  /** A rotation is being applied: the previous pages stay shown meanwhile. */
-  const [rotating, setRotating] = useState(false);
 
   useEffect(() => {
     let objectUrl: string | null = null;
@@ -25,46 +23,22 @@ function PreviewContent(props: { item: PrintItem; options: PrintOptions; onClose
         if (cancelled) return;
         objectUrl = URL.createObjectURL(file);
         setUrl(objectUrl);
-        setRotating(false);
       })
       .catch(() => !cancelled && setFailed(true));
     return () => {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-    // Rebuilt when the file is rotated from inside the dialog; other options cannot change
-    // while the (modal) dialog is open.
+    // Built once per opening; the dialog is modal, so options cannot change meanwhile.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.item.rotation]);
+  }, []);
 
-  const rotation = props.item.rotation;
-  const tools = props.onRotate && (
-    <button
-      type="button"
-      class="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-wash"
-      title={t("preview.rotateHint")}
-      aria-busy={rotating}
-      onClick={() => {
-        setRotating(true);
-        props.onRotate!();
-      }}
-    >
-      <svg class={rotating ? "h-4 w-4 animate-spin" : "h-4 w-4"} viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M13 8a5 5 0 1 1-1.5-3.6" />
-        <path d="M13 2.5V5h-2.5" />
-      </svg>
-      {t("preview.rotate")}
-      {rotation ? <span class="tabular text-accent-ink">{rotation}°</span> : null}
-    </button>
-  );
-  return <PdfDialog title={`${t("preview.title")}: ${props.item.file.name}`} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} pageViewer={{ tools }} />;
+  return <PdfDialog title={`${t("preview.title")}: ${props.item.file.name}`} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} />;
 }
 
-export function PreviewDialog(props: { item: PrintItem | null; options: PrintOptions; onClose: () => void; onRotate?: (key: string) => void }) {
+export function PreviewDialog(props: { item: PrintItem | null; options: PrintOptions; onClose: () => void }) {
   // Keyed by file so reopening for another file starts fresh.
-  const item = props.item;
-  if (!item) return null;
-  return <PreviewContent key={item.key} item={item} options={props.options} onClose={props.onClose} onRotate={props.onRotate && (() => props.onRotate!(item.key))} />;
+  return props.item ? <PreviewContent key={props.item.key} item={props.item} options={props.options} onClose={props.onClose} /> : null;
 }
 
 /** Preview of several files merged into one job, in the order shown. */
@@ -88,5 +62,5 @@ export function MergedPreview(props: { items: PrintItem[]; options: PrintOptions
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} pageViewer={{}} />;
+  return <PdfDialog title={t("files.mergedPreviewTitle", { count: props.items.length })} subtitle={t("preview.note")} url={url} failed={failed} onClose={props.onClose} />;
 }

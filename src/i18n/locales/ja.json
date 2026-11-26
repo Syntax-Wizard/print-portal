@@ -500,16 +500,6 @@
     "failed": "プレビューを作成できませんでした。",
     "close": "閉じる",
     "openInTab": "新しいタブで開く",
-    "notShowing": "うまく表示されないときは「新しいタブで開く」を使ってください。",
-    "rotate": "回転",
-    "rotateHint": "右に 90° 回転します。印刷もこの向きになります。",
-    "toolbar": "プレビューの操作",
-    "prevPage": "前のページ",
-    "nextPage": "次のページ",
-    "pageOf": "{{current}} / {{total}}",
-    "zoomIn": "拡大",
-    "zoomOut": "縮小",
-    "zoomFit": "ページ全体を表示",
-    "fit": "全体"
+    "notShowing": "うまく表示されないときは「新しいタブで開く」を使ってください。"
   }
 }

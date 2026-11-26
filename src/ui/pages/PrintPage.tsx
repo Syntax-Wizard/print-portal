@@ -266,7 +266,7 @@ export function PrintPage() {
           </div>
         )}
         {mergedPreview && <MergedPreview items={readyItems} options={options} onClose={() => setMergedPreview(false)} />}
-        <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} onRotate={rotate} />
+        <PreviewDialog item={items.find((i) => i.key === previewKey) ?? null} options={options} onClose={() => setPreviewKey(null)} />
         <section aria-labelledby="settings-heading" class="card p-5 sm:p-6">
           <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 id="settings-heading" class="m-0 text-base font-bold tracking-tight text-ink">

@@ -524,16 +524,6 @@
     "failed": "Couldn't create the preview.",
     "close": "Close",
     "openInTab": "Open in new tab",
-    "notShowing": "If the preview doesn't show, use “Open in new tab”.",
-    "rotate": "Rotate",
-    "rotateHint": "Turns the file 90° clockwise. It prints this way too.",
-    "toolbar": "Preview tools",
-    "prevPage": "Previous page",
-    "nextPage": "Next page",
-    "pageOf": "{{current}} / {{total}}",
-    "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out",
-    "zoomFit": "Show the whole page",
-    "fit": "Whole page"
+    "notShowing": "If the preview doesn't show, use “Open in new tab”."
   }
 }

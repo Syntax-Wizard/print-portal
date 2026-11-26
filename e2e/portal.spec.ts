@@ -208,11 +208,10 @@ test("PDF: count pages, select pages, 2 per sheet, preview and send the processe
   await page.getByText("2 ページ", { exact: true }).click();
   await expect(page.getByText("用紙は約 1 枚です。")).toBeVisible();
 
-  // The preview shows the processed PDF (2 sheet sides) in the portal's own page viewer.
+  // The preview shows the processed PDF in the browser's viewer, with its own toolbar.
   await page.getByRole("button", { name: "仕上がりを確認" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("dialog").getByRole("toolbar")).toContainText("1 / 2");
-  await expect(page.getByRole("dialog").locator("iframe")).toHaveCount(0);
+  await expect(page.getByRole("dialog").locator("iframe")).toHaveAttribute("src", /^blob:[^#]*$/);
   await page.getByRole("button", { name: "閉じる" }).click();
 
   await page.getByRole("button", { name: "1 ファイルを印刷" }).click();
@@ -563,27 +562,6 @@ test("rotate an image", async ({ page, request }) => {
   await page.getByRole("button", { name: /sideways\.png を右に 90° 回転/ }).click();
   const upload = await printAndInspect(page, request, "sideways.png");
   expect(upload.name).toBe("sideways.pdf");
-  expect(upload.firstPageRotation).toBe(90);
-});
-
-test("rotate from inside the preview", async ({ page, request }) => {
-  await openPortal(page);
-  await page.locator('input[type="file"]').setInputFiles({ name: "turn-me.pdf", mimeType: "application/pdf", buffer: await multiPagePdf(1) });
-  await expect(page.getByText("全 1 ページ")).toBeVisible();
-  await page.getByRole("button", { name: "仕上がりを確認" }).click();
-  // The portal's own viewer: its toolbar's rotate turns the file for printing.
-  const dialog = page.getByRole("dialog");
-  const pageBox = dialog.locator("[data-page='1']");
-  const shape = () => pageBox.evaluate((el) => (el.clientWidth > el.clientHeight ? "landscape" : "portrait"));
-  await expect.poll(shape).toBe("portrait");
-  // The page is actually drawn (not just a blank box).
-  await expect.poll(() => pageBox.locator("canvas").evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(0);
-  await dialog.getByRole("toolbar").getByRole("button", { name: /^回転/ }).click();
-  await expect.poll(shape).toBe("landscape");
-  await expect(dialog.getByRole("button", { name: /^回転\s*90°/ })).toBeVisible();
-  await page.getByRole("dialog").getByRole("button", { name: "閉じる" }).click();
-  await expect(page.getByRole("button", { name: /turn-me\.pdf を右に 90° 回転（今は 90°）/ })).toBeVisible();
-  const upload = await printAndInspect(page, request, "turn-me.pdf");
   expect(upload.firstPageRotation).toBe(90);
 });
 
