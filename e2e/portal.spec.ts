@@ -694,3 +694,21 @@ test("cancel all files of this tab at once", async ({ page, request }) => {
     await request.post("/__mock/hold?on=0");
   }
 });
+
+test("drag a file down past two others", async ({ page }) => {
+  await openPortal(page);
+  const pdf = await multiPagePdf(1);
+  await page.locator('input[type="file"]').setInputFiles(["A.pdf", "B.pdf", "C.pdf", "D.pdf"].map((name) => ({ name, mimeType: "application/pdf", buffer: pdf })));
+  const names = () => page.locator("li[data-key] p[title]").allTextContents();
+  await expect.poll(names).toEqual(["A.pdf", "B.pdf", "C.pdf", "D.pdf"]);
+  const handle = page.getByRole("button", { name: /「A\.pdf」を並べ替え/ });
+  await handle.hover();
+  const box = (await handle.boundingBox())!;
+  const rowHeight = (await page.locator("li[data-key]").nth(1).boundingBox())!.height;
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 + rowHeight * 2.2, { steps: 20 });
+  await page.mouse.up();
+  await expect.poll(names).toEqual(["B.pdf", "C.pdf", "A.pdf", "D.pdf"]);
+  // Nothing is left shifted once it has settled.
+  await expect.poll(() => page.evaluate(() => [...document.querySelectorAll<HTMLElement>("li[data-key]")].every((li) => !li.style.transform))).toBe(true);
+});

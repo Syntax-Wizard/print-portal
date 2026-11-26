@@ -79,7 +79,7 @@ export function PrintPage() {
   const [options, setOptions] = useState<PrintOptions>(loadOptions);
   const [remember, setRemember] = useState<boolean>(loadRememberOptions);
   const [showErrors, setShowErrors] = useState(false);
-  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelAll } = usePrintList();
+  const { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelAll, reorder } = usePrintList();
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const onCancel = async (key: string) => {
@@ -244,6 +244,7 @@ export function PrintPage() {
           onRangeChange={setPageRange}
           onPreview={setPreviewKey}
           onMove={move}
+          onReorder={reorder}
           onRotate={rotate}
           onCancel={(key) => void onCancel(key)}
           onCancelAll={() => void onCancelAll()}

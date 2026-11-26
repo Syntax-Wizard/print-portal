@@ -205,6 +205,19 @@ export function useSubmissions() {
       return next;
     });
   }, []);
+  /** Put a file just before or after another one (the result of a drag). */
+  const reorder = useCallback((key: string, target: string, place: "before" | "after") => {
+    setItems((list) => {
+      const from = list.findIndex((it) => it.key === key);
+      if (from < 0 || key === target) return list;
+      const next = [...list];
+      const [moved] = next.splice(from, 1);
+      const at = next.findIndex((it) => it.key === target);
+      if (at < 0) return list;
+      next.splice(place === "after" ? at + 1 : at, 0, moved!);
+      return next;
+    });
+  }, []);
   const clearDone = useCallback(() => setItems((list) => list.filter((i) => i.status !== "done")), []);
 
   /** History entries already matched to an upload from this tab (see findFinishedJob). */
@@ -330,7 +343,7 @@ export function useSubmissions() {
     [items, update, sendOne],
   );
 
-  return { items, busy, tooMany, addFiles, remove, move, clearDone, print, setPageRange, rotate, cancel, cancelJob, cancelAll };
+  return { items, busy, tooMany, addFiles, remove, move, reorder, clearDone, print, setPageRange, rotate, cancel, cancelJob, cancelAll };
 }
 
 export type Submissions = ReturnType<typeof useSubmissions>;

@@ -203,103 +203,175 @@ function PdfControls(props: { item: PrintItem; onRangeChange: (text: string) => 
   );
 }
 
+type Place = "before" | "after";
+
+interface Slot {
+  el: HTMLElement;
+  key: string;
+  top: number;
+  height: number;
+}
+
+interface DragSession {
+  key: string;
+  el: HTMLElement;
+  startY: number;
+  dy: number;
+  slots: Slot[];
+  index: number;
+  /** Current shift of each other row: +height (moved down), -height (moved up) or 0. */
+  shifts: Map<string, number>;
+  frame: number;
+}
+
 /**
  * Reorder rows by dragging their handle (mouse, pen or touch), or with ↑/↓ on a focused handle.
- * The dragged row follows the pointer; when it passes half of a neighbour, the two swap and the
- * neighbour slides into its new place. Only rows marked data-draggable take part.
+ *
+ * Smoothness comes from not touching app state while dragging: the dragged row and the rows it
+ * passes are moved with CSS transforms only (the others slide via their transform transition),
+ * once per animation frame. On release the row settles into its slot, then the new order is
+ * committed in one update and the transforms are dropped in the same frame, so nothing jumps.
  */
-function useDragReorder(onMove: ((key: string, delta: -1 | 1) => void) | undefined) {
+function useDragReorder(onMove?: (key: string, delta: -1 | 1) => void, onReorder?: (key: string, target: string, place: Place) => void) {
   const listRef = useRef<HTMLUListElement>(null);
   const [dragKey, setDragKey] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0);
-  const drag = useRef<{ key: string; startY: number; originTop: number; pointerDelta: number } | null>(null);
+  const session = useRef<DragSession | null>(null);
+  const settling = useRef(false);
+  const committing = useRef(false);
   const refocus = useRef<string | null>(null);
   const positions = useRef(new Map<string, number>());
 
   const rowOf = (key: string) => listRef.current?.querySelector<HTMLElement>(`:scope > li[data-key="${CSS.escape(key)}"]`) ?? null;
 
-  // After each render: slide rows that changed place (FLIP), keep the dragged row under the
-  // pointer, and give focus back to a handle moved with the keyboard.
   useLayoutEffect(() => {
     const list = listRef.current;
     if (!list) return;
-    const reduce = prefersReducedMotion();
-    const seen = new Set<string>();
-    for (const row of list.querySelectorAll<HTMLElement>(":scope > li[data-key]")) {
-      const key = row.dataset.key!;
-      const top = row.offsetTop;
-      const before = positions.current.get(key);
-      positions.current.set(key, top);
-      seen.add(key);
-      if (drag.current?.key === key || before === undefined || before === top || reduce) continue;
-      row.style.transition = "none";
-      row.style.transform = `translateY(${before - top}px)`;
-      void row.offsetHeight;
-      row.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
-      row.style.transform = "";
+    const rows = [...list.querySelectorAll<HTMLElement>(":scope > li[data-key]")];
+    if (committing.current) {
+      // The dropped order is now in the DOM, where the transforms already showed it: drop them
+      // without a transition, before the browser paints.
+      committing.current = false;
+      for (const row of rows) {
+        row.style.transition = "none";
+        row.style.transform = "";
+      }
+      void list.offsetHeight;
+      for (const row of rows) row.style.transition = "";
+    } else if (!session.current && !settling.current && !prefersReducedMotion()) {
+      // Other reorders (keyboard, a file removed): slide rows from where they were (FLIP).
+      for (const row of rows) {
+        const before = positions.current.get(row.dataset.key!);
+        const delta = before === undefined ? 0 : before - row.offsetTop;
+        if (!delta) continue;
+        row.style.transition = "none";
+        row.style.transform = `translateY(${delta}px)`;
+        void row.offsetHeight;
+        row.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
+        row.style.transform = "";
+      }
     }
-    for (const key of positions.current.keys()) if (!seen.has(key)) positions.current.delete(key);
-    const d = drag.current;
-    const row = d && rowOf(d.key);
-    if (d && row) setOffset(d.originTop + d.pointerDelta - row.offsetTop);
+    if (!session.current) positions.current = new Map(rows.map((r) => [r.dataset.key!, r.offsetTop]));
     if (refocus.current) {
       rowOf(refocus.current)?.querySelector<HTMLElement>("[data-drag-handle]")?.focus();
       refocus.current = null;
     }
   });
 
-  const neighbour = (row: HTMLElement, delta: -1 | 1) => {
-    const el = (delta < 0 ? row.previousElementSibling : row.nextElementSibling) as HTMLElement | null;
-    return el?.dataset.draggable ? el : null;
+  /** Apply the latest pointer position: move the dragged row, shift the rows it has passed. */
+  const paint = (s: DragSession) => {
+    const me = s.slots[s.index]!;
+    const first = s.slots[0]!;
+    const last = s.slots[s.slots.length - 1]!;
+    const dy = Math.max(first.top - me.top, Math.min(last.top + last.height - me.top - me.height, s.dy));
+    s.el.style.transform = `translateY(${dy}px)`;
+    const center = me.top + dy + me.height / 2;
+    s.slots.forEach((slot, i) => {
+      if (i === s.index) return;
+      const mid = slot.top + slot.height / 2;
+      const shift = i < s.index && center < mid ? me.height : i > s.index && center > mid ? -me.height : 0;
+      if ((s.shifts.get(slot.key) ?? 0) === shift) return;
+      s.shifts.set(slot.key, shift);
+      slot.el.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
+      slot.el.style.transform = shift ? `translateY(${shift}px)` : "";
+    });
+  };
+
+  const drop = () => {
+    const s = session.current;
+    if (!s) return;
+    session.current = null;
+    cancelAnimationFrame(s.frame);
+    paint(s);
+    const movedDown = s.slots.filter((x) => (s.shifts.get(x.key) ?? 0) > 0); // rows above, now below
+    const movedUp = s.slots.filter((x) => (s.shifts.get(x.key) ?? 0) < 0); // rows below, now above
+    const target = movedUp.reduce((h, x) => h + x.height, 0) - movedDown.reduce((h, x) => h + x.height, 0);
+    settling.current = true;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      settling.current = false;
+      committing.current = true;
+      if (movedDown.length) onReorder?.(s.key, movedDown[0]!.key, "before");
+      else if (movedUp.length) onReorder?.(s.key, movedUp[movedUp.length - 1]!.key, "after");
+      setDragKey(null);
+    };
+    // Settle into the gap, then commit.
+    s.el.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
+    s.el.style.transform = `translateY(${target}px)`;
+    s.el.addEventListener("transitionend", finish, { once: true });
+    window.setTimeout(finish, 400);
   };
 
   const handleProps = (key: string) => ({
     "data-drag-handle": true,
     onPointerDown: (e: PointerEvent) => {
+      const list = listRef.current;
       const row = rowOf(key);
-      if (!onMove || !row || e.button !== 0) return;
+      if (!onReorder || !list || !row || e.button !== 0 || session.current || settling.current) return;
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      drag.current = { key, startY: e.clientY, originTop: row.offsetTop, pointerDelta: 0 };
+      const slots = [...list.querySelectorAll<HTMLElement>(":scope > li[data-draggable]")].map((el) => ({
+        el,
+        key: el.dataset.key!,
+        top: el.offsetTop,
+        height: el.offsetHeight,
+      }));
+      const index = slots.findIndex((x) => x.key === key);
+      if (index < 0) return;
+      row.style.transition = "none";
+      session.current = { key, el: row, startY: e.clientY, dy: 0, slots, index, shifts: new Map(), frame: 0 };
       setDragKey(key);
-      setOffset(0);
     },
     onPointerMove: (e: PointerEvent) => {
-      const d = drag.current;
-      const row = d && rowOf(d.key);
-      if (!d || !row || !onMove) return;
-      d.pointerDelta = e.clientY - d.startY;
-      const shift = d.originTop + d.pointerDelta - row.offsetTop;
-      const next = neighbour(row, 1);
-      const prev = neighbour(row, -1);
-      if (next && shift > next.offsetHeight / 2) onMove(d.key, 1);
-      else if (prev && shift < -prev.offsetHeight / 2) onMove(d.key, -1);
-      setOffset(shift);
+      const s = session.current;
+      if (!s) return;
+      s.dy = e.clientY - s.startY;
+      if (!s.frame) {
+        s.frame = requestAnimationFrame(() => {
+          s.frame = 0;
+          if (session.current === s) paint(s);
+        });
+      }
     },
-    onPointerUp: () => {
-      drag.current = null;
-      setDragKey(null);
-      setOffset(0);
-    },
-    onPointerCancel: () => {
-      drag.current = null;
-      setDragKey(null);
-      setOffset(0);
-    },
+    onPointerUp: drop,
+    onPointerCancel: drop,
     onKeyDown: (e: KeyboardEvent) => {
-      const row = rowOf(key);
       const delta = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
+      const row = rowOf(key);
       if (!delta || !row || !onMove) return;
       e.preventDefault();
-      if (!neighbour(row, delta)) return;
+      const next = (delta < 0 ? row.previousElementSibling : row.nextElementSibling) as HTMLElement | null;
+      if (!next?.dataset.draggable) return;
       refocus.current = key; // the row's DOM node moves, which can drop focus
       onMove(key, delta);
     },
   });
 
-  return { listRef, dragKey, offset, handleProps };
+  return { listRef, dragKey, handleProps };
 }
 
+/** Drag handle: grip dots between two small triangles (it moves rows up and down). */
 function DragHandle(props: { name: string; dragging: boolean; handle: ReturnType<ReturnType<typeof useDragReorder>["handleProps"]> }) {
   const { t } = useT();
   return (
@@ -307,19 +379,21 @@ function DragHandle(props: { name: string; dragging: boolean; handle: ReturnType
       type="button"
       {...props.handle}
       class={cx(
-        "-ml-1.5 grid h-10 w-5 shrink-0 touch-none select-none place-items-center rounded-md text-ink-faint transition-colors hover:bg-well hover:text-ink-soft",
-        props.dragging ? "cursor-grabbing text-ink-soft" : "cursor-grab",
+        "-ml-1.5 grid h-11 w-5 shrink-0 touch-none select-none place-items-center rounded-md transition-colors",
+        props.dragging ? "cursor-grabbing bg-well text-ink-soft" : "cursor-grab text-ink-faint hover:bg-well hover:text-ink-soft",
       )}
       aria-label={t("files.reorderLabel", { name: props.name })}
       title={t("files.reorderHint")}
     >
-      <svg class="h-4 w-2.5" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
-        <circle cx="2.5" cy="3" r="1.3" />
-        <circle cx="7.5" cy="3" r="1.3" />
-        <circle cx="2.5" cy="8" r="1.3" />
-        <circle cx="7.5" cy="8" r="1.3" />
-        <circle cx="2.5" cy="13" r="1.3" />
-        <circle cx="7.5" cy="13" r="1.3" />
+      <svg class="h-6 w-2.5" viewBox="0 0 10 24" fill="currentColor" aria-hidden="true">
+        <path d="M5 0.5 8.5 4.5h-7Z" />
+        <circle cx="2.8" cy="8.5" r="1.15" />
+        <circle cx="7.2" cy="8.5" r="1.15" />
+        <circle cx="2.8" cy="12" r="1.15" />
+        <circle cx="7.2" cy="12" r="1.15" />
+        <circle cx="2.8" cy="15.5" r="1.15" />
+        <circle cx="7.2" cy="15.5" r="1.15" />
+        <path d="M5 23.5 8.5 19.5h-7Z" />
       </svg>
     </button>
   );
@@ -334,15 +408,17 @@ export function FileList(props: {
   onPreview: (key: string) => void;
   /** Reorders files waiting to print (they print, or are merged, in list order). */
   onMove?: (key: string, delta: -1 | 1) => void;
+  /** Drop a dragged file before or after another. */
+  onReorder?: (key: string, target: string, place: "before" | "after") => void;
   onRotate: (key: string) => void;
   onCancel?: (key: string) => void;
   onCancelAll?: () => void;
   tooMany: boolean;
 }) {
   const { t, lang } = useT();
-  const { listRef, dragKey, offset, handleProps } = useDragReorder(props.onMove);
+  const { listRef, dragKey, handleProps } = useDragReorder(props.onMove, props.onReorder);
   if (props.items.length === 0 && !props.tooMany) return null;
-  const isDraggable = (i: PrintItem) => Boolean(props.onMove) && i.status === "ready" && !i.problem;
+  const isDraggable = (i: PrintItem) => Boolean(props.onMove && props.onReorder) && i.status === "ready" && !i.problem;
   const reorderable = props.items.filter(isDraggable).length > 1;
   const anyDone = props.items.some((i) => i.status === "done");
   const cancellableCount = props.items.filter(isCancellable).length;
@@ -364,7 +440,6 @@ export function FileList(props: {
                   ? "z-10 bg-sheet shadow-[0_8px_24px_-6px_rgb(15_23_42/0.25)] ring-1 ring-accent/30"
                   : "transition-[background-color,transform] duration-(--pp-dur-enter) ease-(--pp-ease-move) hover:bg-well/40",
               )}
-              style={dragKey === item.key ? { transform: `translateY(${offset}px)` } : undefined}
             >
               {item.status === "uploading" && (
                 <span class="absolute inset-x-0 bottom-0 h-0.5 bg-accent transition-[width] duration-150" style={{ width: `${item.progress * 100}%` }} aria-hidden="true" />
