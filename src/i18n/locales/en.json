@@ -60,7 +60,7 @@
     "imageUnreadable": "This browser can't read this image (e.g. HEIC outside Safari). Convert it to JPEG or PNG and add it again.",
     "merge": "Print as one job",
     "mergeHint": "Combine the files into one job so 2-sided printing and pages per sheet run across them.",
-    "mergeOrderHint": "Printed in this order. Use ↑↓ to reorder.",
+    "mergeOrderHint": "Printed in this order. Drag to reorder.",
     "mergedPreview": "Preview combined",
     "mergedPreviewTitle": "Combined ({{count}} files)",
     "rotate": "Rotate",

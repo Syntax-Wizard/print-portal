@@ -58,7 +58,7 @@
     "imageUnreadable": "このブラウザーではこの画像を読み込めません（例: Safari 以外での HEIC）。JPEG か PNG に変換してから追加してください。",
     "merge": "1 つにまとめて印刷する",
     "mergeHint": "複数のファイルを 1 つのジョブにして、両面や「1 枚に 2/4 ページ」をファイルをまたいで使えます。",
-    "mergeOrderHint": "この順番で印刷します。↑↓ で並べ替えられます。",
+    "mergeOrderHint": "この順番で印刷します。ドラッグで並べ替えられます。",
     "mergedPreview": "まとめた仕上がりを確認",
     "mergedPreviewTitle": "まとめた仕上がり（{{count}} ファイル）",
     "rotate": "回転",
