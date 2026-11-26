@@ -284,11 +284,15 @@ function useDragReorder(onMove?: (key: string, delta: -1 | 1) => void, onReorder
     const last = s.slots[s.slots.length - 1]!;
     const dy = Math.max(first.top - me.top, Math.min(last.top + last.height - me.top - me.height, s.dy));
     s.el.style.transform = `translateY(${dy}px)`;
-    const center = me.top + dy + me.height / 2;
+    // A row above swaps once the dragged row's top edge passes its middle; a row below, once the
+    // bottom edge does. (Comparing centres failed at the ends: the drag is clamped to the list,
+    // so with equal heights the centre could only reach, never pass, the first row's middle.)
+    const top = me.top + dy;
+    const bottom = top + me.height;
     s.slots.forEach((slot, i) => {
       if (i === s.index) return;
       const mid = slot.top + slot.height / 2;
-      const shift = i < s.index && center < mid ? me.height : i > s.index && center > mid ? -me.height : 0;
+      const shift = i < s.index && top <= mid ? me.height : i > s.index && bottom >= mid ? -me.height : 0;
       if ((s.shifts.get(slot.key) ?? 0) === shift) return;
       s.shifts.set(slot.key, shift);
       slot.el.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
@@ -316,10 +320,22 @@ function useDragReorder(onMove?: (key: string, delta: -1 | 1) => void, onReorder
       else if (movedUp.length) onReorder?.(s.key, movedUp[movedUp.length - 1]!.key, "after");
       setDragKey(null);
     };
-    // Settle into the gap, then commit.
+    // Settle into the gap, then commit. If the row is already there no transition runs (and no
+    // transitionend comes), so finish at once instead of blocking the next drag for a while.
+    const current = new DOMMatrixReadOnly(getComputedStyle(s.el).transform).m42;
+    if (Math.abs(current - target) < 0.5 || prefersReducedMotion()) {
+      s.el.style.transform = `translateY(${target}px)`;
+      finish();
+      return;
+    }
     s.el.style.transition = "transform var(--pp-dur-enter) var(--pp-ease-move)";
     s.el.style.transform = `translateY(${target}px)`;
-    s.el.addEventListener("transitionend", finish, { once: true });
+    const onEnd = (e: TransitionEvent) => {
+      if (e.target !== s.el) return; // ignore transitions of child elements bubbling up
+      s.el.removeEventListener("transitionend", onEnd);
+      finish();
+    };
+    s.el.addEventListener("transitionend", onEnd);
     window.setTimeout(finish, 400);
   };
 
@@ -371,7 +387,7 @@ function useDragReorder(onMove?: (key: string, delta: -1 | 1) => void, onReorder
   return { listRef, dragKey, handleProps };
 }
 
-/** Drag handle: grip dots between two small triangles (it moves rows up and down). */
+/** Drag handle: a grip of dots. */
 function DragHandle(props: { name: string; dragging: boolean; handle: ReturnType<ReturnType<typeof useDragReorder>["handleProps"]> }) {
   const { t } = useT();
   return (
@@ -385,15 +401,13 @@ function DragHandle(props: { name: string; dragging: boolean; handle: ReturnType
       aria-label={t("files.reorderLabel", { name: props.name })}
       title={t("files.reorderHint")}
     >
-      <svg class="h-6 w-2.5" viewBox="0 0 10 24" fill="currentColor" aria-hidden="true">
-        <path d="M5 0.5 8.5 4.5h-7Z" />
-        <circle cx="2.8" cy="8.5" r="1.15" />
-        <circle cx="7.2" cy="8.5" r="1.15" />
-        <circle cx="2.8" cy="12" r="1.15" />
-        <circle cx="7.2" cy="12" r="1.15" />
-        <circle cx="2.8" cy="15.5" r="1.15" />
-        <circle cx="7.2" cy="15.5" r="1.15" />
-        <path d="M5 23.5 8.5 19.5h-7Z" />
+      <svg class="h-4 w-2.5" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true">
+        <circle cx="2.5" cy="3" r="1.3" />
+        <circle cx="7.5" cy="3" r="1.3" />
+        <circle cx="2.5" cy="8" r="1.3" />
+        <circle cx="7.5" cy="8" r="1.3" />
+        <circle cx="2.5" cy="13" r="1.3" />
+        <circle cx="7.5" cy="13" r="1.3" />
       </svg>
     </button>
   );

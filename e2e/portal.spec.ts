@@ -712,3 +712,20 @@ test("drag a file down past two others", async ({ page }) => {
   // Nothing is left shifted once it has settled.
   await expect.poll(() => page.evaluate(() => [...document.querySelectorAll<HTMLElement>("li[data-key]")].every((li) => !li.style.transform))).toBe(true);
 });
+
+test("drag the second file to the top (rows of equal height)", async ({ page }) => {
+  await openPortal(page);
+  const pdf = await multiPagePdf(1);
+  await page.locator('input[type="file"]').setInputFiles(["A.pdf", "B.pdf", "C.pdf"].map((name) => ({ name, mimeType: "application/pdf", buffer: pdf })));
+  const names = () => page.locator("li[data-key] p[title]").allTextContents();
+  await expect.poll(names).toEqual(["A.pdf", "B.pdf", "C.pdf"]);
+  // The case that used to fail: the drag is clamped at the top of the list, so the swap must not
+  // depend on the dragged row's centre passing the first row's centre.
+  const handle = page.getByRole("button", { name: /「B\.pdf」を並べ替え/ });
+  await handle.hover();
+  const box = (await handle.boundingBox())!;
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y - 300, { steps: 15 });
+  await page.mouse.up();
+  await expect.poll(names).toEqual(["B.pdf", "A.pdf", "C.pdf"]);
+});
