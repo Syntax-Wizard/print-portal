@@ -79,6 +79,7 @@
     "uploading": "送信中 {{percent}}%",
     "sent": "プリンターに送信しました",
     "waiting": "プリンターで待機中",
+    "processing": "プリンターで印刷準備中",
     "printing": "印刷中",
     "done": "印刷しました",
     "held": "プリンターで保留中です。操作パネルで操作してください",
@@ -315,6 +316,7 @@
     },
     "state": {
       "waiting": "待機中",
+      "processing": "印刷準備中",
       "printing": "実行中",
       "paused": "一時停止中",
       "held": "保留中",

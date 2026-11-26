@@ -96,7 +96,12 @@ export interface PrinterStatus {
   fetchedAt: Date;
 }
 
-export type JobState = "waiting" | "printing" | "paused" | "held" | "completed";
+/**
+ * "processing" is not one of the printer's own states: it reports every running job as
+ * 実行中, including ones whose data it is preparing while an earlier job prints. Only the
+ * earliest running job is "printing"; the others are "processing" (see parseQueue).
+ */
+export type JobState = "waiting" | "processing" | "printing" | "paused" | "held" | "completed";
 export type JobType = "print" | "copy" | "scan" | "mailboxRetrieval" | "fax" | "report" | "unknown";
 
 export interface QueuedJob {

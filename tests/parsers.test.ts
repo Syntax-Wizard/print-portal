@@ -109,6 +109,23 @@ describe("parseQueue (jblist.htm)", () => {
       { id: "0001c563", name: "doc", owner: "u", state: { raw: "9" }, type: "print", completedCopies: null },
     ]);
   });
+
+  it("reports only the earliest running print job as printing; later ones are being processed", () => {
+    // Listed newest first on purpose: the job ID, not the position, decides.
+    const html =
+      "var info=[['0001c565','**********','u',1,1,0],['0001c564','**********','u',1,4,0],['0001c563','**********','u',1,1,0],['0001c566','**********','u',0,1,0]];";
+    expect(parseQueue(html).map((j) => [j.id, j.state])).toEqual([
+      ["0001c565", "processing"],
+      ["0001c564", "printing"], // a mailbox retrieval runs alongside printing and is left alone
+      ["0001c563", "printing"],
+      ["0001c566", "waiting"],
+    ]);
+  });
+
+  it("keeps a single running job as printing", () => {
+    const html = "var info=[['0001c563','**********','u',1,1,0],['0001c564','**********','u',0,1,0]];";
+    expect(parseQueue(html).map((j) => j.state)).toEqual(["printing", "waiting"]);
+  });
 });
 
 describe("parseHistory (jbhist.htm)", () => {

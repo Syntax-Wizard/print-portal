@@ -84,6 +84,7 @@
     "uploading": "Sending {{percent}}%",
     "sent": "Sent to the printer",
     "waiting": "Waiting at the printer",
+    "processing": "Being prepared at the printer",
     "printing": "Printing",
     "done": "Printed",
     "held": "Held at the printer. Release it on the control panel",
@@ -324,6 +325,7 @@
     },
     "state": {
       "waiting": "Waiting",
+      "processing": "Preparing",
       "printing": "Printing",
       "paused": "Paused",
       "held": "Held",

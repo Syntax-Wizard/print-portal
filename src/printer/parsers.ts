@@ -35,6 +35,7 @@ import type {
   DeviceInfo,
   ErrorLogEntry,
   HistoryJob,
+  JobType,
   OutputTray,
   QueuedJob,
   SubmitResult,
@@ -167,14 +168,32 @@ export function parseSupplies(html: string): Supply[] {
 
 export function parseQueue(html: string): QueuedJob[] {
   // info row = [jobId, name, owner, stateIndex, typeIndex, completedCopies]
-  return rows(extractVar(html, "info")).map((row) => ({
+  return onePrinting(rows(extractVar(html, "info")).map((row) => ({
     id: str(row[0]),
     name: str(row[1]),
     owner: str(row[2]),
     state: lookup(JOB_STATES, row[3]) ?? { raw: str(row[3]) },
     type: lookup(JOB_TYPES, row[4]) ?? "unknown",
     completedCopies: numberOrNull(row[5]),
-  }));
+  })));
+}
+
+/** Job types that put paper in the output tray. Scans and mailbox retrievals run alongside them. */
+const PRINTING_TYPES: ReadonlySet<JobType> = new Set(["print", "copy", "report", "fax", "unknown"]);
+
+/**
+ * The printer reports a job as running (実行中) from the moment it starts processing the data,
+ * so while one job prints, the next one is often running too. Jobs run first in, first out:
+ * keep "printing" for the earliest (lowest job ID) and mark the rest "processing".
+ */
+export function onePrinting(jobs: QueuedJob[]): QueuedJob[] {
+  const running = jobs.filter((j) => j.state === "printing" && PRINTING_TYPES.has(j.type));
+  if (running.length < 2) return jobs;
+  const order = (id: string) => (/^[0-9a-f]+$/i.test(id) ? parseInt(id, 16) : Number.NaN);
+  const first = running.every((j) => !Number.isNaN(order(j.id)))
+    ? running.reduce((a, b) => (order(b.id) < order(a.id) ? b : a))
+    : running[0]!;
+  return jobs.map((j) => (running.includes(j) && j !== first ? { ...j, state: "processing" } : j));
 }
 
 // ---- jbhist.htm ----

@@ -1,6 +1,6 @@
 /**
  * The list of files the user wants to print and the lifecycle of each one:
- * ready -> queued -> uploading -> sent -> waiting/printing -> done (or failed).
+ * ready -> queued -> uploading -> sent -> waiting/processing/printing -> done (or failed).
  */
 
 import { createContext, type ComponentChildren } from "preact";
@@ -15,10 +15,10 @@ import { usePrinter } from "./PrinterContext";
 
 /** Waiting its turn here, being prepared or sent, or at the printer once its job is known. */
 export function isCancellable(i: Pick<PrintItem, "status" | "jobId">): boolean {
-  return ["queued", "preparing", "uploading"].includes(i.status) || (Boolean(i.jobId) && ["sent", "waiting", "printing"].includes(i.status));
+  return ["queued", "preparing", "uploading"].includes(i.status) || (Boolean(i.jobId) && ["sent", "waiting", "processing", "printing"].includes(i.status));
 }
 
-export type ItemStatus = "ready" | "queued" | "preparing" | "uploading" | "sent" | "waiting" | "printing" | "held" | "done" | "failed" | "canceled";
+export type ItemStatus = "ready" | "queued" | "preparing" | "uploading" | "sent" | "waiting" | "processing" | "printing" | "held" | "done" | "failed" | "canceled";
 
 export interface PrintItem {
   key: string;
@@ -50,6 +50,8 @@ function statusForJob(job: QueuedJob): ItemStatus {
   switch (job.state) {
     case "waiting":
       return "waiting";
+    case "processing":
+      return "processing";
     case "printing":
       return "printing";
     case "paused":

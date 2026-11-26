@@ -120,6 +120,7 @@ function ItemStatusLine({ item }: { item: PrintItem }) {
     done: "font-medium text-ok",
     held: "font-medium text-warn",
     printing: "font-medium text-accent-ink",
+    processing: "font-medium text-accent-ink",
     waiting: "font-medium text-accent-ink",
     sent: "font-medium text-accent-ink",
     uploading: "font-medium text-accent-ink",

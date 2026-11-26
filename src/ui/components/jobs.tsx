@@ -22,6 +22,9 @@ function Owner({ owner, mine }: { owner: string; mine: boolean }) {
 }
 
 /** Jobs at the printer right now, for the print page. Renders nothing when the queue is empty. */
+/** States the printer accepts a cancel in: waiting and running (実行中, which "processing" also is). */
+const CANCELLABLE: ReadonlySet<QueuedJob["state"]> = new Set(["waiting", "processing", "printing"]);
+
 export function QueuePanel() {
   const { t } = useT();
   const { queue, owner } = usePrinter();
@@ -29,7 +32,7 @@ export function QueuePanel() {
   // The printer logs every mailbox retrieval (thumbnails, downloads) as a job: not of interest here.
   const jobs = (queue.data ?? []).filter((j) => j.type !== "mailboxRetrieval");
   if (jobs.length === 0) return null;
-  const myCancellable = jobs.filter((j) => owner !== null && j.owner === owner && (j.state === "waiting" || j.state === "printing"));
+  const myCancellable = jobs.filter((j) => owner !== null && j.owner === owner && CANCELLABLE.has(j.state));
   const cancelMine = async () => {
     if (!window.confirm(t("jobs.cancelMineConfirm", { count: myCancellable.length }))) return;
     let failed = 0;
@@ -56,8 +59,8 @@ export function QueuePanel() {
         {jobs.map((j: QueuedJob) => {
           const mine = owner !== null && j.owner === owner;
           // The printer cancels any job for anyone; only offer it for the user's own,
-          // and only in the states the printer accepts (waiting, printing).
-          const cancellable = mine && (j.state === "waiting" || j.state === "printing");
+          // and only in the states the printer accepts (waiting, running).
+          const cancellable = mine && CANCELLABLE.has(j.state);
           return (
             <li key={j.id} class="flex items-center justify-between gap-3 text-sm">
               <Owner owner={j.owner} mine={mine} />
