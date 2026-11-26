@@ -46,7 +46,7 @@ function SnmpAlertText(props: { code: string; message: string }) {
   if (known) {
     const text =
       known.key === "tonerReplaceSoon"
-        ? t("alerts.known.tonerReplaceSoon", { color: colorName(t(`supplies.color.${known.color}`)) }) + (known.waitForInstruction ? ` ${t("alerts.known.waitForInstruction")}` : "")
+        ? t("alerts.known.tonerReplaceSoon", { color: colorName(t(`supplies.color.${known.color}`)) })
         : t("alerts.known.partEndOfLife", { part: t(`alerts.parts.${known.part}`) });
     return (
       <span class="min-w-0 flex-1 text-ink" title={`${t("alerts.original")}: ${props.message}`}>

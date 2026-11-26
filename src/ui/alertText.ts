@@ -7,7 +7,7 @@
 import type { SupplyColor } from "../printer/types";
 
 export type KnownAlert =
-  | { key: "tonerReplaceSoon"; color: SupplyColor; waitForInstruction: boolean }
+  | { key: "tonerReplaceSoon"; color: SupplyColor }
   | { key: "partEndOfLife"; part: KnownPart };
 
 /** Parts whose names we can translate (add more as they are seen). */
@@ -19,11 +19,14 @@ export type KnownPart = (typeof PARTS)[keyof typeof PARTS];
  *   093-407 "The Yellow Toner [Y] Cartridge needs to be replaced soon. Order a new Yellow Toner [Y] Cartridge. Printing can continue."
  *   093-408 "... Order a new Magenta Toner [M] Cartridge but do not replace until you are instructed to. Printing can continue."
  *   094-421 "The Transfer Belt Cleaner has reached end of life. Call your System Administrator to replace ... Printing can continue."
+ * Only 093-408 says "do not replace until instructed", but it holds for every colour at this stage
+ * (Fuji Xerox: no need to replace yet; Xerox: wait for the end-of-life message), so all toner
+ * warnings get the same advice: have a cartridge ready, replace it when the printer asks.
  */
 export function recognizeAlert(message: string): KnownAlert | null {
   const toner = /^The (Black|Yellow|Magenta|Cyan) Toner \[[KYMC]\] Cartridge needs to be replaced soon\b/i.exec(message);
   if (toner) {
-    return { key: "tonerReplaceSoon", color: toner[1]!.toLowerCase() as SupplyColor, waitForInstruction: /do not replace until you are instructed/i.test(message) };
+    return { key: "tonerReplaceSoon", color: toner[1]!.toLowerCase() as SupplyColor };
   }
   const part = /^The (.+?) has reached end of life\b/i.exec(message);
   const known = part ? PARTS[part[1]!.toLowerCase() as keyof typeof PARTS] : undefined;

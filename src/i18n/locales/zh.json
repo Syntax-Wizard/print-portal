@@ -286,8 +286,7 @@
     "title": "打印机消息",
     "none": "没有消息",
     "known": {
-      "tonerReplaceSoon": "{{color}}碳粉盒即将需要更换。请准备好新的碳粉盒（可以继续打印）。",
-      "waitForInstruction": "在打印机提示之前请不要更换。",
+      "tonerReplaceSoon": "{{color}}碳粉即将用完，建议提前备好新粉盒，收到更换提示后再换，不影响正常打印。",
       "partEndOfLife": "{{part}}已达到寿命。请联系管理员更换（可以继续打印）。"
     },
     "parts": {

@@ -295,8 +295,7 @@
     "title": "Messages from the printer",
     "none": "No messages",
     "known": {
-      "tonerReplaceSoon": "The {{color}} toner cartridge needs replacing soon. Get a new one ready (printing can continue).",
-      "waitForInstruction": "Don't replace it until the printer asks you to.",
+      "tonerReplaceSoon": "The {{color}} toner is running low. Get a new cartridge ready and replace it when the printer asks you to (printing can continue).",
       "partEndOfLife": "The {{part}} has reached the end of its life. Ask the administrator to replace it (printing can continue)."
     },
     "parts": {
