@@ -19,8 +19,8 @@
   s.onerror = function () {
     alert(
       ja
-        ? "Print Portal を読み込めませんでした。インターネットに接続されているか確認してください。元の画面はそのまま使えます。"
-        : "Couldn't load Print Portal. Check your internet connection. The original screen still works.",
+        ? "Tombo を読み込めませんでした。インターネットに接続されているか確認してください。元の画面はそのまま使えます。"
+        : "Couldn't load Tombo. Check your internet connection. The original screen still works.",
     );
   };
   (document.head || document.documentElement).appendChild(s);

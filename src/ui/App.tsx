@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { LANGUAGES, setLanguage, useT } from "../i18n";
 import type { PrinterClient } from "../printer/client";
 import { PrinterUnreachableError } from "../printer/client";
+import { BRAND_MARK_SVG } from "../brand/mark";
 import { cx } from "./components/controls";
 import { DeviceBadge, effectiveState, lowToners } from "./components/status";
 import { MailboxPage } from "./pages/MailboxPage";
@@ -70,14 +71,8 @@ function useTheme(): [Theme, (t: Theme) => void] {
 }
 
 function BrandMark() {
-  return (
-    <span class="grid h-7 w-7 shrink-0 grid-cols-2 gap-1 rounded-lg bg-well p-1.5 ring-1 ring-inset ring-rule" aria-hidden="true">
-      <span class="rounded-[2px]" style={{ background: "var(--color-process-c)" }} />
-      <span class="rounded-[2px]" style={{ background: "var(--color-process-m)" }} />
-      <span class="rounded-[2px]" style={{ background: "var(--color-process-y)" }} />
-      <span class="rounded-[2px]" style={{ background: "var(--color-process-k)" }} />
-    </span>
-  );
+  // A fixed constant, not user data.
+  return <span class="h-7 w-7 shrink-0 [&>svg]:h-full [&>svg]:w-full" aria-hidden="true" dangerouslySetInnerHTML={{ __html: BRAND_MARK_SVG }} />;
 }
 
 function NavIcon({ view }: { view: View }) {

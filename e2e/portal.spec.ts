@@ -29,13 +29,13 @@ async function openPortal(page: Page) {
   );
   await page.goto("/print.htm");
   await page.evaluate(bookmarkletCode);
-  await expect(page.getByRole("heading", { name: "Print Portal" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tombo" })).toBeVisible();
 }
 
 test("bookmarklet takes over the printer page in standards mode", async ({ page }) => {
   await openPortal(page);
   expect(await page.evaluate(() => document.compatMode)).toBe("CSS1Compat");
-  expect(await page.title()).toBe("Print Portal");
+  expect(await page.title()).toBe("Tombo");
   expect(await page.locator("frameset").count()).toBe(0);
   await expect(page.getByText("ApeosPort-V C4476")).toBeVisible();
   await expect(page.getByText("節電中")).toBeVisible();

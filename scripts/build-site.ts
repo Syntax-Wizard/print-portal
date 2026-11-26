@@ -2,7 +2,7 @@
  * Build the bookmarklet and the install page into dist/.
  *
  * PORTAL_BASE_URL is where dist/ will be served (must end with "/"), e.g.
- *   https://<github-user>.github.io/print-portal/
+ *   https://<github-user>.github.io/tombo/
  * It defaults to the mock printer's /__portal/ path for local testing.
  */
 
@@ -10,6 +10,7 @@ import { copyFileSync, readFileSync, readdirSync, writeFileSync, mkdirSync } fro
 import { fileURLToPath } from "node:url";
 import { transformSync } from "esbuild";
 import { buildId } from "./build-id";
+import { BRAND_FAVICON, BRAND_MARK_SVG } from "../src/brand/mark";
 
 const root = (p: string) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 
@@ -35,7 +36,9 @@ const escapeAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;
 const html = readFileSync(root("site/index.html"), "utf-8")
   .replaceAll("__BOOKMARKLET__", escapeAttr(bookmarklet))
   .replace("__I18N__", JSON.stringify(locales).replace(/</g, "\\u003c"))
-  .replace("__VERSION__", version);
+  .replace("__VERSION__", version)
+  .replaceAll("__BRAND_SVG__", BRAND_MARK_SVG)
+  .replaceAll("__BRAND_FAVICON__", BRAND_FAVICON);
 
 mkdirSync(root("dist"), { recursive: true });
 writeFileSync(root("dist/index.html"), html);

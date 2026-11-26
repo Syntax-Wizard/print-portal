@@ -1,4 +1,4 @@
-# Print Portal
+# Tombo
 
 A modern, multilingual (Japanese / English) print screen for the lab's FUJI XEROX
 ApeosPort-V C4476. It needs **no server**: a bookmarklet loads the app into the
@@ -7,7 +7,7 @@ The printer's original screen keeps working; reloading the page brings it back.
 
 ## How it works
 
-1. A user opens the printer's web page and clicks the **Print Portal** bookmark.
+1. A user opens the printer's web page and clicks the **Tombo** bookmark.
 2. The bookmark loads `portal.js` from GitHub Pages.
 3. `portal.js` replaces the old frameset page with the new UI, which reads status pages
    (`stgen.htm`, `sttray.htm`, …) and submits jobs to `/UPLPRT.cmd`.
@@ -29,7 +29,7 @@ Mock printer scenarios: `MOCK_SCENARIO=lowToner|paperOut|jam|slow npm run mock`.
 ## Build and deploy
 
 ```sh
-PORTAL_BASE_URL=https://<github-user>.github.io/print-portal/ npm run build
+PORTAL_BASE_URL=https://<github-user>.github.io/tombo/ npm run build
 ```
 
 `dist/` then contains `portal.js`, the install page `index.html`, and `bookmarklet.txt`.

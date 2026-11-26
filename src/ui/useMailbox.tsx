@@ -13,6 +13,7 @@
 import { createContext, type ComponentChildren } from "preact";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { createZip, uniqueNames } from "../util/zip";
+import { BRAND_NAME } from "../brand/mark";
 import {
   MailboxClient,
   type MailboxDocument,
@@ -506,7 +507,7 @@ export function useMailbox(client?: MailboxClient) {
   }, [phase, refresh, close]);
 
   useEffect(() => {
-    const base = "Print Portal";
+    const base = BRAND_NAME;
     document.title = unseen > 0 ? `(${unseen}) ${base}` : base;
     if (unseen === 0) return;
     const onVisible = () => document.visibilityState === "visible" && setUnseen(0);
