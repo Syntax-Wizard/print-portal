@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "model": "ApeosPort-V C4476",
+  "measuredAt": "2026-11-27T10:18:45.320Z",
+  "supplies": [
+    {
+      "kind": "toner",
+      "color": "black",
+      "percent": 32
+    },
+    {
+      "kind": "toner",
+      "color": "yellow",
+      "percent": 1
+    },
+    {
+      "kind": "toner",
+      "color": "magenta",
+      "percent": 1
+    },
+    {
+      "kind": "toner",
+      "color": "cyan",
+      "percent": 26
+    },
+    {
+      "kind": "drum",
+      "color": "black",
+      "percent": 58
+    },
+    {
+      "kind": "drum",
+      "color": "yellow",
+      "percent": 27
+    },
+    {
+      "kind": "drum",
+      "color": "magenta",
+      "percent": 28
+    },
+    {
+      "kind": "drum",
+      "color": "cyan",
+      "percent": 28
+    }
+  ],
+  "alerts": [
+    {
+      "code": "094-421",
+      "message": "The Transfer Belt Cleaner has reached end of life. Call your System Administrator to replace the Transfer Belt Cleaner. Printing can continue.",
+      "severity": "warning"
+    },
+    {
+      "code": "093-407",
+      "message": "The Yellow Toner [Y] Cartridge needs to be replaced soon. Order a new Yellow Toner [Y] Cartridge. Printing can continue.",
+      "severity": "warning"
+    },
+    {
+      "code": "093-408",
+      "message": "The Magenta Toner [M] Cartridge needs to be replaced soon. Order a new Magenta Toner [M] Cartridge but do not replace until you are instructed to. Printing can continue.",
+      "severity": "warning"
+    },
+    {
+      "code": "093-406",
+      "message": "The Black Toner [K] Cartridge needs to be replaced soon. Order a new Black Toner [K] Cartridge. Printing can continue.",
+      "severity": "warning"
+    }
+  ]
+}
